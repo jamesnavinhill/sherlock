@@ -45,4 +45,5 @@ Sherlock helps analysts and researchers run iterative knowledge workflows by com
 ## Non-Goals for Documentation
 
 - do not treat `docs/_legacy/*` as current runtime truth
+- keep active execution plans in `docs/plans/` and active findings/closeouts in `docs/reports/`
 - keep this scope document tied to implemented behavior, not aspirational roadmap

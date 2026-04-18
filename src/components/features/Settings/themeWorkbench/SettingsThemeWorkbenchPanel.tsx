@@ -33,13 +33,13 @@ import {
   clamp,
   getSurfaceBounds,
   getTone,
-  type ThemeBackgroundField,
   type ThemeFontProfileField,
   type ThemeGraphField,
   type ThemeStructureKey,
   type ThemeSurfaceField,
   type ThemeWorkbenchTab,
 } from './shared';
+import { updateThemeBackgroundField, type ThemeBackgroundNumericField } from './backgroundState';
 
 interface SettingsThemeWorkbenchPanelProps {
   activeTheme: SherlockTheme;
@@ -189,31 +189,15 @@ export const SettingsThemeWorkbenchPanel: React.FC<SettingsThemeWorkbenchPanelPr
     }));
   };
 
-  const updateBackgroundField = (field: ThemeBackgroundField, rawValue: number) => {
-    updateTheme((theme) => ({
-      ...theme,
-      background: {
-        ...theme.background,
-        ...(field === 'dotColor' || field === 'gridSize'
-          ? { [field]: Math.round(rawValue) }
-          : field === 'dotOpacity' || field === 'glowOpacity' || field === 'scanlineOpacity'
-            ? { [field]: clamp(Number(rawValue.toFixed(3)), 0, 1) }
-            : {}),
-        ...(field === 'hue' || field === 'lightness' || field === 'chroma' || field === 'opacity'
-          ? {
-              [activeMode]: {
-                ...theme.background[activeMode],
-                [field]:
-                  field === 'hue'
-                    ? ((Math.round(rawValue) % 360) + 360) % 360
-                    : field === 'opacity'
-                      ? clamp(Number(rawValue.toFixed(3)), 0, 1)
-                      : clamp(Number(rawValue.toFixed(3)), 0, field === 'chroma' ? 0.12 : 1),
-              },
-            }
-          : {}),
-      },
-    }));
+  const updateBackgroundField = (field: ThemeBackgroundNumericField, rawValue: number) => {
+    updateTheme((theme) =>
+      updateThemeBackgroundField({
+        theme,
+        mode: activeMode,
+        field,
+        rawValue,
+      })
+    );
   };
 
   const updateFontProfileField = (field: ThemeFontProfileField, rawValue: number) => {

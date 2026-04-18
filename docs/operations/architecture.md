@@ -5,8 +5,7 @@ This document describes the current runtime architecture as implemented in `src/
 Repository note:
 
 - `src/` remains the active Sherlock application.
-- `canon-design/` is a separate standalone app kept in-repo for now. It should stay self-contained and must not depend on Sherlock routing, store, or runtime modules.
-- `canon-design/src/components/canon/` is the extracted reusable canon layer inside that standalone app. It now owns the page shell, general rail, toolbar/cluster, shared popup/menu surfaces, structured dialog surfaces (modal and modeless), option-group and date-range controls, disclosure, and conversation primitives used by the studio reference page and workbench behavior lab.
+- active plans live under `docs/plans/`, active reports live under `docs/reports/`, and historical planning/report artifacts live under `docs/_legacy/`
 
 Sherlock now runs on a canonical workspace architecture. The domain-pack shell remains in place, but runtime execution resolves a generic pack, purpose profile, and artifact contract under the settled `Workspace -> Artifact -> WorkspaceRun` model.
 

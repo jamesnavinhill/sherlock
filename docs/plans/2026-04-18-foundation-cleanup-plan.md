@@ -1,6 +1,6 @@
 # 2026-04-18 Foundation Cleanup Plan
 
-Status: Proposed
+Status: In Progress (`Phase 1` and `Phase 2` completed on April 18, 2026)
 
 Related inputs:
 
@@ -165,6 +165,21 @@ Primary targets:
 - docs-only review
 - optional `npm run lint` / `npm run typecheck` not required unless code is touched in the same session
 
+### Progress
+
+Completed on April 18, 2026.
+
+Landed in this phase:
+
+- removed the stale active `canon-design/` claims from `README.md` and `docs/operations/ARCHITECTURE.md`
+- updated the active documentation index in `README.md` so it points at real current plan/report files
+- added active index docs at `docs/plans/README.md` and `docs/reports/README.md`
+- updated `docs/operations/CONTRIBUTING.md` and `docs/operations/BROAD_SCOPE.md` so active planning/report directories are part of the current guidance
+
+Validation note:
+
+- this phase was docs-only and was not run through local `npm` validation from WSL
+
 ## Phase 2. Theme Workbench Correctness And Theme Contract Hardening
 
 Purpose:
@@ -206,6 +221,21 @@ Primary targets:
 - `npm run typecheck`
 - targeted tests for touched theme/workbench files
 - `npm run build`
+
+### Progress
+
+Completed on April 18, 2026.
+
+Landed in this phase:
+
+- extracted the background slider mutation logic into `src/components/features/Settings/themeWorkbench/backgroundState.ts`
+- fixed the mode-scoped background write bug so `dotColor`, `gridSize`, `dotOpacity`, `glowOpacity`, and `scanlineOpacity` update `background[activeMode]`
+- updated `SettingsThemeWorkbenchPanel.tsx` to use the extracted helper instead of the malformed inline background updater
+- added focused coverage in `src/components/features/Settings/themeWorkbench/backgroundState.test.ts` for mode isolation, numeric clamping, and JSON export persistence
+
+Validation note:
+
+- targeted tests were added but not executed here because this checkout should not run local repo Node/Vite/Vitest commands from WSL; run the Phase 2 validation commands from Windows shell
 
 ## Phase 3. Operation View Naming Canon
 

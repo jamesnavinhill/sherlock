@@ -2,7 +2,7 @@
 
 Sherlock AI is a React + TypeScript knowledge workspace for AI-assisted investigations, research, monitoring, and structured reporting across multiple domains.
 
-This repository also contains a separate standalone canon studio in [`canon-design`](./canon-design). It is intentionally self-contained so it can be moved out later without depending on Sherlock runtime code. The extracted canon component layer currently lives in `canon-design/src/components/canon/` and is the reference implementation for the reusable shell, rail, toolbar, popup/menu, dialog, disclosure, date-range, option-group, and conversation primitives.
+The active application in this checkout lives under `src/`. Current plans and reports live under `docs/plans/` and `docs/reports/`, while historical planning and report artifacts live under `docs/_legacy/`.
 
 ## What It Does
 
@@ -181,9 +181,10 @@ The current targeted validation for the theme-mode decoupling cleanup and theme-
 - `docs/operations/SOURCES.md`
 - `docs/operations/LINTING.md`
 - `docs/operations/CONTRIBUTING.md`
-- `docs/plans/12-agent-terminal-roadmap.md`
-- `docs/plans/13-canon-workbench-cutover-roadmap.md`
-- `docs/reports/2026-04-08-ui-uniformity-report.md`
+- `docs/plans/README.md`
+- `docs/plans/2026-04-18-foundation-cleanup-plan.md`
+- `docs/reports/README.md`
+- `docs/reports/2026-04-18-foundation-audit.md`
 
 Historical plans and reports live under `docs/_legacy/`.
 

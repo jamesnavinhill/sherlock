@@ -6,6 +6,8 @@ This guide covers contributions to active docs/code under:
 
 - `src/`
 - `docs/operations/`
+- `docs/plans/`
+- `docs/reports/`
 - root project config files
 
 ## Local Setup
@@ -63,5 +65,6 @@ npm run check:full
 - Keep operational incident procedures in `docs/operations/OPERATIONS_RUNBOOK.md`.
 - Keep source catalogs in `docs/operations/SOURCES.md` and scope metadata in `docs/operations/SCOPES.md`.
 - Keep `docs/operations/DATA_PERSISTENCE.md` aligned with actual backup/restore and cleanup behavior whenever workspace-data scope changes.
+- Keep active working plans in `docs/plans/` and active findings/closeouts in `docs/reports/`.
 - Treat `README.md` plus the active operations docs as the entry points for current repo guidance, and use dated plan/report documents only as bounded execution or findings records.
 - Treat `docs/_legacy/*` as historical context only.
