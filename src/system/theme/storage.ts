@@ -164,10 +164,6 @@ export const selectActiveTheme = (
 
   const nextWorkspace = cloneSherlockThemeWorkspace(workspace);
   nextWorkspace.activeThemeId = themeId;
-  nextWorkspace.previewMode =
-    nextWorkspace.draftThemes[themeId]?.mode ??
-    nextWorkspace.savedThemes[themeId]?.mode ??
-    nextWorkspace.previewMode;
   return nextWorkspace;
 };
 

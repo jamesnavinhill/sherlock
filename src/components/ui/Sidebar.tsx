@@ -81,7 +81,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
       )}
 
       <aside
-        className={`${isCollapsed ? 'w-0 md:w-20 -translate-x-full md:translate-x-0' : 'w-64 translate-x-0'} bg-osint-dark border-r border-zinc-800 flex flex-col h-screen fixed left-0 top-0 z-50 transition-all duration-300 shadow-2xl md:shadow-none`}
+        className={`${
+          isCollapsed
+            ? 'w-0 md:w-20 -translate-x-full md:translate-x-0'
+            : 'w-[min(var(--osint-shell-sidebar-width),calc(100vw-1.5rem))] md:w-[var(--osint-shell-sidebar-width)] translate-x-0'
+        } bg-osint-dark border-r border-zinc-800 flex flex-col h-screen fixed left-0 top-0 z-50 transition-all duration-300 shadow-2xl md:shadow-none`}
       >
         <div
           onClick={toggleCollapse}
@@ -213,7 +217,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
       {/* Mobile Menu Toggle Button (Visible only when collapsed on small screens) */}
       <button
         onClick={toggleCollapse}
-        className={`osint-button-primary md:hidden fixed bottom-6 right-6 z-50 p-4 rounded-full transition-transform focus:ring-4 focus:ring-white/20 outline-none ${!isCollapsed ? 'scale-0' : 'scale-100'}`}
+        className={`osint-button-primary md:hidden fixed bottom-6 right-6 z-50 p-4 rounded-full transition-transform focus:ring-4 focus:ring-white/20 outline-none ${
+          !isCollapsed ? 'scale-0' : 'scale-100'
+        }`}
         aria-label={isCollapsed ? 'Open Sidebar' : 'Close Sidebar'}
       >
         <img src={brandLogoSrc} alt="" className="h-6 w-6 rounded-sm object-cover" aria-hidden="true" />

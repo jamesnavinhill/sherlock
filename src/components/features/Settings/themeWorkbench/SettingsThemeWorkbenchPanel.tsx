@@ -1,21 +1,63 @@
-import React from 'react';
+import React, { useMemo, useState } from 'react';
 
+import { RangeField } from '@/components/system/controls';
+import { Accordion } from '@/components/ui/Accordion';
+import { OsintSelect } from '@/components/ui/OsintSelect';
+import {
+  describeThemeFontSize,
+  describeThemeFontWeight,
+  getThemeFontOption,
+  resolveThemeFontSizes,
+  resolveThemeFontWeights,
+  type ThemeFontRole,
+} from '@/utils/themeFonts';
 import { buildAccentColor } from '@/utils/accent';
 import {
+  createDefaultSherlockThemeGraphs,
+  getSherlockThemeFontOptionsForRole,
+  SHERLOCK_THEME_BACKGROUND_VARIANTS,
+  SHERLOCK_THEME_CONTROL_CHROME_OPTIONS,
   SHERLOCK_THEME_LIBRARY_TEMPLATES,
   type SherlockTheme,
   type SherlockThemeMode,
+  type SherlockThemeSurfaceScale,
 } from '@/system/theme/schema';
+import {
+  SETTINGS_SELECT_TRIGGER_CLASS,
+  SETTINGS_SURFACE_BUTTON_CLASS,
+} from '../settingsUtils';
+import {
+  FONT_ROLE_LABELS,
+  STRUCTURE_LABELS,
+  THEME_FONT_ROLES,
+  WORKBENCH_TABS,
+  clamp,
+  getSurfaceBounds,
+  getTone,
+  type ThemeBackgroundField,
+  type ThemeFontProfileField,
+  type ThemeGraphField,
+  type ThemeStructureKey,
+  type ThemeSurfaceField,
+  type ThemeWorkbenchTab,
+} from './shared';
 
 interface SettingsThemeWorkbenchPanelProps {
   activeTheme: SherlockTheme;
   activeThemeId: string;
   exportResolvedCss: string;
   exportThemeJson: string;
+  forkActiveTheme: () => void;
   previewMode: SherlockThemeMode;
+  resetActiveThemeFactory: () => void;
+  resetAllThemeFactories: () => void;
   revertActiveTheme: () => void;
   saveActiveTheme: () => void;
+  savedTheme: SherlockTheme;
+  selectTheme: (themeId: string) => void;
+  setPreviewMode: (mode: SherlockThemeMode) => void;
   themeDirty: boolean;
+  updateTheme: (updater: (theme: SherlockTheme) => SherlockTheme) => void;
 }
 
 const copyText = async (value: string) => {
@@ -26,83 +68,1228 @@ const copyText = async (value: string) => {
   }
 };
 
+const SECTION_ACTION_BUTTON_CLASS = `${SETTINGS_SURFACE_BUTTON_CLASS} px-2 py-1 osint-meta-label`;
+const SURFACE_BUTTON_CLASS = `${SETTINGS_SURFACE_BUTTON_CLASS} px-3 py-2`;
+const SECTION_WRAPPER_CLASS = 'space-y-2';
+const MODE_OPTIONS: SherlockThemeMode[] = ['dark', 'light'];
+
+const toggleSection = (
+  current: string[],
+  sectionId: string
+) => (current.includes(sectionId) ? current.filter((item) => item !== sectionId) : [...current, sectionId]);
+
+const PaletteSwatch: React.FC<{ label: string; value: string }> = ({ label, value }) => (
+  <div className="rounded border border-[color:var(--osint-border)] bg-[var(--osint-card-section-bg)] p-3">
+    <div
+      className="h-14 rounded border border-[color:var(--osint-raised-outline)]"
+      style={{ background: value }}
+    />
+    <div className="mt-2 osint-meta-label">{label}</div>
+    <div className="mt-1 break-all osint-body-quiet">{value}</div>
+  </div>
+);
+
+const CodePreview: React.FC<{ value: string }> = ({ value }) => (
+  <pre className="max-h-72 overflow-auto rounded border border-[color:var(--osint-border)] bg-[var(--osint-card-section-bg)] p-3 text-[11px] leading-5 text-[color:var(--osint-text-muted)]">
+    <code>{value}</code>
+  </pre>
+);
+
 export const SettingsThemeWorkbenchPanel: React.FC<SettingsThemeWorkbenchPanelProps> = ({
   activeTheme,
   activeThemeId,
   exportResolvedCss,
   exportThemeJson,
+  forkActiveTheme,
   previewMode,
+  resetActiveThemeFactory,
+  resetAllThemeFactories,
   revertActiveTheme,
   saveActiveTheme,
+  savedTheme,
+  selectTheme,
+  setPreviewMode,
   themeDirty,
-}) => (
-  <>
-    <section className="osint-card-section rounded p-4">
-      <div className="osint-meta-label">Preview Mode</div>
-      <div className="mt-2 capitalize osint-title-inline">{previewMode}</div>
-      <div className="mt-3 flex items-center gap-3">
-        <div
-          className="h-4 w-4 rounded-sm border border-zinc-700"
-          style={{ background: buildAccentColor(activeTheme.accent) }}
-        />
-        <div className="min-w-0">
-          <div className="osint-meta-label">Draft Accent</div>
-          <div className="truncate osint-body-small">{buildAccentColor(activeTheme.accent)}</div>
-        </div>
-      </div>
-    </section>
+  updateTheme,
+}) => {
+  const [activeTab, setActiveTab] = useState<ThemeWorkbenchTab>('theme');
+  const [editingMode, setEditingMode] = useState<SherlockThemeMode>(previewMode);
+  const [selectedStructureKey, setSelectedStructureKey] = useState<ThemeStructureKey>('panel');
+  const [activeFontRole, setActiveFontRole] = useState<ThemeFontRole>('ui');
+  const [activeGraphIndex, setActiveGraphIndex] = useState(0);
+  const [openThemeSections, setOpenThemeSections] = useState<string[]>(['themes']);
+  const [openTypeSections, setOpenTypeSections] = useState<string[]>(['roles']);
+  const [openShellSections, setOpenShellSections] = useState<string[]>(['geometry']);
+  const [openExportSections, setOpenExportSections] = useState<string[]>(['tokens']);
 
-    <section className="osint-card-section rounded p-4">
-      <div className="osint-meta-label">Active Template</div>
-      <div className="mt-2 osint-title-inline">
-        {SHERLOCK_THEME_LIBRARY_TEMPLATES.find((template) => template.id === activeThemeId)?.label ??
-          'Theme'}
-      </div>
-      <div className="mt-3 grid gap-2">
-        <div className="osint-card-section-subtle rounded px-3 py-2">
-          <div className="osint-meta-label">Draft Status</div>
-          <div className="mt-1 osint-body-quiet">
-            {themeDirty
-              ? 'Unsaved changes are active in this draft.'
-              : 'Draft matches the saved theme.'}
+  const activeThemeLabel =
+    SHERLOCK_THEME_LIBRARY_TEMPLATES.find((template) => template.id === activeThemeId)?.label ??
+    'Theme';
+  const selectedSurface = activeTheme.surfaces[editingMode][selectedStructureKey];
+  const selectedBackground = activeTheme.background[editingMode];
+  const selectedGraph = activeTheme.graphs[activeGraphIndex];
+  const previewSurfaces = activeTheme.surfaces[previewMode];
+  const surfaceBounds = getSurfaceBounds(editingMode, selectedStructureKey);
+  const selectedFontProfile = activeTheme.typography.profiles[activeFontRole];
+  const activeSizeProfile = describeThemeFontSize(activeTheme.typography.size);
+  const activeWeightProfile = describeThemeFontWeight(activeTheme.typography.weight);
+  const resolvedSizes = resolveThemeFontSizes(activeTheme.typography.size);
+  const resolvedWeights = resolveThemeFontWeights(activeTheme.typography.weight);
+  const fontRoleOptions = useMemo(
+    () =>
+      getSherlockThemeFontOptionsForRole(activeFontRole).map((option) => ({
+        value: option.id,
+        label: option.label,
+      })),
+    [activeFontRole]
+  );
+
+  const updateSurfaceField = (field: ThemeSurfaceField, rawValue: number) => {
+    updateTheme((theme) => ({
+      ...theme,
+      surfaces: {
+        ...theme.surfaces,
+        [editingMode]: {
+          ...theme.surfaces[editingMode],
+          [selectedStructureKey]: {
+            ...theme.surfaces[editingMode][selectedStructureKey],
+            [field]:
+              field === 'hue'
+                ? ((Math.round(rawValue) % 360) + 360) % 360
+                : field === 'lightness'
+                  ? clamp(
+                      Number(rawValue.toFixed(3)),
+                      surfaceBounds.lightnessMin,
+                      surfaceBounds.lightnessMax
+                    )
+                  : field === 'opacity'
+                    ? clamp(Number(rawValue.toFixed(3)), 0, 1)
+                    : clamp(Number(rawValue.toFixed(3)), 0, surfaceBounds.chromaMax),
+          },
+        },
+      },
+    }));
+  };
+
+  const updateGraphField = (field: ThemeGraphField, rawValue: number) => {
+    updateTheme((theme) => ({
+      ...theme,
+      graphs: theme.graphs.map((graph, index) =>
+        index === activeGraphIndex
+          ? {
+              ...graph,
+              [field]:
+                field === 'hue'
+                  ? ((Math.round(rawValue) % 360) + 360) % 360
+                  : field === 'opacity'
+                    ? clamp(Number(rawValue.toFixed(3)), 0, 1)
+                    : clamp(Number(rawValue.toFixed(3)), 0, field === 'lightness' ? 1 : 0.18),
+            }
+          : graph
+      ),
+    }));
+  };
+
+  const updateBackgroundField = (field: ThemeBackgroundField, rawValue: number) => {
+    updateTheme((theme) => ({
+      ...theme,
+      background: {
+        ...theme.background,
+        ...(field === 'dotColor' || field === 'gridSize'
+          ? { [field]: Math.round(rawValue) }
+          : field === 'dotOpacity' || field === 'glowOpacity' || field === 'scanlineOpacity'
+            ? { [field]: clamp(Number(rawValue.toFixed(3)), 0, 1) }
+            : {}),
+        ...(field === 'hue' || field === 'lightness' || field === 'chroma' || field === 'opacity'
+          ? {
+              [editingMode]: {
+                ...theme.background[editingMode],
+                [field]:
+                  field === 'hue'
+                    ? ((Math.round(rawValue) % 360) + 360) % 360
+                    : field === 'opacity'
+                      ? clamp(Number(rawValue.toFixed(3)), 0, 1)
+                      : clamp(Number(rawValue.toFixed(3)), 0, field === 'chroma' ? 0.12 : 1),
+              },
+            }
+          : {}),
+      },
+    }));
+  };
+
+  const updateFontProfileField = (field: ThemeFontProfileField, rawValue: number) => {
+    updateTheme((theme) => ({
+      ...theme,
+      typography: {
+        ...theme.typography,
+        profiles: {
+          ...theme.typography.profiles,
+          [activeFontRole]: {
+            ...theme.typography.profiles[activeFontRole],
+            [field]:
+              field === 'weightAdjust'
+                ? Math.round(rawValue)
+                : Number(rawValue.toFixed(field === 'trackingAdjust' ? 3 : 2)),
+          },
+        },
+      },
+    }));
+  };
+
+  const paletteSwatches = [
+    { label: 'Accent', value: buildAccentColor(activeTheme.accent) },
+    { label: 'Background', value: buildAccentColor(activeTheme.background[previewMode]) },
+    { label: 'Shell', value: buildAccentColor(previewSurfaces.shell) },
+    { label: 'Rail', value: buildAccentColor(previewSurfaces.rail) },
+    { label: 'Panel', value: buildAccentColor(previewSurfaces.panel) },
+    { label: 'Surface', value: buildAccentColor(previewSurfaces.surface) },
+    ...activeTheme.graphs.map((graph, index) => ({
+      label: `Graph ${index + 1}`,
+      value: buildAccentColor(graph),
+    })),
+  ];
+
+  return (
+    <div className="space-y-3 pb-6">
+      <section className="osint-card-section-subtle rounded p-3">
+        <div className="flex flex-wrap gap-2">
+          {WORKBENCH_TABS.map((tab) => (
+            <button
+              key={tab.id}
+              type="button"
+              onClick={() => setActiveTab(tab.id)}
+              data-active={activeTab === tab.id ? 'true' : undefined}
+              className={`${SURFACE_BUTTON_CLASS} osint-meta-label`}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+
+        <div className="mt-3 grid gap-3">
+          <div className="grid gap-3 lg:grid-cols-2">
+            <div className="rounded border border-[color:var(--osint-border)] bg-[var(--osint-card-section-bg)] p-3">
+              <div className="osint-meta-label">Preview Mode</div>
+              <div className="mt-2 inline-flex gap-2">
+                {MODE_OPTIONS.map((mode) => (
+                  <button
+                    key={`preview-${mode}`}
+                    type="button"
+                    onClick={() => setPreviewMode(mode)}
+                    data-active={previewMode === mode ? 'true' : undefined}
+                    className={`${SURFACE_BUTTON_CLASS} osint-meta-label`}
+                  >
+                    {mode}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="rounded border border-[color:var(--osint-border)] bg-[var(--osint-card-section-bg)] p-3">
+              <div className="osint-meta-label">Edit Mode</div>
+              <div className="mt-2 inline-flex gap-2">
+                {MODE_OPTIONS.map((mode) => (
+                  <button
+                    key={`edit-${mode}`}
+                    type="button"
+                    onClick={() => setEditingMode(mode)}
+                    data-active={editingMode === mode ? 'true' : undefined}
+                    className={`${SURFACE_BUTTON_CLASS} osint-meta-label`}
+                  >
+                    {mode}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <div className="flex flex-wrap items-center justify-between gap-3 rounded border border-[color:var(--osint-border)] bg-[var(--osint-card-section-bg)] p-3">
+            <div className="min-w-0">
+              <div className="osint-meta-label">Active Theme</div>
+              <div className="mt-1 truncate osint-title-inline">{activeThemeLabel}</div>
+              <div className="mt-1 osint-body-quiet">
+                {themeDirty ? 'Unsaved draft changes are active.' : 'Draft matches the saved theme.'}
+              </div>
+            </div>
+
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={saveActiveTheme}
+                className={`${SURFACE_BUTTON_CLASS} osint-meta-label`}
+              >
+                Save Theme
+              </button>
+              <button
+                type="button"
+                onClick={revertActiveTheme}
+                className={`${SURFACE_BUTTON_CLASS} osint-meta-label`}
+              >
+                Revert
+              </button>
+            </div>
           </div>
         </div>
-        <button
-          type="button"
-          onClick={saveActiveTheme}
-          className="osint-settings-surface-button px-3 py-2 text-left osint-meta-label"
-        >
-          Save Active Theme
-        </button>
-        <button
-          type="button"
-          onClick={revertActiveTheme}
-          className="osint-settings-surface-button px-3 py-2 text-left osint-meta-label"
-        >
-          Revert Draft
-        </button>
-      </div>
-    </section>
+      </section>
 
-    <section className="osint-card-section rounded p-4">
-      <div className="osint-meta-label">Export</div>
-      <div className="mt-2 osint-title-inline">Theme Snapshot</div>
-      <div className="mt-3 grid gap-2">
-        <button
-          type="button"
-          onClick={() => void copyText(exportThemeJson)}
-          className="osint-settings-surface-button px-3 py-2 text-left osint-meta-label"
-        >
-          Copy Theme JSON
-        </button>
-        <button
-          type="button"
-          onClick={() => void copyText(exportResolvedCss)}
-          className="osint-settings-surface-button px-3 py-2 text-left osint-meta-label"
-        >
-          Copy Resolved CSS
-        </button>
-      </div>
-    </section>
-  </>
-);
+      {activeTab === 'theme' ? (
+        <div className={SECTION_WRAPPER_CLASS}>
+          <Accordion
+            title="Themes"
+            isOpen={openThemeSections.includes('themes')}
+            onToggle={() => setOpenThemeSections((current) => toggleSection(current, 'themes'))}
+          >
+            <div className="grid gap-3">
+              <div className="grid gap-2">
+                {SHERLOCK_THEME_LIBRARY_TEMPLATES.map((template) => (
+                  <button
+                    key={template.id}
+                    type="button"
+                    onClick={() => selectTheme(template.id)}
+                    data-active={activeThemeId === template.id ? 'true' : undefined}
+                    className={`${SURFACE_BUTTON_CLASS} flex items-center justify-between gap-3 text-left`}
+                  >
+                    <div className="min-w-0">
+                      <div className="truncate osint-title-inline">{template.label}</div>
+                      <div className="mt-1 osint-body-quiet">{template.description}</div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div
+                        className="h-4 w-4 rounded-sm border border-[color:var(--osint-raised-outline)]"
+                        style={{ background: buildAccentColor(template.theme.surfaces.dark.panel) }}
+                      />
+                      <div
+                        className="h-4 w-4 rounded-sm border border-[color:var(--osint-raised-outline)]"
+                        style={{ background: buildAccentColor(template.theme.surfaces.light.panel) }}
+                      />
+                    </div>
+                  </button>
+                ))}
+              </div>
+
+              <div className="grid gap-2">
+                <button
+                  type="button"
+                  onClick={forkActiveTheme}
+                  className={`${SURFACE_BUTTON_CLASS} text-left osint-meta-label`}
+                >
+                  Fork To Custom Slot
+                </button>
+                <button
+                  type="button"
+                  onClick={resetActiveThemeFactory}
+                  className={`${SURFACE_BUTTON_CLASS} text-left osint-meta-label`}
+                >
+                  Factory Reset Active Theme
+                </button>
+                <button
+                  type="button"
+                  onClick={resetAllThemeFactories}
+                  className={`${SURFACE_BUTTON_CLASS} text-left osint-meta-label`}
+                >
+                  Factory Reset All Themes
+                </button>
+              </div>
+            </div>
+          </Accordion>
+
+          <Accordion
+            title="Chrome Family"
+            isOpen={openThemeSections.includes('chrome')}
+            onToggle={() => setOpenThemeSections((current) => toggleSection(current, 'chrome'))}
+            actions={
+              <button
+                type="button"
+                onClick={() =>
+                  updateTheme((theme) => ({
+                    ...theme,
+                    controls: { ...savedTheme.controls },
+                  }))
+                }
+                className={SECTION_ACTION_BUTTON_CLASS}
+              >
+                Reset
+              </button>
+            }
+            showActionsWhenOpenOnly
+          >
+            <div className="grid gap-2">
+              {SHERLOCK_THEME_CONTROL_CHROME_OPTIONS.map((option) => (
+                <button
+                  key={option.id}
+                  type="button"
+                  onClick={() =>
+                    updateTheme((theme) => ({
+                      ...theme,
+                      controls: { chrome: option.id },
+                    }))
+                  }
+                  data-active={activeTheme.controls.chrome === option.id ? 'true' : undefined}
+                  className={`${SURFACE_BUTTON_CLASS} text-left`}
+                >
+                  <div className="osint-title-inline">{option.label}</div>
+                  <div className="mt-1 osint-body-quiet">{option.description}</div>
+                </button>
+              ))}
+            </div>
+          </Accordion>
+
+          <Accordion
+            title="Accent"
+            isOpen={openThemeSections.includes('accent')}
+            onToggle={() => setOpenThemeSections((current) => toggleSection(current, 'accent'))}
+            actions={
+              <button
+                type="button"
+                onClick={() =>
+                  updateTheme((theme) => ({
+                    ...theme,
+                    accent: { ...savedTheme.accent },
+                  }))
+                }
+                className={SECTION_ACTION_BUTTON_CLASS}
+              >
+                Reset
+              </button>
+            }
+            showActionsWhenOpenOnly
+          >
+            <div className="grid gap-4">
+              <div className="rounded border border-[color:var(--osint-raised-outline)] p-4">
+                <div className="osint-meta-label">Accent Preview</div>
+                <div
+                  className="mt-3 h-14 rounded border border-[color:var(--osint-raised-outline)]"
+                  style={{ background: buildAccentColor(activeTheme.accent) }}
+                />
+                <div className="mt-2 osint-body-quiet">{buildAccentColor(activeTheme.accent)}</div>
+              </div>
+              <RangeField
+                label="Hue"
+                value={activeTheme.accent.hue}
+                min={0}
+                max={360}
+                step={1}
+                onChange={(nextValue) =>
+                  updateTheme((theme) => ({
+                    ...theme,
+                    accent: { ...theme.accent, hue: Math.round(nextValue) },
+                  }))
+                }
+                formatValue={(nextValue) => `${Math.round(nextValue)}`}
+              />
+              <RangeField
+                label="Lightness"
+                value={activeTheme.accent.lightness}
+                min={0.3}
+                max={0.8}
+                step={0.005}
+                onChange={(nextValue) =>
+                  updateTheme((theme) => ({
+                    ...theme,
+                    accent: { ...theme.accent, lightness: Number(nextValue.toFixed(3)) },
+                  }))
+                }
+                formatValue={(nextValue) => nextValue.toFixed(3)}
+              />
+              <RangeField
+                label="Chroma"
+                value={activeTheme.accent.chroma}
+                min={0}
+                max={0.18}
+                step={0.002}
+                onChange={(nextValue) =>
+                  updateTheme((theme) => ({
+                    ...theme,
+                    accent: { ...theme.accent, chroma: Number(nextValue.toFixed(3)) },
+                  }))
+                }
+                formatValue={(nextValue) => nextValue.toFixed(3)}
+              />
+            </div>
+          </Accordion>
+
+          <Accordion
+            title="Graphs"
+            isOpen={openThemeSections.includes('graphs')}
+            onToggle={() => setOpenThemeSections((current) => toggleSection(current, 'graphs'))}
+            actions={
+              <button
+                type="button"
+                onClick={() =>
+                  updateTheme((theme) => ({
+                    ...theme,
+                    graphs: savedTheme.graphs.map((graph) => ({ ...graph })),
+                  }))
+                }
+                className={SECTION_ACTION_BUTTON_CLASS}
+              >
+                Reset
+              </button>
+            }
+            showActionsWhenOpenOnly
+          >
+            <div className="grid gap-4">
+              <div className="grid gap-2 sm:grid-cols-2">
+                {activeTheme.graphs.map((graph, index) => (
+                  <button
+                    key={`graph-${index}`}
+                    type="button"
+                    onClick={() => setActiveGraphIndex(index)}
+                    data-active={activeGraphIndex === index ? 'true' : undefined}
+                    className={`${SURFACE_BUTTON_CLASS} flex items-center justify-between text-left`}
+                  >
+                    <span className="osint-title-inline">Graph {index + 1}</span>
+                    <span
+                      className="h-5 w-5 rounded-sm border border-[color:var(--osint-raised-outline)]"
+                      style={{ background: buildAccentColor(graph) }}
+                    />
+                  </button>
+                ))}
+              </div>
+
+              <button
+                type="button"
+                onClick={() =>
+                  updateTheme((theme) => ({
+                    ...theme,
+                    graphs: createDefaultSherlockThemeGraphs(theme.accent),
+                  }))
+                }
+                className={`${SURFACE_BUTTON_CLASS} text-left osint-meta-label`}
+              >
+                Derive From Accent
+              </button>
+
+              <div
+                className="rounded border border-[color:var(--osint-raised-outline)] p-4"
+                style={{ background: buildAccentColor(selectedGraph) }}
+              >
+                <div className="osint-meta-label text-white/75">Selected Graph</div>
+                <div className="mt-1 text-sm text-white/90">Graph {activeGraphIndex + 1}</div>
+              </div>
+
+              {(
+                [
+                  ['hue', 'Hue', 0, 360, 1],
+                  ['lightness', 'Lightness', 0.3, 0.8, 0.001],
+                  ['chroma', 'Chroma', 0, 0.18, 0.001],
+                  ['opacity', 'Opacity', 0, 1, 0.01],
+                ] as const
+              ).map(([field, label, min, max, step]) => (
+                <RangeField
+                  key={field}
+                  label={label}
+                  value={selectedGraph[field]}
+                  min={min}
+                  max={max}
+                  step={step}
+                  onChange={(nextValue) => updateGraphField(field, nextValue)}
+                  formatValue={(nextValue) =>
+                    field === 'opacity'
+                      ? `${Math.round(nextValue * 100)}%`
+                      : nextValue.toFixed(field === 'hue' ? 0 : 3)
+                  }
+                />
+              ))}
+            </div>
+          </Accordion>
+
+          <Accordion
+            title="Background"
+            isOpen={openThemeSections.includes('background')}
+            onToggle={() => setOpenThemeSections((current) => toggleSection(current, 'background'))}
+            actions={
+              <button
+                type="button"
+                onClick={() =>
+                  updateTheme((theme) => ({
+                    ...theme,
+                    background: {
+                      ...savedTheme.background,
+                      dark: { ...savedTheme.background.dark },
+                      light: { ...savedTheme.background.light },
+                    },
+                  }))
+                }
+                className={SECTION_ACTION_BUTTON_CLASS}
+              >
+                Reset
+              </button>
+            }
+            showActionsWhenOpenOnly
+          >
+            <div className="grid gap-4">
+              <div className="rounded border border-[color:var(--osint-raised-outline)] p-3">
+                <div className="osint-meta-label">Editing {editingMode}</div>
+                <div
+                  className="mt-3 h-14 rounded border border-[color:var(--osint-raised-outline)]"
+                  style={{ background: buildAccentColor(selectedBackground) }}
+                />
+              </div>
+
+              <OsintSelect
+                ariaLabel="Theme background pattern"
+                value={activeTheme.background.variant}
+                onChange={(variant) =>
+                  updateTheme((theme) => ({
+                    ...theme,
+                    background: {
+                      ...theme.background,
+                      variant: variant as SherlockTheme['background']['variant'],
+                    },
+                  }))
+                }
+                triggerClassName={SETTINGS_SELECT_TRIGGER_CLASS}
+                portalledMenu
+                options={SHERLOCK_THEME_BACKGROUND_VARIANTS.map((variant) => ({
+                  value: variant.id,
+                  label: variant.label,
+                }))}
+              />
+
+              {(
+                [
+                  ['hue', 'Background Hue', 0, 360, 1],
+                  ['lightness', 'Background Lightness', 0, 1, 0.001],
+                  ['chroma', 'Background Chroma', 0, 0.12, 0.001],
+                  ['opacity', 'Background Opacity', 0, 1, 0.01],
+                  ['dotColor', 'Grid Ink', 0, 100, 1],
+                  ['dotOpacity', 'Pattern Opacity', 0, 1, 0.01],
+                  ['gridSize', 'Grid Size', 8, 40, 1],
+                  ['glowOpacity', 'Background Glow', 0, 1, 0.01],
+                  ['scanlineOpacity', 'Scanline Strength', 0, 1, 0.01],
+                ] as const
+              ).map(([field, label, min, max, step]) => {
+                const value =
+                  field in selectedBackground
+                    ? selectedBackground[field as keyof typeof selectedBackground]
+                    : activeTheme.background[field as keyof SherlockTheme['background']];
+
+                return (
+                  <RangeField
+                    key={field}
+                    label={label}
+                    value={Number(value)}
+                    min={min}
+                    max={max}
+                    step={step}
+                    onChange={(nextValue) => updateBackgroundField(field, nextValue)}
+                    formatValue={(nextValue) =>
+                      field === 'opacity' ||
+                      field === 'dotOpacity' ||
+                      field === 'glowOpacity' ||
+                      field === 'scanlineOpacity'
+                        ? `${Math.round(nextValue * 100)}%`
+                        : nextValue.toFixed(
+                            field === 'hue' || field === 'dotColor' || field === 'gridSize' ? 0 : 3
+                          )
+                    }
+                  />
+                );
+              })}
+            </div>
+          </Accordion>
+
+          <Accordion
+            title="Surfaces"
+            isOpen={openThemeSections.includes('surfaces')}
+            onToggle={() => setOpenThemeSections((current) => toggleSection(current, 'surfaces'))}
+            actions={
+              <button
+                type="button"
+                onClick={() =>
+                  updateTheme((theme) => ({
+                    ...theme,
+                    surfaces: {
+                      dark: {
+                        shell: { ...savedTheme.surfaces.dark.shell },
+                        panel: { ...savedTheme.surfaces.dark.panel },
+                        rail: { ...savedTheme.surfaces.dark.rail },
+                        surface: { ...savedTheme.surfaces.dark.surface },
+                      },
+                      light: {
+                        shell: { ...savedTheme.surfaces.light.shell },
+                        panel: { ...savedTheme.surfaces.light.panel },
+                        rail: { ...savedTheme.surfaces.light.rail },
+                        surface: { ...savedTheme.surfaces.light.surface },
+                      },
+                    },
+                  }))
+                }
+                className={SECTION_ACTION_BUTTON_CLASS}
+              >
+                Reset
+              </button>
+            }
+            showActionsWhenOpenOnly
+          >
+            <div className="grid gap-4">
+              <div className="grid gap-2 sm:grid-cols-2">
+                {(Object.keys(STRUCTURE_LABELS) as ThemeStructureKey[]).map((surfaceKey) => (
+                  <button
+                    key={surfaceKey}
+                    type="button"
+                    onClick={() => setSelectedStructureKey(surfaceKey)}
+                    data-active={selectedStructureKey === surfaceKey ? 'true' : undefined}
+                    className={`${SURFACE_BUTTON_CLASS} flex items-center justify-between text-left`}
+                  >
+                    <span className="osint-title-inline">{STRUCTURE_LABELS[surfaceKey]}</span>
+                    <span
+                      className="h-5 w-5 rounded-sm border border-[color:var(--osint-raised-outline)]"
+                      style={{ background: buildAccentColor(activeTheme.surfaces[editingMode][surfaceKey]) }}
+                    />
+                  </button>
+                ))}
+              </div>
+
+              <button
+                type="button"
+                onClick={() =>
+                  updateTheme((theme) => ({
+                    ...theme,
+                    surfaces: {
+                      ...theme.surfaces,
+                      [editingMode]: Object.fromEntries(
+                        Object.entries(theme.surfaces[editingMode]).map(([key, surface]) => [
+                          key,
+                          { ...surface, hue: theme.accent.hue },
+                        ])
+                      ) as SherlockThemeSurfaceScale,
+                    },
+                  }))
+                }
+                className={`${SURFACE_BUTTON_CLASS} text-left osint-meta-label`}
+              >
+                Match Accent Hue
+              </button>
+
+              <div
+                className="grid min-h-[13rem] gap-3 rounded border p-4"
+                style={{
+                  background: buildAccentColor(activeTheme.surfaces[editingMode].shell),
+                  borderColor: getTone(activeTheme.surfaces[editingMode].shell.lightness).borderColor,
+                }}
+              >
+                <div
+                  className="grid min-h-[9rem] gap-3 rounded border p-3"
+                  style={{
+                    background: buildAccentColor(activeTheme.surfaces[editingMode].rail),
+                    borderColor: getTone(activeTheme.surfaces[editingMode].rail.lightness).borderColor,
+                  }}
+                >
+                  <div
+                    className="rounded border p-3"
+                    style={{
+                      background: buildAccentColor(activeTheme.surfaces[editingMode].panel),
+                      borderColor: getTone(activeTheme.surfaces[editingMode].panel.lightness).borderColor,
+                    }}
+                  >
+                    <div
+                      className="rounded border p-5"
+                      style={{
+                        background: buildAccentColor(activeTheme.surfaces[editingMode].surface),
+                        borderColor: getTone(activeTheme.surfaces[editingMode].surface.lightness)
+                          .borderColor,
+                      }}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {(
+                [
+                  ['hue', 'Hue', 0, 360, 1],
+                  [
+                    'lightness',
+                    'Lightness',
+                    surfaceBounds.lightnessMin,
+                    surfaceBounds.lightnessMax,
+                    0.001,
+                  ],
+                  ['chroma', 'Chroma', 0, surfaceBounds.chromaMax, 0.001],
+                  ['opacity', 'Opacity', 0, 1, 0.01],
+                ] as const
+              ).map(([field, label, min, max, step]) => (
+                <RangeField
+                  key={field}
+                  label={label}
+                  value={selectedSurface[field]}
+                  min={min}
+                  max={max}
+                  step={step}
+                  onChange={(nextValue) => updateSurfaceField(field, nextValue)}
+                  formatValue={(nextValue) =>
+                    field === 'opacity'
+                      ? `${Math.round(nextValue * 100)}%`
+                      : nextValue.toFixed(field === 'hue' ? 0 : 3)
+                  }
+                />
+              ))}
+            </div>
+          </Accordion>
+        </div>
+      ) : null}
+
+      {activeTab === 'type' ? (
+        <div className={SECTION_WRAPPER_CLASS}>
+          <Accordion
+            title="Role Profiles"
+            isOpen={openTypeSections.includes('roles')}
+            onToggle={() => setOpenTypeSections((current) => toggleSection(current, 'roles'))}
+            actions={
+              <button
+                type="button"
+                onClick={() =>
+                  updateTheme((theme) => ({
+                    ...theme,
+                    typography: {
+                      ...theme.typography,
+                      [activeFontRole]: savedTheme.typography[activeFontRole],
+                      profiles: {
+                        ...theme.typography.profiles,
+                        [activeFontRole]: { ...savedTheme.typography.profiles[activeFontRole] },
+                      },
+                    },
+                  }))
+                }
+                className={SECTION_ACTION_BUTTON_CLASS}
+              >
+                Reset
+              </button>
+            }
+            showActionsWhenOpenOnly
+          >
+            <div className="grid gap-4">
+              <div className="grid gap-2 sm:grid-cols-2">
+                {THEME_FONT_ROLES.map((role) => (
+                  <button
+                    key={role}
+                    type="button"
+                    onClick={() => setActiveFontRole(role)}
+                    data-active={activeFontRole === role ? 'true' : undefined}
+                    className={`${SURFACE_BUTTON_CLASS} flex items-center justify-between text-left`}
+                  >
+                    <span className="osint-title-inline">{FONT_ROLE_LABELS[role]}</span>
+                    <span className="osint-meta-label">{getThemeFontOption(activeTheme.typography[role]).label}</span>
+                  </button>
+                ))}
+              </div>
+
+              <OsintSelect
+                ariaLabel={`${FONT_ROLE_LABELS[activeFontRole]} family`}
+                value={activeTheme.typography[activeFontRole]}
+                onChange={(value) =>
+                  updateTheme((theme) => ({
+                    ...theme,
+                    typography: {
+                      ...theme.typography,
+                      [activeFontRole]: value,
+                    },
+                  }))
+                }
+                triggerClassName={SETTINGS_SELECT_TRIGGER_CLASS}
+                portalledMenu
+                options={fontRoleOptions}
+              />
+
+              {(
+                [
+                  ['sizeAdjust', 'Size Adjust', -0.2, 0.2, 0.01],
+                  ['weightAdjust', 'Weight Adjust', -140, 140, 5],
+                  ['trackingAdjust', 'Tracking Adjust', -0.1, 0.2, 0.005],
+                  ['leadingAdjust', 'Leading Adjust', -0.2, 0.2, 0.01],
+                ] as const
+              ).map(([field, label, min, max, step]) => (
+                <RangeField
+                  key={field}
+                  label={label}
+                  value={selectedFontProfile[field]}
+                  min={min}
+                  max={max}
+                  step={step}
+                  onChange={(nextValue) => updateFontProfileField(field, nextValue)}
+                  formatValue={(nextValue) =>
+                    field === 'weightAdjust'
+                      ? `${Math.round(nextValue)}`
+                      : field === 'trackingAdjust'
+                        ? `${nextValue.toFixed(3)}em`
+                        : nextValue.toFixed(2)
+                  }
+                />
+              ))}
+            </div>
+          </Accordion>
+
+          <Accordion
+            title="Global Scale"
+            isOpen={openTypeSections.includes('globals')}
+            onToggle={() => setOpenTypeSections((current) => toggleSection(current, 'globals'))}
+            actions={
+              <button
+                type="button"
+                onClick={() =>
+                  updateTheme((theme) => ({
+                    ...theme,
+                    typography: {
+                      ...theme.typography,
+                      size: savedTheme.typography.size,
+                      weight: savedTheme.typography.weight,
+                    },
+                  }))
+                }
+                className={SECTION_ACTION_BUTTON_CLASS}
+              >
+                Reset
+              </button>
+            }
+            showActionsWhenOpenOnly
+          >
+            <div className="grid gap-4">
+              <RangeField
+                label="Global Size Scale"
+                value={activeTheme.typography.size}
+                min={-1}
+                max={1}
+                step={0.05}
+                onChange={(nextValue) =>
+                  updateTheme((theme) => ({
+                    ...theme,
+                    typography: { ...theme.typography, size: nextValue },
+                  }))
+                }
+                formatValue={() => activeSizeProfile.label}
+              />
+
+              <RangeField
+                label="Global Weight Profile"
+                value={activeTheme.typography.weight}
+                min={-1}
+                max={1}
+                step={0.05}
+                onChange={(nextValue) =>
+                  updateTheme((theme) => ({
+                    ...theme,
+                    typography: { ...theme.typography, weight: nextValue },
+                  }))
+                }
+                formatValue={() => activeWeightProfile.label}
+              />
+
+              <div className="rounded border border-[color:var(--osint-border)] bg-[var(--osint-card-section-bg)] p-3">
+                <div className="osint-meta-label">Typography Preview</div>
+                <div
+                  className="mt-3"
+                  style={{
+                    fontFamily: 'var(--font-display)',
+                    fontSize: 'calc(var(--font-size-2xl) * var(--font-display-scale))',
+                    fontWeight: 'var(--font-display-weight)',
+                    letterSpacing: 'var(--font-display-tracking)',
+                    lineHeight: 'var(--font-display-leading)',
+                    color: 'var(--osint-text-heading)',
+                  }}
+                >
+                  Operational Summary
+                </div>
+                <p
+                  className="mt-3"
+                  style={{
+                    fontFamily: 'var(--font-sans)',
+                    fontSize: 'calc(var(--font-size-base) * var(--font-ui-scale))',
+                    fontWeight: 'var(--font-ui-weight)',
+                    letterSpacing: 'var(--font-ui-tracking)',
+                    lineHeight: 'var(--font-ui-leading)',
+                    color: 'var(--osint-text-strong)',
+                  }}
+                >
+                  mode={previewMode} base={resolvedSizes.base} label={resolvedWeights.label}
+                </p>
+              </div>
+            </div>
+          </Accordion>
+        </div>
+      ) : null}
+
+      {activeTab === 'shell' ? (
+        <div className={SECTION_WRAPPER_CLASS}>
+          <Accordion
+            title="Geometry"
+            isOpen={openShellSections.includes('geometry')}
+            onToggle={() => setOpenShellSections((current) => toggleSection(current, 'geometry'))}
+            actions={
+              <button
+                type="button"
+                onClick={() =>
+                  updateTheme((theme) => ({
+                    ...theme,
+                    shell: {
+                      ...theme.shell,
+                      sidebarWidth: savedTheme.shell.sidebarWidth,
+                      railWidth: savedTheme.shell.railWidth,
+                      utilityWidth: savedTheme.shell.utilityWidth,
+                      toolbarHeight: savedTheme.shell.toolbarHeight,
+                      contentWidth: savedTheme.shell.contentWidth,
+                    },
+                  }))
+                }
+                className={SECTION_ACTION_BUTTON_CLASS}
+              >
+                Reset
+              </button>
+            }
+            showActionsWhenOpenOnly
+          >
+            <div className="grid gap-4">
+              {(
+                [
+                  ['sidebarWidth', 'Settings Rail Width', 200, 320, 4],
+                  ['railWidth', 'Shell Rail Width', 260, 420, 4],
+                  ['utilityWidth', 'Utility Dock Width', 300, 520, 4],
+                  ['toolbarHeight', 'Toolbar Height', 64, 104, 2],
+                  ['contentWidth', 'Content Measure', 920, 1360, 20],
+                ] as const
+              ).map(([field, label, min, max, step]) => (
+                <RangeField
+                  key={field}
+                  label={label}
+                  value={activeTheme.shell[field]}
+                  min={min}
+                  max={max}
+                  step={step}
+                  onChange={(nextValue) =>
+                    updateTheme((theme) => ({
+                      ...theme,
+                      shell: {
+                        ...theme.shell,
+                        [field]: nextValue,
+                      },
+                    }))
+                  }
+                  formatValue={(nextValue) => `${Math.round(nextValue)}px`}
+                />
+              ))}
+            </div>
+          </Accordion>
+
+          <Accordion
+            title="Rendering"
+            isOpen={openShellSections.includes('rendering')}
+            onToggle={() => setOpenShellSections((current) => toggleSection(current, 'rendering'))}
+            actions={
+              <button
+                type="button"
+                onClick={() =>
+                  updateTheme((theme) => ({
+                    ...theme,
+                    shell: {
+                      ...theme.shell,
+                      surfaceOpacity: savedTheme.shell.surfaceOpacity,
+                      density: savedTheme.shell.density,
+                    },
+                  }))
+                }
+                className={SECTION_ACTION_BUTTON_CLASS}
+              >
+                Reset
+              </button>
+            }
+            showActionsWhenOpenOnly
+          >
+            <div className="grid gap-4">
+              <RangeField
+                label="Surface Solidity"
+                value={activeTheme.shell.surfaceOpacity}
+                min={0.4}
+                max={1.4}
+                step={0.05}
+                onChange={(nextValue) =>
+                  updateTheme((theme) => ({
+                    ...theme,
+                    shell: { ...theme.shell, surfaceOpacity: nextValue },
+                  }))
+                }
+                formatValue={(nextValue) => `${Math.round(nextValue * 100)}%`}
+              />
+
+              <RangeField
+                label="Density"
+                value={activeTheme.shell.density}
+                min={0.85}
+                max={1.25}
+                step={0.05}
+                onChange={(nextValue) =>
+                  updateTheme((theme) => ({
+                    ...theme,
+                    shell: { ...theme.shell, density: nextValue },
+                  }))
+                }
+                formatValue={(nextValue) => `${Math.round(nextValue * 100)}%`}
+              />
+            </div>
+          </Accordion>
+
+          <Accordion
+            title="Dividers"
+            isOpen={openShellSections.includes('dividers')}
+            onToggle={() => setOpenShellSections((current) => toggleSection(current, 'dividers'))}
+            actions={
+              <button
+                type="button"
+                onClick={() =>
+                  updateTheme((theme) => ({
+                    ...theme,
+                    shell: {
+                      ...theme.shell,
+                      dividerWidth: savedTheme.shell.dividerWidth,
+                      dividerStrength: savedTheme.shell.dividerStrength,
+                      dividerTint: savedTheme.shell.dividerTint,
+                      dividerGlow: savedTheme.shell.dividerGlow,
+                    },
+                  }))
+                }
+                className={SECTION_ACTION_BUTTON_CLASS}
+              >
+                Reset
+              </button>
+            }
+            showActionsWhenOpenOnly
+          >
+            <div className="grid gap-4">
+              {(
+                [
+                  ['dividerWidth', 'Divider Width', 0, 4, 1, 'px'],
+                  ['dividerStrength', 'Divider Strength', 0, 1, 0.05, '%'],
+                  ['dividerTint', 'Accent Tint', 0, 1, 0.05, '%'],
+                  ['dividerGlow', 'Edge Glow', 0, 1, 0.05, '%'],
+                ] as const
+              ).map(([field, label, min, max, step, unit]) => (
+                <RangeField
+                  key={field}
+                  label={label}
+                  value={activeTheme.shell[field]}
+                  min={min}
+                  max={max}
+                  step={step}
+                  onChange={(nextValue) =>
+                    updateTheme((theme) => ({
+                      ...theme,
+                      shell: {
+                        ...theme.shell,
+                        [field]: nextValue,
+                      },
+                    }))
+                  }
+                  formatValue={(nextValue) =>
+                    unit === '%' ? `${Math.round(nextValue * 100)}%` : `${Math.round(nextValue)}px`
+                  }
+                />
+              ))}
+            </div>
+          </Accordion>
+
+          <Accordion
+            title="Radius System"
+            isOpen={openShellSections.includes('radius')}
+            onToggle={() => setOpenShellSections((current) => toggleSection(current, 'radius'))}
+            actions={
+              <button
+                type="button"
+                onClick={() =>
+                  updateTheme((theme) => ({
+                    ...theme,
+                    radii: { ...savedTheme.radii },
+                  }))
+                }
+                className={SECTION_ACTION_BUTTON_CLASS}
+              >
+                Reset
+              </button>
+            }
+            showActionsWhenOpenOnly
+          >
+            <div className="grid gap-4">
+              {(
+                [
+                  ['shell', 'Shell Radius'],
+                  ['panel', 'Panel Radius'],
+                  ['control', 'Control Radius'],
+                  ['pill', 'Pill Radius'],
+                ] as const
+              ).map(([field, label]) => (
+                <RangeField
+                  key={field}
+                  label={label}
+                  value={activeTheme.radii[field]}
+                  min={0}
+                  max={28}
+                  step={1}
+                  onChange={(nextValue) =>
+                    updateTheme((theme) => ({
+                      ...theme,
+                      radii: {
+                        ...theme.radii,
+                        [field]: nextValue,
+                      },
+                    }))
+                  }
+                  formatValue={(nextValue) => `${Math.round(nextValue)}px`}
+                />
+              ))}
+            </div>
+          </Accordion>
+        </div>
+      ) : null}
+
+      {activeTab === 'export' ? (
+        <div className={SECTION_WRAPPER_CLASS}>
+          <Accordion
+            title="Token Snapshot"
+            isOpen={openExportSections.includes('tokens')}
+            onToggle={() => setOpenExportSections((current) => toggleSection(current, 'tokens'))}
+            actions={
+              <button
+                type="button"
+                onClick={() => void copyText(exportThemeJson)}
+                className={SECTION_ACTION_BUTTON_CLASS}
+              >
+                Copy
+              </button>
+            }
+            showActionsWhenOpenOnly
+          >
+            <CodePreview value={exportThemeJson} />
+          </Accordion>
+
+          <Accordion
+            title="Resolved Styles"
+            isOpen={openExportSections.includes('css')}
+            onToggle={() => setOpenExportSections((current) => toggleSection(current, 'css'))}
+            actions={
+              <button
+                type="button"
+                onClick={() => void copyText(exportResolvedCss)}
+                className={SECTION_ACTION_BUTTON_CLASS}
+              >
+                Copy
+              </button>
+            }
+            showActionsWhenOpenOnly
+          >
+            <CodePreview value={exportResolvedCss} />
+          </Accordion>
+
+          <Accordion
+            title="Palette Swatches"
+            isOpen={openExportSections.includes('swatches')}
+            onToggle={() => setOpenExportSections((current) => toggleSection(current, 'swatches'))}
+          >
+            <div className="grid gap-3 sm:grid-cols-2">
+              {paletteSwatches.map((swatch) => (
+                <PaletteSwatch key={`${swatch.label}-${swatch.value}`} label={swatch.label} value={swatch.value} />
+              ))}
+            </div>
+          </Accordion>
+        </div>
+      ) : null}
+    </div>
+  );
+};

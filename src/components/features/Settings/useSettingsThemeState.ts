@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 
 import type { SherlockTheme, SherlockThemeWorkspaceState } from '@/system/theme/schema';
 import {
@@ -32,31 +32,84 @@ export const useSettingsThemeState = ({
   const exportThemeJson = useMemo(() => exportSherlockThemeJson(activeTheme), [activeTheme]);
   const exportResolvedCss = useMemo(() => exportSherlockResolvedCss(activeTheme), [activeTheme]);
 
-  const applyWorkspace = (nextWorkspace: SherlockThemeWorkspaceState) => {
-    onThemeWorkspaceChange(nextWorkspace);
-  };
+  const applyWorkspace = useCallback(
+    (nextWorkspace: SherlockThemeWorkspaceState) => {
+      onThemeWorkspaceChange(nextWorkspace);
+    },
+    [onThemeWorkspaceChange]
+  );
 
-  const updateTheme = (updater: (theme: SherlockTheme) => SherlockTheme) => {
-    applyWorkspace(updateActiveDraftTheme(themeWorkspace, updater));
-  };
+  const updateTheme = useCallback(
+    (updater: (theme: SherlockTheme) => SherlockTheme) => {
+      applyWorkspace(updateActiveDraftTheme(themeWorkspace, updater));
+    },
+    [applyWorkspace, themeWorkspace]
+  );
 
-  return {
-    activeTheme,
-    activeThemeId: themeWorkspace.activeThemeId,
-    exportResolvedCss,
-    exportThemeJson,
-    forkActiveTheme: () => applyWorkspace(forkActiveThemeToNextCustomSlot(themeWorkspace)),
-    previewMode: themeWorkspace.previewMode,
-    resetActiveThemeFactory: () => applyWorkspace(factoryResetActiveTheme(themeWorkspace)),
-    resetAllThemeFactories: () => applyWorkspace(factoryResetAllThemes(themeWorkspace)),
-    revertActiveTheme: () => applyWorkspace(revertActiveThemeDraft(themeWorkspace)),
-    saveActiveTheme: () => applyWorkspace(saveActiveThemeDraft(themeWorkspace)),
-    savedTheme,
-    selectTheme: (themeId: string) => applyWorkspace(selectActiveTheme(themeWorkspace, themeId)),
-    setPreviewMode: (mode: SherlockThemeWorkspaceState['previewMode']) =>
+  const forkActiveTheme = useCallback(
+    () => applyWorkspace(forkActiveThemeToNextCustomSlot(themeWorkspace)),
+    [applyWorkspace, themeWorkspace]
+  );
+  const resetActiveThemeFactoryDraft = useCallback(
+    () => applyWorkspace(factoryResetActiveTheme(themeWorkspace)),
+    [applyWorkspace, themeWorkspace]
+  );
+  const resetAllThemeFactoryDrafts = useCallback(
+    () => applyWorkspace(factoryResetAllThemes(themeWorkspace)),
+    [applyWorkspace, themeWorkspace]
+  );
+  const revertActiveTheme = useCallback(
+    () => applyWorkspace(revertActiveThemeDraft(themeWorkspace)),
+    [applyWorkspace, themeWorkspace]
+  );
+  const saveActiveTheme = useCallback(
+    () => applyWorkspace(saveActiveThemeDraft(themeWorkspace)),
+    [applyWorkspace, themeWorkspace]
+  );
+  const selectThemeById = useCallback(
+    (themeId: string) => applyWorkspace(selectActiveTheme(themeWorkspace, themeId)),
+    [applyWorkspace, themeWorkspace]
+  );
+  const setPreviewMode = useCallback(
+    (mode: SherlockThemeWorkspaceState['previewMode']) =>
       applyWorkspace(setThemePreviewMode(themeWorkspace, mode)),
-    themeDirty,
-    themeWorkspace,
-    updateTheme,
-  };
+    [applyWorkspace, themeWorkspace]
+  );
+
+  return useMemo(
+    () => ({
+      activeTheme,
+      activeThemeId: themeWorkspace.activeThemeId,
+      exportResolvedCss,
+      exportThemeJson,
+      forkActiveTheme,
+      previewMode: themeWorkspace.previewMode,
+      resetActiveThemeFactory: resetActiveThemeFactoryDraft,
+      resetAllThemeFactories: resetAllThemeFactoryDrafts,
+      revertActiveTheme,
+      saveActiveTheme,
+      savedTheme,
+      selectTheme: selectThemeById,
+      setPreviewMode,
+      themeDirty,
+      themeWorkspace,
+      updateTheme,
+    }),
+    [
+      activeTheme,
+      exportResolvedCss,
+      exportThemeJson,
+      forkActiveTheme,
+      resetActiveThemeFactoryDraft,
+      resetAllThemeFactoryDrafts,
+      revertActiveTheme,
+      saveActiveTheme,
+      savedTheme,
+      selectThemeById,
+      setPreviewMode,
+      themeDirty,
+      themeWorkspace,
+      updateTheme,
+    ]
+  );
 };

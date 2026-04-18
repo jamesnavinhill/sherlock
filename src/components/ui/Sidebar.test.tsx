@@ -78,4 +78,28 @@ describe('Sidebar', () => {
 
     expect(screen.getByAltText('Sherlock AI logo')).toHaveAttribute('src', '/logo-dark.jpg');
   });
+
+  it('uses the theme sidebar width token when expanded', () => {
+    const { container } = render(
+      <Sidebar
+        currentView={AppView.FILES}
+        onChangeView={vi.fn()}
+        isCollapsed={false}
+        toggleCollapse={vi.fn()}
+        workspaceRuns={[]}
+        activeRunId={null}
+        onSelectRun={vi.fn()}
+        onClearCompleted={vi.fn()}
+        themeMode="dark"
+        onToggleTheme={vi.fn()}
+        isWorkbenchAvailable={false}
+        isWorkbenchOpen={false}
+        onToggleWorkbench={vi.fn()}
+      />
+    );
+
+    expect(container.querySelector('aside')?.className).toContain(
+      'md:w-[var(--osint-shell-sidebar-width)]'
+    );
+  });
 });

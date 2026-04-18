@@ -1,33 +1,14 @@
-import React, { useMemo, useState } from 'react';
+import React from 'react';
 
+import { useAppWorkbenchHost } from '@/app/workbench/useAppWorkbenchHost';
+import { buildAccentColor } from '@/utils/accent';
 import {
-  describeThemeFontSize,
-  describeThemeFontWeight,
-  resolveThemeFontSizes,
-  resolveThemeFontWeights,
-  type ThemeFontRole,
-} from '@/utils/themeFonts';
-import {
-  getSherlockThemeFontOptionsForRole,
+  SHERLOCK_THEME_LIBRARY_TEMPLATES,
   type SherlockTheme,
   type SherlockThemeMode,
 } from '@/system/theme/schema';
-import { SETTINGS_CARD_CLASS, SETTINGS_SURFACE_BUTTON_CLASS } from '../settingsUtils';
-import { ThemeWorkbenchExportTab } from './ThemeWorkbenchExportTab';
-import { ThemeWorkbenchShellTab } from './ThemeWorkbenchShellTab';
-import { ThemeWorkbenchThemeTab } from './ThemeWorkbenchThemeTab';
-import { ThemeWorkbenchTypeTab } from './ThemeWorkbenchTypeTab';
-import {
-  clamp,
-  getSurfaceBounds,
-  type ThemeBackgroundField,
-  type ThemeFontProfileField,
-  type ThemeGraphField,
-  type ThemeStructureKey,
-  type ThemeSurfaceField,
-  type ThemeWorkbenchTab,
-  WORKBENCH_TABS,
-} from './shared';
+import { SETTINGS_CARD_CLASS, SETTINGS_SECTION_BODY_CLASS, SETTINGS_SURFACE_BUTTON_CLASS } from '../settingsUtils';
+import { getTone } from './shared';
 
 export interface SettingsThemeTabProps {
   activeTheme: SherlockTheme;
@@ -46,240 +27,158 @@ export interface SettingsThemeTabProps {
   updateTheme: (updater: (theme: SherlockTheme) => SherlockTheme) => void;
 }
 
-const copyText = async (value: string) => {
-  try {
-    await navigator.clipboard.writeText(value);
-  } catch {
-    // Ignore clipboard failures in the workbench UI.
-  }
-};
-
 export const SettingsThemeTab: React.FC<SettingsThemeTabProps> = ({
   activeTheme,
   activeThemeId,
-  exportResolvedCss,
-  exportThemeJson,
-  forkActiveTheme,
   previewMode,
-  resetActiveThemeFactory,
-  resetAllThemeFactories,
-  revertActiveTheme,
-  saveActiveTheme,
-  selectTheme,
-  setPreviewMode,
   themeDirty,
-  updateTheme,
 }) => {
-  const [activeTab, setActiveTab] = useState<ThemeWorkbenchTab>('theme');
-  const [editingMode, setEditingMode] = useState<SherlockThemeMode>(previewMode);
-  const [selectedStructureKey, setSelectedStructureKey] = useState<ThemeStructureKey>('panel');
-  const [activeFontRole, setActiveFontRole] = useState<ThemeFontRole>('ui');
-  const [activeGraphIndex, setActiveGraphIndex] = useState(0);
-
-  const selectedSurface = activeTheme.surfaces[editingMode][selectedStructureKey];
-  const selectedBackground = activeTheme.background[editingMode];
-  const selectedGraph = activeTheme.graphs[activeGraphIndex];
-  const selectedFontProfile = activeTheme.typography.profiles[activeFontRole];
-  const surfaceBounds = getSurfaceBounds(editingMode, selectedStructureKey);
-  const activeSizeProfile = describeThemeFontSize(activeTheme.typography.size);
-  const activeWeightProfile = describeThemeFontWeight(activeTheme.typography.weight);
-  const resolvedSizes = resolveThemeFontSizes(activeTheme.typography.size);
-  const resolvedWeights = resolveThemeFontWeights(activeTheme.typography.weight);
-
-  const fontRoleOptions = useMemo(
-    () =>
-      getSherlockThemeFontOptionsForRole(activeFontRole).map((option) => ({
-        id: option.id,
-        label: option.label,
-      })),
-    [activeFontRole]
-  );
-
-  const updateSurfaceField = (field: ThemeSurfaceField, rawValue: number) => {
-    updateTheme((theme) => ({
-      ...theme,
-      surfaces: {
-        ...theme.surfaces,
-        [editingMode]: {
-          ...theme.surfaces[editingMode],
-          [selectedStructureKey]: {
-            ...theme.surfaces[editingMode][selectedStructureKey],
-            [field]:
-              field === 'hue'
-                ? ((Math.round(rawValue) % 360) + 360) % 360
-                : field === 'lightness'
-                  ? clamp(
-                      Number(rawValue.toFixed(3)),
-                      surfaceBounds.lightnessMin,
-                      surfaceBounds.lightnessMax
-                    )
-                  : field === 'opacity'
-                    ? clamp(Number(rawValue.toFixed(3)), 0, 1)
-                    : clamp(Number(rawValue.toFixed(3)), 0, surfaceBounds.chromaMax),
-          },
-        },
-      },
-    }));
-  };
-
-  const updateGraphField = (field: ThemeGraphField, rawValue: number) => {
-    updateTheme((theme) => ({
-      ...theme,
-      graphs: theme.graphs.map((graph, index) =>
-        index === activeGraphIndex
-          ? {
-              ...graph,
-              [field]:
-                field === 'hue'
-                  ? ((Math.round(rawValue) % 360) + 360) % 360
-                  : field === 'opacity'
-                    ? clamp(Number(rawValue.toFixed(3)), 0, 1)
-                    : clamp(Number(rawValue.toFixed(3)), 0, field === 'lightness' ? 1 : 0.18),
-            }
-          : graph
-      ),
-    }));
-  };
-
-  const updateBackgroundField = (field: ThemeBackgroundField, rawValue: number) => {
-    updateTheme((theme) => ({
-      ...theme,
-      background: {
-        ...theme.background,
-        ...(field === 'dotColor' || field === 'gridSize'
-          ? { [field]: Math.round(rawValue) }
-          : field === 'dotOpacity' || field === 'glowOpacity' || field === 'scanlineOpacity'
-            ? { [field]: clamp(Number(rawValue.toFixed(3)), 0, 1) }
-            : {}),
-        ...(field === 'hue' || field === 'lightness' || field === 'chroma' || field === 'opacity'
-          ? {
-              [editingMode]: {
-                ...theme.background[editingMode],
-                [field]:
-                  field === 'hue'
-                    ? ((Math.round(rawValue) % 360) + 360) % 360
-                    : field === 'opacity'
-                      ? clamp(Number(rawValue.toFixed(3)), 0, 1)
-                      : clamp(Number(rawValue.toFixed(3)), 0, field === 'chroma' ? 0.12 : 1),
-              },
-            }
-          : {}),
-      },
-    }));
-  };
-
-  const updateFontProfileField = (field: ThemeFontProfileField, rawValue: number) => {
-    updateTheme((theme) => ({
-      ...theme,
-      typography: {
-        ...theme.typography,
-        profiles: {
-          ...theme.typography.profiles,
-          [activeFontRole]: {
-            ...theme.typography.profiles[activeFontRole],
-            [field]:
-              field === 'weightAdjust'
-                ? Math.round(rawValue)
-                : Number(rawValue.toFixed(field === 'trackingAdjust' ? 3 : 2)),
-          },
-        },
-      },
-    }));
-  };
+  const { openWorkbench } = useAppWorkbenchHost();
+  const activeThemeLabel =
+    SHERLOCK_THEME_LIBRARY_TEMPLATES.find((template) => template.id === activeThemeId)?.label ??
+    'Theme';
+  const previewShell = activeTheme.surfaces[previewMode].shell;
+  const previewRail = activeTheme.surfaces[previewMode].rail;
+  const previewPanel = activeTheme.surfaces[previewMode].panel;
+  const previewSurface = activeTheme.surfaces[previewMode].surface;
 
   return (
-    <div className="animate-in fade-in slide-in-from-bottom-2 duration-300 space-y-4 pb-12">
-      <div className={`${SETTINGS_CARD_CLASS} flex flex-wrap items-center justify-between gap-3`}>
-        <div className="inline-flex gap-2">
-          {WORKBENCH_TABS.map((tab) => (
+    <div className={`${SETTINGS_SECTION_BODY_CLASS} animate-in fade-in slide-in-from-bottom-2 duration-300`}>
+      <div className="grid gap-4 xl:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
+        <section className={`${SETTINGS_CARD_CLASS} flex flex-col gap-4`}>
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <div className="osint-meta-label">Theme Workbench</div>
+              <div className="mt-1 osint-title-inline">{activeThemeLabel}</div>
+              <div className="mt-2 osint-body-quiet">
+                The docked workbench now owns the canon-style controls, section ordering, and export surface.
+              </div>
+            </div>
             <button
-              key={tab.id}
               type="button"
-              onClick={() => setActiveTab(tab.id)}
-              data-active={activeTab === tab.id ? 'true' : undefined}
+              onClick={openWorkbench}
               className={`${SETTINGS_SURFACE_BUTTON_CLASS} px-4 py-2 osint-meta-label`}
             >
-              {tab.label}
+              Open Workbench
             </button>
-          ))}
-        </div>
-
-        <div className="flex items-center gap-3">
-          <div className="osint-meta-label">
-            {themeDirty ? 'Unsaved Draft Changes' : 'Draft Matches Saved Theme'}
           </div>
-          <button
-            type="button"
-            onClick={themeDirty ? saveActiveTheme : revertActiveTheme}
-            className={`${SETTINGS_SURFACE_BUTTON_CLASS} px-4 py-2 osint-meta-label`}
+
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div className="osint-card-section-subtle rounded p-3">
+              <div className="osint-meta-label">Preview Mode</div>
+              <div className="mt-1 capitalize osint-title-inline">{previewMode}</div>
+            </div>
+            <div className="osint-card-section-subtle rounded p-3">
+              <div className="osint-meta-label">Draft Status</div>
+              <div className="mt-1 osint-title-inline">
+                {themeDirty ? 'Unsaved Changes' : 'Saved'}
+              </div>
+            </div>
+          </div>
+
+          <div className="rounded border border-[color:var(--osint-raised-outline)] p-4">
+            <div className="flex items-center justify-between gap-3">
+              <div className="osint-meta-label">Accent</div>
+              <div
+                className="h-5 w-5 rounded-sm border border-[color:var(--osint-raised-outline)]"
+                style={{ background: buildAccentColor(activeTheme.accent) }}
+              />
+            </div>
+            <div className="mt-2 osint-body-quiet">{buildAccentColor(activeTheme.accent)}</div>
+          </div>
+        </section>
+
+        <section className={`${SETTINGS_CARD_CLASS} flex flex-col gap-4`}>
+          <div className="osint-meta-label">Live Shell Preview</div>
+
+          <div
+            className="grid min-h-[20rem] gap-4 rounded border p-5"
+            style={{
+              background: buildAccentColor(previewShell),
+              borderColor: getTone(previewShell.lightness).borderColor,
+            }}
           >
-            {themeDirty ? 'Save Theme' : 'Revert'}
-          </button>
-        </div>
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <div
+                  className="osint-meta-label"
+                  style={{ color: getTone(previewShell.lightness).textColor }}
+                >
+                  Sherlock Shell
+                </div>
+                <div
+                  className="mt-2 text-2xl"
+                  style={{
+                    color: getTone(previewShell.lightness).textColor,
+                    fontFamily: 'var(--font-display)',
+                    fontWeight: 'var(--font-weight-display)',
+                  }}
+                >
+                  Theme Preview
+                </div>
+              </div>
+            </div>
+
+            <div
+              className="grid min-h-[12rem] gap-4 rounded border p-4"
+              style={{
+                background: buildAccentColor(previewRail),
+                borderColor: getTone(previewRail.lightness).borderColor,
+              }}
+            >
+              <div className="grid gap-3 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
+                <div
+                  className="rounded border p-4"
+                  style={{
+                    background: buildAccentColor(previewPanel),
+                    borderColor: getTone(previewPanel.lightness).borderColor,
+                    color: getTone(previewPanel.lightness).textColor,
+                  }}
+                >
+                  <div className="osint-meta-label">Workbench Rail</div>
+                  <div className="mt-3 space-y-2">
+                    <div
+                      className="rounded border px-3 py-2"
+                      style={{ borderColor: getTone(previewPanel.lightness).borderColor }}
+                    >
+                      Theme
+                    </div>
+                    <div
+                      className="rounded border px-3 py-2"
+                      style={{ borderColor: getTone(previewPanel.lightness).borderColor }}
+                    >
+                      Type
+                    </div>
+                  </div>
+                </div>
+
+                <div
+                  className="rounded border p-4"
+                  style={{
+                    background: buildAccentColor(previewSurface),
+                    borderColor: getTone(previewSurface.lightness).borderColor,
+                    color: getTone(previewSurface.lightness).textColor,
+                  }}
+                >
+                  <div className="osint-meta-label">Content Surface</div>
+                  <div
+                    className="mt-4 text-lg"
+                    style={{
+                      fontFamily: 'var(--font-display)',
+                      fontWeight: 'var(--font-weight-display)',
+                    }}
+                  >
+                    Operational Summary
+                  </div>
+                  <p className="mt-3">
+                    Settings now keeps the stage for preview while the docked workbench carries the full control language.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
       </div>
-
-      {activeTab === 'theme' ? (
-        <ThemeWorkbenchThemeTab
-          activeGraphIndex={activeGraphIndex}
-          activeTheme={activeTheme}
-          activeThemeId={activeThemeId}
-          editingMode={editingMode}
-          forkActiveTheme={forkActiveTheme}
-          previewMode={previewMode}
-          saveActiveTheme={saveActiveTheme}
-          selectedBackground={selectedBackground}
-          selectedGraph={selectedGraph}
-          selectedStructureKey={selectedStructureKey}
-          selectedSurface={selectedSurface}
-          selectTheme={selectTheme}
-          setActiveGraphIndex={setActiveGraphIndex}
-          setEditingMode={setEditingMode}
-          setPreviewMode={setPreviewMode}
-          setSelectedStructureKey={setSelectedStructureKey}
-          surfaceBounds={surfaceBounds}
-          updateBackgroundField={updateBackgroundField}
-          updateGraphField={updateGraphField}
-          updateSurfaceField={updateSurfaceField}
-          updateTheme={updateTheme}
-        />
-      ) : null}
-
-      {activeTab === 'type' ? (
-        <ThemeWorkbenchTypeTab
-          activeFontRole={activeFontRole}
-          activeSizeProfile={activeSizeProfile}
-          activeTheme={activeTheme}
-          activeWeightProfile={activeWeightProfile}
-          fontRoleOptions={fontRoleOptions}
-          previewMode={previewMode}
-          resolvedSizes={resolvedSizes}
-          resolvedWeights={resolvedWeights}
-          selectedFontProfile={selectedFontProfile}
-          setActiveFontRole={setActiveFontRole}
-          updateFontProfileField={updateFontProfileField}
-          updateTheme={updateTheme}
-        />
-      ) : null}
-
-      {activeTab === 'shell' ? (
-        <ThemeWorkbenchShellTab
-          activeTheme={activeTheme}
-          resetActiveThemeFactory={resetActiveThemeFactory}
-          resetAllThemeFactories={resetAllThemeFactories}
-          revertActiveTheme={revertActiveTheme}
-          saveActiveTheme={saveActiveTheme}
-          themeDirty={themeDirty}
-          updateTheme={updateTheme}
-        />
-      ) : null}
-
-      {activeTab === 'export' ? (
-        <ThemeWorkbenchExportTab
-          copyText={copyText}
-          exportResolvedCss={exportResolvedCss}
-          exportThemeJson={exportThemeJson}
-        />
-      ) : null}
     </div>
   );
 };

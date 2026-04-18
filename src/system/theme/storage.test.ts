@@ -15,6 +15,7 @@ import {
   migrateLegacySherlockThemeWorkspace,
   revertActiveThemeDraft,
   saveActiveThemeDraft,
+  selectActiveTheme,
   setThemePreviewMode,
   updateActiveDraftTheme,
 } from './storage';
@@ -148,5 +149,13 @@ describe('theme workspace storage helpers', () => {
     expect(cssVars['--osint-main-bg-image']).toBeTruthy();
     expect(cssVars['--osint-main-bg-color']).toBeDefined();
     expect(cssVars['--font-display-scale']).toBeDefined();
+  });
+
+  it('keeps the current preview mode when selecting a different theme template', () => {
+    const initialWorkspace = setThemePreviewMode(createInitialThemeWorkspace(), 'dark');
+    const nextWorkspace = selectActiveTheme(initialWorkspace, 'default');
+
+    expect(nextWorkspace.previewMode).toBe('dark');
+    expect(getDisplayTheme(nextWorkspace).mode).toBe('dark');
   });
 });

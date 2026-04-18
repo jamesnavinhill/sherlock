@@ -43,7 +43,7 @@ export const RunQueue: React.FC<RunQueueProps> = ({
     <div className="relative border-t border-zinc-800 bg-osint-dark flex-shrink-0">
       {/* Popup List - Anchored to the bottom of the previous element, growing upwards */}
       {!isCollapsed && isExpanded && workspaceRuns.length > 0 && (
-        <div className="absolute bottom-full left-0 w-64 mb-1 z-50 px-2 pb-2">
+        <div className="absolute bottom-full left-0 z-50 mb-1 w-[var(--osint-shell-sidebar-width)] max-w-[calc(100vw-1rem)] px-2 pb-2">
           <div className="bg-osint-panel border border-zinc-700 shadow-[0_0_20px_rgba(0,0,0,0.5)] flex flex-col max-h-[400px] w-full animate-in slide-in-from-bottom-2 fade-in duration-200">
             <div className="bg-black p-3 border-b border-zinc-800 flex justify-between items-center">
               <h3 className="text-white font-mono font-bold text-[10px] uppercase flex items-center">

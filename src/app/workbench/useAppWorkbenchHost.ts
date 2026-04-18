@@ -18,6 +18,7 @@ export const useAppWorkbenchHost = (): AppWorkbenchHostContextValue => {
 
 export const useRegisterAppWorkbenchPanel = (panel: AppWorkbenchRegistration | null) => {
   const { registerPanel, unregisterPanel } = useAppWorkbenchHost();
+  const panelId = panel?.id ?? null;
 
   useEffect(() => {
     if (!panel) {
@@ -25,6 +26,13 @@ export const useRegisterAppWorkbenchPanel = (panel: AppWorkbenchRegistration | n
     }
 
     registerPanel(panel);
-    return () => unregisterPanel(panel.id);
-  }, [panel, registerPanel, unregisterPanel]);
+  }, [panel, registerPanel]);
+
+  useEffect(() => {
+    if (!panelId) {
+      return;
+    }
+
+    return () => unregisterPanel(panelId);
+  }, [panelId, unregisterPanel]);
 };

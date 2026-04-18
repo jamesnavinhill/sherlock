@@ -48,7 +48,9 @@ const AppShellWorkspaceChrome: React.FC<{
       />
 
       <main
-        className={`flex-1 flex flex-col h-screen bg-osint-dark relative transition-all duration-300 overflow-hidden ${controller.isSidebarCollapsed ? 'ml-0 md:ml-20' : 'ml-0 md:ml-64'}`}
+        className={`flex-1 flex flex-col h-screen bg-osint-dark relative transition-all duration-300 overflow-hidden ${
+          controller.isSidebarCollapsed ? 'ml-0 md:ml-20' : 'ml-0 md:ml-[var(--osint-shell-sidebar-width)]'
+        }`}
       >
         <div className="flex flex-1 overflow-hidden relative w-full">
           {placement === 'left' ? <AppWorkbenchHost /> : null}

@@ -36,7 +36,7 @@ export const ThemeWorkbenchShellTab: React.FC<ThemeWorkbenchShellTabProps> = ({
         <div className="osint-meta-label">Geometry</div>
         {(
           [
-            ['sidebarWidth', 'Settings Rail Width', 200, 320, 4],
+            ['sidebarWidth', 'Sidebar Width', 200, 320, 4],
             ['railWidth', 'Shell Rail Width', 260, 420, 4],
             ['utilityWidth', 'Utility Dock Width', 300, 520, 4],
             ['toolbarHeight', 'Toolbar Height', 64, 104, 2],
