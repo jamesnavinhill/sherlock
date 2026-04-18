@@ -11,6 +11,9 @@ export const CHROME_PANEL_HEADER_CLASS =
 export const CHROME_TOP_PANEL_HEADER_MIN_HEIGHT_CLASS =
   'min-h-[var(--osint-shell-toolbar-height)]';
 
+export const CHROME_TOP_PANEL_HEADER_ROW_CLASS =
+  'flex min-h-[calc(var(--osint-shell-toolbar-height)-1.5rem)] items-center justify-between gap-3';
+
 export const CHROME_PANEL_ACTION_ROW_CLASS =
   'osint-panel-action-row px-4 py-3';
 

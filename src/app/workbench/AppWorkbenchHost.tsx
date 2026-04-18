@@ -6,7 +6,7 @@ import {
   CHROME_HEADER_ICON_BUTTON_SIZE_CLASS,
   CHROME_PANEL_HEADER_CLASS,
   CHROME_RAIL_BODY_CLASS,
-  CHROME_TOP_PANEL_HEADER_MIN_HEIGHT_CLASS,
+  CHROME_TOP_PANEL_HEADER_ROW_CLASS,
 } from '@/components/ui/chrome';
 import { useAppWorkbenchHost } from './useAppWorkbenchHost';
 
@@ -47,26 +47,11 @@ export const AppWorkbenchHost: React.FC = () => {
         widthValue={APP_WORKBENCH_WIDTH}
         className="z-30 xl:z-10"
       >
-        <div className={`${CHROME_PANEL_HEADER_CLASS} ${CHROME_TOP_PANEL_HEADER_MIN_HEIGHT_CLASS}`}>
-          <div className="flex items-start justify-between gap-3">
+        <div className={CHROME_PANEL_HEADER_CLASS}>
+          <div className={CHROME_TOP_PANEL_HEADER_ROW_CLASS}>
             <div className="min-w-0">
               <div className="osint-eyebrow">Workbench</div>
               <div className="mt-1 osint-panel-title">{activePanel.title}</div>
-              {panels.length > 1 ? (
-                <div className="mt-3 flex flex-wrap gap-2">
-                  {panels.map((panel) => (
-                    <button
-                      key={panel.id}
-                      type="button"
-                      onClick={() => setActivePanelId(panel.id)}
-                      data-active={activePanelId === panel.id ? 'true' : undefined}
-                      className="osint-settings-surface-button px-3 py-1.5 osint-meta-label"
-                    >
-                      {panel.title}
-                    </button>
-                  ))}
-                </div>
-              ) : null}
             </div>
             <div className="flex shrink-0 items-center gap-2">
               <button
@@ -100,6 +85,21 @@ export const AppWorkbenchHost: React.FC = () => {
               </button>
             </div>
           </div>
+          {panels.length > 1 ? (
+            <div className="mt-3 flex flex-wrap gap-2">
+              {panels.map((panel) => (
+                <button
+                  key={panel.id}
+                  type="button"
+                  onClick={() => setActivePanelId(panel.id)}
+                  data-active={activePanelId === panel.id ? 'true' : undefined}
+                  className="osint-settings-surface-button px-3 py-1.5 osint-meta-label"
+                >
+                  {panel.title}
+                </button>
+              ))}
+            </div>
+          ) : null}
         </div>
         <div className={CHROME_RAIL_BODY_CLASS}>
           <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain pr-1 custom-scrollbar">

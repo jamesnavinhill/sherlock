@@ -183,7 +183,7 @@ describe('theme workspace storage helpers', () => {
 
     expect(cssVars['--osint-primary']).toBeDefined();
     expect(cssVars['--osint-graph-1']).toBeDefined();
-    expect(cssVars['--osint-shell-toolbar-height']).toMatch(/px$/);
+    expect(cssVars['--osint-shell-toolbar-height']).toBe('64px');
     expect(cssVars['--osint-main-bg-image']).toBeTruthy();
     expect(cssVars['--osint-main-bg-color']).toBeDefined();
     expect(cssVars['--font-display-scale']).toBeDefined();

@@ -124,7 +124,7 @@
 }
 
 .osint-page-shell > .osint-shell-header {
-  min-height: var(--osint-shell-toolbar-height, 80px);
+  min-height: var(--osint-shell-toolbar-height, 64px);
 }
 
 .osint-dock-panel[data-placement='left'] {

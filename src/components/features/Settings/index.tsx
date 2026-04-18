@@ -51,7 +51,6 @@ export const Settings: React.FC<SettingsProps> = ({
     themeMode,
     themeWorkspace,
   });
-  const activeTabConfig = TABS.find((tab) => tab.id === activeTab) ?? TABS[0];
 
   const renderActiveTab = () => {
     if (activeTab === 'DATA') {
@@ -108,11 +107,24 @@ export const Settings: React.FC<SettingsProps> = ({
       toolbar={
         <header className={`${CHROME_HEADER_CLASS} relative z-20 flex items-center justify-between px-6 lg:px-8`}>
           <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-zinc-700/70 to-transparent pointer-events-none" />
-          <div className="min-w-0 flex flex-1 items-center gap-3">
-            <div className="min-w-0">
-              <div className="osint-eyebrow">Settings</div>
-              <div className="mt-1 truncate osint-panel-title">{activeTabConfig.label}</div>
-            </div>
+          <div className="min-w-0 flex flex-1 items-center gap-4">
+            <nav
+              className="flex min-w-0 flex-1 items-center gap-2 overflow-x-auto pr-2 custom-scrollbar"
+              aria-label="Settings sections"
+            >
+              {TABS.map((tab) => (
+                <button
+                  key={tab.id}
+                  type="button"
+                  onClick={() => setActiveTab(tab.id)}
+                  data-active={activeTab === tab.id ? 'true' : undefined}
+                  className="osint-settings-nav-item osint-meta-label font-osint-label flex min-h-12 shrink-0 items-center gap-3 rounded px-4 py-3 text-left"
+                >
+                  <tab.icon className="osint-settings-nav-icon h-4 w-4 shrink-0" />
+                  <span className="osint-settings-nav-label whitespace-nowrap">{tab.label}</span>
+                </button>
+              ))}
+            </nav>
           </div>
           <div className="ml-4 flex h-full items-center gap-2">
             <button
@@ -158,21 +170,6 @@ export const Settings: React.FC<SettingsProps> = ({
         <div className="relative min-h-full w-full">
           <MainContentDotGrid testId="settings-dot-grid-background" />
           <div className="relative z-10 min-h-full w-full p-6 lg:p-8">
-            <nav className="mb-6 flex flex-wrap gap-2" aria-label="Settings sections">
-              {TABS.map((tab) => (
-                <button
-                  key={tab.id}
-                  type="button"
-                  onClick={() => setActiveTab(tab.id)}
-                  data-active={activeTab === tab.id ? 'true' : undefined}
-                  className="osint-settings-nav-item osint-meta-label font-osint-label flex min-h-12 items-center gap-3 rounded px-4 py-3 text-left"
-                >
-                  <tab.icon className="osint-settings-nav-icon h-4 w-4 shrink-0" />
-                  <span className="osint-settings-nav-label">{tab.label}</span>
-                </button>
-              ))}
-            </nav>
-
             {renderActiveTab()}
           </div>
         </div>
