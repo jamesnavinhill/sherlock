@@ -48,6 +48,9 @@ describe('FilesOverview', () => {
   it('keeps grid workspace actions visible on their own row', () => {
     render(<FilesOverview {...baseProps} viewMode="GRID" />);
 
+    expect(screen.getByTestId('files-overview-grid').className).toContain(
+      'grid-cols-[repeat(auto-fit,minmax(min(20rem,100%),22rem))]'
+    );
     expect(screen.getByText('Workspace summary copy for layout coverage.')).toBeInTheDocument();
     expect(
       screen

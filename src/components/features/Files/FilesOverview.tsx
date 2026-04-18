@@ -159,7 +159,10 @@ export const FilesOverview: React.FC<FilesOverviewProps> = ({
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
       {viewMode === 'GRID' ? (
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
+        <div
+          data-testid="files-overview-grid"
+          className="grid justify-start grid-cols-[repeat(auto-fit,minmax(min(20rem,100%),22rem))] gap-6"
+        >
           {viewModel.paginatedWorkspaces.map(({ workspace, artifactCount, itemCount, displayTitle }) => (
             <div
               key={workspace.id}
