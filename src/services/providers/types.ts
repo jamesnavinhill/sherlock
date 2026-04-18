@@ -1,22 +1,20 @@
 import type { AIProvider } from '../../config/aiModels';
 import type {
+  Artifact,
   ArtifactEvidence,
   ArtifactProvenance,
-  BoardAgentActionType,
-  BoardAgentContextSnapshot,
-  Workspace,
-  ChatAttachmentKind,
   DateRangeConfig,
   DomainPack,
   FeedItem,
-  Artifact,
   InvestigationScope,
   MonitorEvent,
   PurposeProfile,
-  WorkspaceBoard,
-  WorkspaceContextSnippet,
   SystemConfig,
-} from '../../types';
+  Workspace,
+} from '../../types/core';
+import type { BoardAgentActionType, BoardAgentContextSnapshot } from '../../types/boardAgent';
+import type { ChatAttachmentKind, WorkspaceContextSnippet } from '../../types/chat';
+import type { WorkspaceBoard } from '../../types/workspaceSurface';
 
 export type ProviderOperation =
   | 'INVESTIGATE'

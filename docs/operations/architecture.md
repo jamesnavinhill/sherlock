@@ -9,6 +9,22 @@ Repository note:
 
 Sherlock now runs on a canonical workspace architecture. The domain-pack shell remains in place, but runtime execution resolves a generic pack, purpose profile, and artifact contract under the settled `Workspace -> Artifact -> WorkspaceRun` model.
 
+## Shared Contract Layout
+
+Sherlock's shared runtime contracts now live under `src/types/*` instead of accumulating entirely inside one monolithic file.
+
+Current contract split:
+
+- `src/types/core.ts` owns the general workspace, artifact, run, scope, and provider-facing domain contracts
+- `src/types/workspaceSurface.ts` owns workspace-item, board, and board-placement contracts
+- `src/types/boardAgent.ts` owns persisted board-agent session, action, and context contracts
+- `src/types/chat.ts` owns chat session, message, action, launch-context, and retrieval-context contracts
+- `src/types/timeline.ts` owns timeline snapshot and event query contracts
+- `src/types/workspaceData.ts` owns backup/import snapshot contracts assembled from the subsystem types above
+- `src/types/index.ts` remains as a compatibility barrel so existing `@/types` imports can stay stable while subsystem ownership becomes easier to navigate
+
+When adding new shared contracts, prefer the owning subsystem file in `src/types/*` and only use the barrel for re-export compatibility or ergonomic cross-feature imports.
+
 ## 1. Application Shell
 
 `src/App.tsx` is now a thin entry export over the route-backed shell in `src/app/AppShell.tsx`.

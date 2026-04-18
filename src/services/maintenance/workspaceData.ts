@@ -1,20 +1,15 @@
 import type {
-  AgentAction,
   Artifact,
-  BoardAgentAction,
-  BoardAgentSession,
-  WorkspaceTemplate,
-  ChatMessage,
-  ChatSession,
   ManualConnection,
   ManualNode,
   Signal,
-  WorkspaceBoard,
-  WorkspaceBoardDocument,
-  WorkspaceItem,
-  WorkspaceDataBackup,
   WorkspaceRun,
-} from '@/types';
+  WorkspaceTemplate,
+} from '@/types/core';
+import type { BoardAgentAction, BoardAgentSession } from '@/types/boardAgent';
+import type { AgentAction, ChatMessage, ChatSession } from '@/types/chat';
+import type { WorkspaceDataBackup } from '@/types/workspaceData';
+import type { WorkspaceBoard, WorkspaceBoardDocument, WorkspaceItem } from '@/types/workspaceSurface';
 import { normalizeWorkspaceDataCompatibility } from './workspaceDataCompatibility';
 
 export const WORKSPACE_DATA_BACKUP_KIND = 'SHERLOCK_WORKSPACE_DATA';

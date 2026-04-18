@@ -1,20 +1,8 @@
-import type {
-  AgentAction,
-  Artifact,
-  BoardAgentAction,
-  BoardAgentSession,
-  ChatMessage,
-  ChatSession,
-  ManualConnection,
-  ManualNode,
-  Signal,
-  WorkspaceBoard,
-  WorkspaceBoardDocument,
-  WorkspaceDataBackup,
-  WorkspaceItem,
-  WorkspaceRun,
-  WorkspaceTemplate,
-} from '@/types';
+import type { Artifact, ManualConnection, ManualNode, Signal, WorkspaceRun, WorkspaceTemplate } from '@/types/core';
+import type { BoardAgentAction, BoardAgentSession } from '@/types/boardAgent';
+import type { AgentAction, ChatMessage, ChatSession } from '@/types/chat';
+import type { WorkspaceDataBackup } from '@/types/workspaceData';
+import type { WorkspaceBoard, WorkspaceBoardDocument, WorkspaceItem } from '@/types/workspaceSurface';
 
 type LegacyWorkspaceDataBackup = Partial<{
   cases: unknown;

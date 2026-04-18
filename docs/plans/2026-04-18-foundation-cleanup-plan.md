@@ -1,6 +1,6 @@
 # 2026-04-18 Foundation Cleanup Plan
 
-Status: In Progress (`Phase 1`, `Phase 2`, `Phase 4`, and `Phase 5` completed on April 18, 2026)
+Status: In Progress (`Phase 1`, `Phase 2`, `Phase 4`, `Phase 5`, and `Phase 6` completed on April 18, 2026)
 
 Related inputs:
 
@@ -449,6 +449,31 @@ Primary targets:
 - `npm run typecheck`
 - targeted tests for touched modules
 - `npm run build` if shipped app code changes
+
+### Progress
+
+Completed on April 18, 2026.
+
+Landed in this phase:
+
+- extracted the former `src/types/index.ts` gravity well into subsystem modules:
+  - `src/types/core.ts`
+  - `src/types/workspaceSurface.ts`
+  - `src/types/boardAgent.ts`
+  - `src/types/chat.ts`
+  - `src/types/timeline.ts`
+  - `src/types/workspaceData.ts`
+- reduced `src/types/index.ts` to a compatibility barrel that re-exports those subsystem contracts instead of remaining the primary authoring surface
+- updated active contract-heavy consumers in board-agent context building, chat runtime context, provider request types, workspace-data normalization, and repository backup handling to import from the narrower subsystem modules
+- updated `docs/operations/ARCHITECTURE.md` and `docs/operations/CONTRIBUTING.md` so the active docs describe the new shared-contract layout and the intended `src/types/*` ownership model
+
+Validation note:
+
+- `npm run lint` passed
+- `npm run typecheck` passed
+- `npm run test -- src/services/maintenance/workspaceData.test.ts src/services/chat/runtimeContext.test.ts src/services/workspace/agent/session.test.ts` passed
+- `npm run build` passed
+- build still reports the pre-existing Vite chunk-size warning for `vendor-tldraw-app`; no new chunk warning was introduced in this phase
 
 ## Phase 7. Final Docs Reconciliation And Cleanup Closeout
 

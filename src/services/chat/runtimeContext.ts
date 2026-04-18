@@ -1,13 +1,11 @@
+import type { ChatSession, WorkspaceContextBundle, WorkspaceContextSnippet } from '@/types/chat';
 import type {
-  ChatSession,
   DomainPack,
   InvestigationScope,
   LabelProfile,
   PurposeProfile,
   Workspace,
-  WorkspaceContextBundle,
-  WorkspaceContextSnippet,
-} from '@/types';
+} from '@/types/core';
 import { getAllScopes, getScopeById } from '../../data/presets';
 import {
   getDomainPackById,

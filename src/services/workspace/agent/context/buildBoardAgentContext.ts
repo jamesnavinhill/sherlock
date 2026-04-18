@@ -1,11 +1,9 @@
+import type { BoardAgentAction, BoardAgentContextPart } from '@/types/boardAgent';
+import type { Artifact, Headline } from '@/types/core';
 import type {
-  Artifact,
-  BoardAgentAction,
-  BoardAgentContextPart,
-  Headline,
   WorkspaceBoardItemReference,
   WorkspaceItem,
-} from '@/types';
+} from '@/types/workspaceSurface';
 import {
   boardRefKey,
   buildWorkspaceEntityRefId,

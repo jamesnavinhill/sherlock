@@ -18,14 +18,8 @@ import {
 import {
   resolveWorkspaceIdentity,
 } from '../../../domain';
-import type {
-  ArtifactSection,
-  Workspace,
-  Artifact,
-  FollowUp,
-  Signal,
-  WorkspaceDataBackup,
-} from '@/types';
+import type { Artifact, ArtifactSection, FollowUp, Signal, Workspace } from '@/types/core';
+import type { WorkspaceDataBackup } from '@/types/workspaceData';
 import { ChatRepository } from './ChatRepository';
 import { BoardAgentRepository } from './BoardAgentRepository';
 import { WorkspaceRunRepository } from './WorkspaceRunRepository';
