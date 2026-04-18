@@ -80,12 +80,12 @@ describe('useFilesController', () => {
 
   it('syncs the global active workspace immediately when the files selection changes', () => {
     const onOpenChat = vi.fn();
-    const onSelectReport = vi.fn();
+    const onSelectArtifact = vi.fn();
 
     const { result } = renderHook(() =>
       useFilesController({
         onOpenChat,
-        onSelectReport,
+        onSelectArtifact,
       })
     );
 
@@ -130,7 +130,7 @@ describe('useFilesController', () => {
     const { result } = renderHook(() =>
       useFilesController({
         onOpenChat: vi.fn(),
-        onSelectReport: vi.fn(),
+        onSelectArtifact: vi.fn(),
       })
     );
 
@@ -143,7 +143,7 @@ describe('useFilesController', () => {
     const { result } = renderHook(() =>
       useFilesController({
         onOpenChat: vi.fn(),
-        onSelectReport: vi.fn(),
+        onSelectArtifact: vi.fn(),
       })
     );
 

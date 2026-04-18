@@ -22,7 +22,7 @@ import { OperationViewDialogs } from './OperationViewDialogs';
 
 // --- PROPS ---
 interface OperationViewProps {
-  task: WorkspaceRun | null;
+  run: WorkspaceRun | null;
   artifactOverride?: Artifact | null;
   artifactRouteState?: ArtifactRouteState;
   onBack: () => void;
@@ -36,7 +36,7 @@ interface OperationViewProps {
 }
 
 export const OperationView: React.FC<OperationViewProps> = ({
-  task,
+  run,
   artifactOverride = null,
   artifactRouteState,
   onBack,
@@ -76,8 +76,8 @@ export const OperationView: React.FC<OperationViewProps> = ({
     headlines,
     inspectorMode,
     isNewWorkspaceModalOpen,
-    isTaskFailed,
-    isTaskRunning,
+    isRunFailed,
+    isRunRunning,
     labelProfile,
     leadToAnalyze,
     leftPanelOpen,
@@ -107,7 +107,7 @@ export const OperationView: React.FC<OperationViewProps> = ({
     onOpenChat,
     onSelectArtifact,
     artifactOverride,
-    task,
+    run,
   });
 
   const [inspectorFocusedSectionId, setInspectorFocusedSectionId] = React.useState<
@@ -122,17 +122,17 @@ export const OperationView: React.FC<OperationViewProps> = ({
     setInspectorFocusedEvidenceId(undefined);
   }, [artifactRouteState?.focusEvidenceId, artifactRouteState?.focusSectionId, artifact?.id]);
 
-  if (isTaskRunning) {
+  if (isRunRunning) {
     return <MatrixLoader statusText={statusText} onRunInBackground={onBack} />;
   }
 
-  if (isTaskFailed) {
+  if (isRunFailed) {
     return (
       <div className="osint-shell-empty flex h-full min-h-screen flex-col items-center justify-center">
         <AlertOctagon className="w-16 h-16 text-osint-danger mb-4" />
         <h2 className="text-xl text-white font-bold mb-2">OPERATION FAILED</h2>
         <p className="text-zinc-500 font-mono mb-6">
-          {task?.error || 'Signal interrupted during data acquisition.'}
+          {run?.error || 'Signal interrupted during data acquisition.'}
         </p>
         <button
           onClick={onBack}
@@ -236,7 +236,7 @@ export const OperationView: React.FC<OperationViewProps> = ({
 
         {/* Center: Artifact Viewer */}
         <ArtifactViewer
-          report={artifact}
+          artifact={artifact}
           focusedSectionId={inspectorFocusedSectionId ?? artifactRouteState?.focusSectionId}
           focusedEvidenceId={inspectorFocusedEvidenceId ?? artifactRouteState?.focusEvidenceId}
           navStack={navStack}
@@ -244,7 +244,7 @@ export const OperationView: React.FC<OperationViewProps> = ({
           showPlaceholder={showPlaceholder}
           onStartWorkspace={() => setIsNewWorkspaceModalOpen(true)}
           onTitleSave={handleTitleSave}
-          onReportBodySave={handleArtifactBodySave}
+          onArtifactBodySave={handleArtifactBodySave}
           onFollowUpOpen={handleFollowUpClick}
           onEntityClick={handleEntityClick}
           onNotify={addToast}
@@ -254,35 +254,35 @@ export const OperationView: React.FC<OperationViewProps> = ({
         <OperationInspectorPanel
           isOpen={rightPanelOpen}
           mode={inspectorMode}
-          report={artifact}
+          artifact={artifact}
           labelProfile={labelProfile}
           workspaceTitle={activeWorkspace ? getWorkspaceDisplayTitle(activeWorkspace) : null}
           entity={selectedEntity}
           headline={selectedHeadline}
-          reports={workspaceArtifacts}
+          artifacts={workspaceArtifacts}
           onEntitySave={handleEntityNameSave}
           onFlagEntity={handleFlagEntity}
           onInvestigateEntity={handleInvestigateEntity}
           onInvestigateHeadline={handleHeadlineInvestigate}
           onOpenEntityChat={handleOpenEntityChat}
           onOpenHeadlineChat={handleOpenHeadlineChat}
-          onOpenReportChat={handleOpenArtifactChat}
+          onOpenArtifactChat={handleOpenArtifactChat}
           onPlaceEntityOnBoard={(entityName) => {
             void handlePlaceEntityOnBoard(entityName);
           }}
           onPlaceHeadlineOnBoard={() => {
             void handlePlaceHeadlineOnBoard();
           }}
-          onPlaceReportOnBoard={() => {
+          onPlaceArtifactOnBoard={() => {
             void handlePlaceArtifactOnBoard();
           }}
-          onSelectReportEntity={handleEntityClick}
-          onOpenReportLead={handleFollowUpClick}
-          onJumpToReportSection={(sectionId) => {
+          onSelectArtifactEntity={handleEntityClick}
+          onOpenArtifactFollowUp={handleFollowUpClick}
+          onJumpToArtifactSection={(sectionId) => {
             setInspectorFocusedEvidenceId(undefined);
             setInspectorFocusedSectionId(sectionId);
           }}
-          onJumpToReportEvidence={(evidenceId) => {
+          onJumpToArtifactEvidence={(evidenceId) => {
             setInspectorFocusedSectionId(undefined);
             setInspectorFocusedEvidenceId(evidenceId);
           }}

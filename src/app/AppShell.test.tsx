@@ -54,7 +54,7 @@ const buildControllerStub = (
     handleNavigateRecord: vi.fn(),
     handleNavigateToView: vi.fn(),
     handleSelectRun: vi.fn(),
-    handleViewReport: vi.fn(),
+    handleViewArtifact: vi.fn(),
     initializeStore: vi.fn(),
     showApiKeyPrompt: false,
     isLoading: false,

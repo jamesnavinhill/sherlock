@@ -35,12 +35,12 @@ import { useExclusivePanelSections } from '../shared/useExclusivePanelSections';
 
 interface TimelineViewControllerOptions {
   onOpenChat: (request: ChatOpenRequest) => void;
-  onOpenReport: (report: Artifact) => void;
+  onOpenArtifact: (artifact: Artifact) => void;
 }
 
 export function useTimelineViewController({
   onOpenChat,
-  onOpenReport,
+  onOpenArtifact,
 }: TimelineViewControllerOptions) {
   const [searchParams, setSearchParams] = useSearchParams();
   const {
@@ -175,9 +175,9 @@ export function useTimelineViewController({
       if (!artifactId) return;
       const artifact = artifacts.find((entry) => entry.id === artifactId);
       if (!artifact) return;
-      onOpenReport(artifact);
+      onOpenArtifact(artifact);
     },
-    [artifacts, onOpenReport]
+    [artifacts, onOpenArtifact]
   );
 
   const handleExportTimelineJson = useCallback(() => {
@@ -221,7 +221,7 @@ export function useTimelineViewController({
       focusReference,
       labelArtifactLabel: labelProfile.artifactLabel,
       onOpenChat,
-      onOpenReport: openArtifact,
+      onOpenArtifact: openArtifact,
       parentArtifactId: parentArtifact?.id,
       placeBoardItem: queueBoardPlacement,
       previousArtifactId,

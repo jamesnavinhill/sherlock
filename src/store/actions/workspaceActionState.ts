@@ -21,16 +21,16 @@ export const buildDeleteWorkspaceState = (
     artifact.workspaceId === workspaceId ? { ...artifact, workspaceId: undefined } : artifact
   );
   const workspaceRuns = state.workspaceRuns.map((workspaceRun) => {
-    if (workspaceRun.workspaceId !== workspaceId && workspaceRun.report?.workspaceId !== workspaceId) {
+    if (workspaceRun.workspaceId !== workspaceId && workspaceRun.artifact?.workspaceId !== workspaceId) {
       return workspaceRun;
     }
 
     return {
       ...workspaceRun,
       workspaceId: undefined,
-      report: workspaceRun.report
-        ? { ...workspaceRun.report, workspaceId: undefined }
-        : workspaceRun.report,
+      artifact: workspaceRun.artifact
+        ? { ...workspaceRun.artifact, workspaceId: undefined }
+        : workspaceRun.artifact,
     };
   });
   const workspaceBoards = state.workspaceBoards.filter((board) => board.workspaceId !== workspaceId);
@@ -102,7 +102,7 @@ export const buildPurgeWorkspaceState = (
     .map((session) => session.id);
   const workspaceRuns = state.workspaceRuns.filter(
     (workspaceRun) =>
-      workspaceRun.workspaceId !== workspaceId && workspaceRun.report?.workspaceId !== workspaceId
+      workspaceRun.workspaceId !== workspaceId && workspaceRun.artifact?.workspaceId !== workspaceId
   );
   const activeRunId =
     !state.activeRunId || workspaceRuns.some((workspaceRun) => workspaceRun.id === state.activeRunId)

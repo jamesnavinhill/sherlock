@@ -52,7 +52,7 @@ describe('useOperationViewController', () => {
       useOperationViewController({
         onNavigate: vi.fn(),
         onOpenChat: vi.fn(),
-        task: null,
+        run: null,
       })
     );
 
@@ -79,7 +79,7 @@ describe('useOperationViewController', () => {
       useOperationViewController({
         onNavigate: vi.fn(),
         onOpenChat: vi.fn(),
-        task: null,
+        run: null,
       })
     );
 
@@ -104,7 +104,7 @@ describe('useOperationViewController', () => {
       useOperationViewController({
         onNavigate: vi.fn(),
         onOpenChat: vi.fn(),
-        task: null,
+        run: null,
         artifactOverride: {
           id: 'artifact-1',
           topic: 'Atlas Report',
@@ -149,7 +149,7 @@ describe('useOperationViewController', () => {
       useOperationViewController({
         onNavigate: vi.fn(),
         onOpenChat: vi.fn(),
-        task: null,
+        run: null,
         artifactOverride: {
           id: 'artifact-1',
           topic: 'Atlas Report',
@@ -210,7 +210,7 @@ describe('useOperationViewController', () => {
       useOperationViewController({
         onNavigate: vi.fn(),
         onOpenChat: vi.fn(),
-        task: null,
+        run: null,
         artifactOverride: {
           id: 'artifact-1',
           topic: 'Atlas Report',
@@ -272,7 +272,7 @@ describe('useOperationViewController', () => {
       useOperationViewController({
         onNavigate: vi.fn(),
         onOpenChat: vi.fn(),
-        task: null,
+        run: null,
         artifactOverride: {
           id: 'artifact-1',
           workspaceId: 'ws-1',
@@ -310,7 +310,7 @@ describe('useOperationViewController', () => {
       useOperationViewController({
         onNavigate: vi.fn(),
         onOpenChat,
-        task: null,
+        run: null,
         artifactOverride: {
           id: 'artifact-1',
           workspaceId: 'ws-1',

@@ -137,7 +137,7 @@ describe('useWorkspaceBoardController', () => {
       useWorkspaceBoardController({
         onLaunchInvestigation: vi.fn(),
         onOpenChat: vi.fn(),
-        onOpenReport: vi.fn(),
+        onOpenArtifact: vi.fn(),
       })
     );
 
@@ -163,7 +163,7 @@ describe('useWorkspaceBoardController', () => {
       useWorkspaceBoardController({
         onLaunchInvestigation: vi.fn(),
         onOpenChat: vi.fn(),
-        onOpenReport: vi.fn(),
+        onOpenArtifact: vi.fn(),
       })
     );
 
@@ -247,7 +247,7 @@ describe('useWorkspaceBoardController', () => {
       useWorkspaceBoardController({
         onLaunchInvestigation: vi.fn(),
         onOpenChat: vi.fn(),
-        onOpenReport: vi.fn(),
+        onOpenArtifact: vi.fn(),
       })
     );
 
@@ -278,7 +278,7 @@ describe('useWorkspaceBoardController', () => {
       useWorkspaceBoardController({
         onLaunchInvestigation: vi.fn(),
         onOpenChat: vi.fn(),
-        onOpenReport: vi.fn(),
+        onOpenArtifact: vi.fn(),
       })
     );
 
@@ -323,7 +323,7 @@ describe('useWorkspaceBoardController', () => {
       useWorkspaceBoardController({
         onLaunchInvestigation: vi.fn(),
         onOpenChat: vi.fn(),
-        onOpenReport: vi.fn(),
+        onOpenArtifact: vi.fn(),
       })
     );
 
@@ -376,7 +376,7 @@ describe('useWorkspaceBoardController', () => {
       useWorkspaceBoardController({
         onLaunchInvestigation: vi.fn(),
         onOpenChat,
-        onOpenReport: vi.fn(),
+        onOpenArtifact: vi.fn(),
       })
     );
 
@@ -531,7 +531,7 @@ describe('useWorkspaceBoardController', () => {
       useWorkspaceBoardController({
         onLaunchInvestigation: vi.fn(),
         onOpenChat: vi.fn(),
-        onOpenReport: vi.fn(),
+        onOpenArtifact: vi.fn(),
       })
     );
 

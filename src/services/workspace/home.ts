@@ -102,7 +102,7 @@ export const buildWorkspaceHomeCounts = (input: {
     signals: input.headlines.filter((headline) => headline.workspaceId === input.workspaceId).length,
     chats: input.chatSessions.filter((session) => session.workspaceId === input.workspaceId).length,
     runs: input.workspaceRuns.filter(
-      (run) => run.workspaceId === input.workspaceId || run.report?.workspaceId === input.workspaceId
+      (run) => run.workspaceId === input.workspaceId || run.artifact?.workspaceId === input.workspaceId
     ).length,
     boards: boards.length,
     boardsWithSnapshots,
@@ -209,7 +209,7 @@ export const buildWorkspaceHomeRecentActivity = (input: {
     });
 
   input.workspaceRuns
-    .filter((run) => run.workspaceId === input.workspaceId || run.report?.workspaceId === input.workspaceId)
+    .filter((run) => run.workspaceId === input.workspaceId || run.artifact?.workspaceId === input.workspaceId)
     .forEach((run) => {
       entries.push({
         id: `run:${run.id}`,
@@ -309,4 +309,3 @@ export const buildWorkspaceHomeSnapshot = (input: {
     workspace: input.workspace,
   }),
 });
-

@@ -426,7 +426,7 @@ export interface WorkspaceRun {
   startTime: number;
   endTime?: number;
   workspaceId?: string;
-  report?: Artifact;
+  artifact?: Artifact;
   parentContext?: InvestigationContext;
   config?: InvestigationRunConfig;
   launchRequest?: InvestigationLaunchRequest;

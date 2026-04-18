@@ -190,7 +190,7 @@ const taskFixture: WorkspaceRun = {
   topic: reportFixture.topic,
   status: 'COMPLETED',
   startTime: Date.now(),
-  report: reportFixture,
+  artifact: reportFixture,
 };
 
 describe('OperationView launch propagation', () => {
@@ -232,7 +232,7 @@ describe('OperationView launch propagation', () => {
     render(
       <MemoryRouter future={routerFuture}>
         <OperationView
-          task={taskFixture}
+          run={taskFixture}
           onBack={vi.fn()}
           onDeepDive={onDeepDive}
           navStack={[]}
@@ -277,7 +277,7 @@ describe('OperationView launch propagation', () => {
     render(
       <MemoryRouter future={routerFuture}>
         <OperationView
-          task={taskFixture}
+          run={taskFixture}
           onBack={vi.fn()}
           onDeepDive={vi.fn()}
           navStack={[]}
@@ -311,7 +311,7 @@ describe('OperationView launch propagation', () => {
     render(
       <MemoryRouter future={routerFuture}>
         <OperationView
-          task={taskFixture}
+          run={taskFixture}
           onBack={vi.fn()}
           onDeepDive={onDeepDive}
           navStack={[]}
@@ -350,7 +350,7 @@ describe('OperationView launch propagation', () => {
     render(
       <MemoryRouter future={routerFuture}>
         <OperationView
-          task={taskFixture}
+          run={taskFixture}
           onBack={vi.fn()}
           onDeepDive={vi.fn()}
           navStack={[]}

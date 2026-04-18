@@ -61,7 +61,7 @@ describe('Files chat launch propagation', () => {
 
     render(
       <MemoryRouter future={routerFuture}>
-        <Files onSelectReport={vi.fn()} onStartNewCase={vi.fn()} onOpenChat={onOpenChat} />
+        <Files onSelectArtifact={vi.fn()} onStartWorkspace={vi.fn()} onOpenChat={onOpenChat} />
       </MemoryRouter>
     );
 
@@ -84,7 +84,7 @@ describe('Files chat launch propagation', () => {
   it('uses canonical workspace and artifact labels in the Files shell', () => {
     render(
       <MemoryRouter future={routerFuture}>
-        <Files onSelectReport={vi.fn()} onStartNewCase={vi.fn()} onOpenChat={vi.fn()} />
+        <Files onSelectArtifact={vi.fn()} onStartWorkspace={vi.fn()} onOpenChat={vi.fn()} />
       </MemoryRouter>
     );
 
@@ -97,7 +97,7 @@ describe('Files chat launch propagation', () => {
   it('opens the upload routing modal before files are selected on the Files page', () => {
     const { container } = render(
       <MemoryRouter future={routerFuture}>
-        <Files onSelectReport={vi.fn()} onStartNewCase={vi.fn()} onOpenChat={vi.fn()} />
+        <Files onSelectArtifact={vi.fn()} onStartWorkspace={vi.fn()} onOpenChat={vi.fn()} />
       </MemoryRouter>
     );
 
@@ -123,7 +123,7 @@ describe('Files chat launch propagation', () => {
   it('moves the layout switch into the files filters menu', () => {
     render(
       <MemoryRouter future={routerFuture}>
-        <Files onSelectReport={vi.fn()} onStartNewCase={vi.fn()} onOpenChat={vi.fn()} />
+        <Files onSelectArtifact={vi.fn()} onStartWorkspace={vi.fn()} onOpenChat={vi.fn()} />
       </MemoryRouter>
     );
 
@@ -150,7 +150,7 @@ describe('Files chat launch propagation', () => {
 
     render(
       <MemoryRouter future={routerFuture}>
-        <Files onSelectReport={vi.fn()} onStartNewCase={vi.fn()} onOpenChat={vi.fn()} />
+        <Files onSelectArtifact={vi.fn()} onStartWorkspace={vi.fn()} onOpenChat={vi.fn()} />
       </MemoryRouter>
     );
 

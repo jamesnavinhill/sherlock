@@ -629,7 +629,7 @@ export const executeOmniboxAction = async ({
   ) {
     const artifactId = result.kind === 'FINDING' ? result.artifactId : result.artifactId || result.refId;
     if (artifactId) {
-      const existingTask = workspaceRuns.find((entry) => entry.report?.id === artifactId);
+      const existingTask = workspaceRuns.find((entry) => entry.artifact?.id === artifactId);
       setActiveRunId(existingTask?.id || null);
       navigate(
         buildWorkspaceArtifactPath(result.workspaceId, artifactId, resolveArtifactRouteState(result))

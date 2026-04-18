@@ -47,7 +47,7 @@ export const groupBoardAgentActionsBySessionId = (
 
 const withWorkspaceLink = (run: WorkspaceRun): WorkspaceRun => ({
   ...run,
-  workspaceId: run.workspaceId || run.report?.workspaceId,
+  workspaceId: run.workspaceId || run.artifact?.workspaceId,
 });
 
 export const getWorkspaceDataSignals = (

@@ -36,11 +36,11 @@ import { buildArtifactViewerPresentation } from './artifactViewerPresentation';
 type ArtifactDetailRailSectionId = 'findings' | 'entities' | 'followUps' | 'resources';
 
 interface BuildArtifactViewerDetailRailSectionsArgs {
-  report: Artifact | null;
+  artifact: Artifact | null;
   labelProfile: LabelProfile;
   canonicalFindings: KeyFinding[];
-  reportEntities: Array<Entity | string>;
-  reportSources: Source[];
+  artifactEntities: Array<Entity | string>;
+  artifactSources: Source[];
   visibleFollowUps: FollowUp[];
   visibleEvidence: ArtifactEvidence[];
   openSection: ArtifactDetailRailSectionId | null;
@@ -78,8 +78,8 @@ const matchesReference = (reference?: string | null, candidate?: string | null) 
 const dedupeById = <T extends { id: string }>(items: T[]) =>
   Array.from(new Map(items.map((item) => [item.id, item])).values());
 
-interface BuildArtifactViewerReportDetailRailSectionsArgs {
-  report: Artifact | null;
+interface BuildArtifactViewerArtifactDetailRailSectionsArgs {
+  artifact: Artifact | null;
   labelProfile: LabelProfile;
   purposeProfile?: PurposeProfile;
   openSection: ArtifactDetailRailSectionId | null;
@@ -241,11 +241,11 @@ const FindingDetailList: React.FC<FindingDetailListProps> = ({
 };
 
 export const buildArtifactViewerDetailRailSections = ({
-  report,
+  artifact,
   labelProfile,
   canonicalFindings,
-  reportEntities,
-  reportSources,
+  artifactEntities,
+  artifactSources,
   visibleFollowUps,
   visibleEvidence,
   openSection,
@@ -351,16 +351,16 @@ export const buildArtifactViewerDetailRailSections = ({
     {
       id: 'entities',
       title: 'Entities',
-      count: reportEntities.length,
+      count: artifactEntities.length,
       icon: PANEL_SECTION_ICONS.entities,
       isOpen: openSection === 'entities',
       onToggle: () => toggleSection('entities'),
       content:
-        reportEntities.length === 0 ? (
+        artifactEntities.length === 0 ? (
           <p className="px-2 py-1 osint-body-quiet italic">No entities detected.</p>
         ) : (
           <div className="space-y-1">
-            {reportEntities.map((entity, index) => {
+            {artifactEntities.map((entity, index) => {
               const normalizedEntity =
                 typeof entity === 'string' ? { name: entity, type: 'UNKNOWN' as const } : entity;
 
@@ -460,17 +460,17 @@ export const buildArtifactViewerDetailRailSections = ({
     {
       id: 'resources',
       title: 'Sources',
-      count: reportSources.length,
+      count: artifactSources.length,
       icon: PANEL_SECTION_ICONS.sources,
       isOpen: openSection === 'resources',
       onToggle: () => toggleSection('resources'),
       content: (
         <div className="space-y-2">
-          {report?.provenance?.warnings?.length ? (
+          {artifact?.provenance?.warnings?.length ? (
             <div className="border border-[color:var(--osint-danger-border)] bg-[color:var(--osint-danger-soft-bg)] p-3">
               <div className="osint-meta-label osint-danger-text">Warnings</div>
               <div className="mt-2 space-y-1 osint-body-quiet osint-danger-text">
-                {report.provenance.warnings.map((warning, index) => (
+                {artifact.provenance.warnings.map((warning, index) => (
                   <div key={`${warning}-${index}`} className="flex items-start gap-2">
                     <ShieldAlert className="mt-0.5 h-3 w-3 shrink-0" />
                     <span>{warning}</span>
@@ -516,12 +516,12 @@ export const buildArtifactViewerDetailRailSections = ({
             </div>
           ))}
 
-          {reportSources.length === 0 ? (
+          {artifactSources.length === 0 ? (
             visibleEvidence.length === 0 ? (
               <p className="px-2 py-1 osint-body-quiet italic">No sources captured for this report.</p>
             ) : null
           ) : (
-            reportSources.map((source, index) => (
+            artifactSources.map((source, index) => (
               <a
                 key={`${source.url}-${index}`}
                 href={source.url}
@@ -544,8 +544,8 @@ export const buildArtifactViewerDetailRailSections = ({
   ];
 };
 
-export const buildArtifactViewerReportDetailRailSections = ({
-  report,
+export const buildArtifactViewerArtifactDetailRailSections = ({
+  artifact,
   labelProfile,
   purposeProfile,
   openSection,
@@ -554,24 +554,24 @@ export const buildArtifactViewerReportDetailRailSections = ({
   onLeadOpen,
   jumpToSection,
   jumpToEvidence,
-}: BuildArtifactViewerReportDetailRailSectionsArgs): LibraryRailSection[] => {
-  const reportEntities = report?.entities || [];
-  const reportSources = report?.sources || [];
+}: BuildArtifactViewerArtifactDetailRailSectionsArgs): LibraryRailSection[] => {
+  const artifactEntities = artifact?.entities || [];
+  const artifactSources = artifact?.sources || [];
   const { evidenceBySectionId, orderedSections, visibleEvidence } = buildArtifactViewerPresentation(
-    report,
+    artifact,
     purposeProfile
   );
-  const canonicalFindings = report ? getArtifactKeyFindings(report) : [];
+  const canonicalFindings = artifact ? getArtifactKeyFindings(artifact) : [];
   const keyFindingsSection = getSectionByKinds(orderedSections, ['KEY_FINDINGS']);
-  const keyFindingsAnchorId = keyFindingsSection?.id || `${report?.id || 'artifact'}-key-findings`;
+  const keyFindingsAnchorId = keyFindingsSection?.id || `${artifact?.id || 'artifact'}-key-findings`;
   const visibleFollowUps: FollowUp[] = (() => {
-    if (!report) return [];
+    if (!artifact) return [];
 
-    const canonical = getArtifactFollowUps(report);
+    const canonical = getArtifactFollowUps(artifact);
     if (canonical.length > 0) return canonical;
 
     return getSectionItemsByKinds(orderedSections, ['LEADS', 'NEXT_STEPS']).map((item, index) => ({
-      id: `report-follow-up-${index}`,
+      id: `artifact-follow-up-${index}`,
       kind: 'NEXT_STEP' as const,
       title: item.slice(0, 96),
       actionText: item,
@@ -596,7 +596,7 @@ export const buildArtifactViewerReportDetailRailSections = ({
 
   const getMatchingSources = (references?: string[]) =>
     dedupeById(
-      reportSources
+      artifactSources
         .filter((source) =>
           (references || []).some(
             (reference) =>
@@ -607,7 +607,7 @@ export const buildArtifactViewerReportDetailRailSections = ({
     ).map(({ id: _id, ...source }) => source);
 
   const getMatchingEntity = (reference: string) => {
-    const match = reportEntities.find((entity) => {
+    const match = artifactEntities.find((entity) => {
       const candidateName = typeof entity === 'string' ? entity : entity.name;
       return matchesReference(reference, candidateName);
     });
@@ -617,11 +617,11 @@ export const buildArtifactViewerReportDetailRailSections = ({
   };
 
   return buildArtifactViewerDetailRailSections({
-    report,
+    artifact,
     labelProfile,
     canonicalFindings,
-    reportEntities,
-    reportSources,
+    artifactEntities,
+    artifactSources,
     visibleFollowUps,
     visibleEvidence,
     openSection,

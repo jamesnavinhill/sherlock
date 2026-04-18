@@ -34,7 +34,7 @@ const buildControllerStub = () =>
     handleLandingOpenWorkspace: vi.fn(),
     handleNavigateRecord: vi.fn(),
     handleSelectRun: vi.fn(),
-    handleViewReport: vi.fn(),
+    handleViewArtifact: vi.fn(),
     launchInvestigation: vi.fn(),
     liveEvents: [],
     openChat: vi.fn(),

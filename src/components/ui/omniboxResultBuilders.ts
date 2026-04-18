@@ -194,10 +194,10 @@ export const buildRunResults = (
       (run) =>
         !activeWorkspaceId ||
         run.workspaceId === activeWorkspaceId ||
-        run.report?.workspaceId === activeWorkspaceId
+        run.artifact?.workspaceId === activeWorkspaceId
     )
     .map((run) => {
-      const workspaceId = run.workspaceId || run.report?.workspaceId;
+      const workspaceId = run.workspaceId || run.artifact?.workspaceId;
       const score = scoreTextMatch(
         query,
         [

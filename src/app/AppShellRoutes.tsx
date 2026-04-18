@@ -61,8 +61,8 @@ export function AppShellRoutes({ controller }: AppShellRoutesProps) {
         path={getRouteDefinition('FILES').path}
         element={
           <Files
-            onSelectReport={controller.handleViewReport}
-            onStartNewCase={(request) =>
+            onSelectArtifact={controller.handleViewArtifact}
+            onStartWorkspace={(request) =>
               controller.launchInvestigation({ ...request, switchToView: true })
             }
             onOpenChat={controller.openChat}
@@ -94,7 +94,7 @@ export function AppShellRoutes({ controller }: AppShellRoutesProps) {
             onBack={controller.handleBack}
             onLaunchInvestigation={controller.launchInvestigation}
             onNavigateRecord={controller.handleNavigateRecord}
-            onViewReport={controller.handleViewReport}
+            onViewArtifact={controller.handleViewArtifact}
             onOpenChat={controller.openChat}
           />
         }
@@ -121,7 +121,7 @@ export function AppShellRoutes({ controller }: AppShellRoutesProps) {
             onBack={controller.handleBack}
             onLaunchInvestigation={controller.launchInvestigation}
             onNavigateRecord={controller.handleNavigateRecord}
-            onViewReport={controller.handleViewReport}
+            onViewArtifact={controller.handleViewArtifact}
             onOpenChat={controller.openChat}
           />
         }
@@ -163,7 +163,7 @@ export function AppShellRoutes({ controller }: AppShellRoutesProps) {
             setActiveWorkspaceId={controller.setActiveWorkspaceId}
             setActiveWorkspaceBoardId={controller.setActiveWorkspaceBoardId}
             workspaceBoards={controller.workspaceBoards}
-            onViewReport={controller.handleViewReport}
+            onViewArtifact={controller.handleViewArtifact}
             onOpenChat={controller.openChat}
             onLaunchInvestigation={controller.launchInvestigation}
             workspaces={controller.workspaces}
@@ -179,7 +179,7 @@ export function AppShellRoutes({ controller }: AppShellRoutesProps) {
             setActiveWorkspaceId={controller.setActiveWorkspaceId}
             setActiveWorkspaceBoardId={controller.setActiveWorkspaceBoardId}
             workspaceBoards={controller.workspaceBoards}
-            onViewReport={controller.handleViewReport}
+            onViewArtifact={controller.handleViewArtifact}
             onOpenChat={controller.openChat}
             onLaunchInvestigation={controller.launchInvestigation}
             workspaces={controller.workspaces}
@@ -192,7 +192,7 @@ export function AppShellRoutes({ controller }: AppShellRoutesProps) {
           <TimelineRouteView
             activeWorkspaceId={controller.activeWorkspaceId}
             setActiveWorkspaceId={controller.setActiveWorkspaceId}
-            onViewReport={controller.handleViewReport}
+            onViewArtifact={controller.handleViewArtifact}
             onOpenChat={controller.openChat}
             onLaunchInvestigation={controller.launchInvestigation}
             workspaces={controller.workspaces}
@@ -205,7 +205,7 @@ export function AppShellRoutes({ controller }: AppShellRoutesProps) {
           <NetworkRouteView
             activeWorkspaceId={controller.activeWorkspaceId}
             setActiveWorkspaceId={controller.setActiveWorkspaceId}
-            onViewReport={controller.handleViewReport}
+            onViewArtifact={controller.handleViewArtifact}
             onOpenChat={controller.openChat}
             onLaunchInvestigation={controller.launchInvestigation}
             workspaces={controller.workspaces}

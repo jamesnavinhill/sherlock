@@ -40,7 +40,7 @@ export const buildCompleteWorkspaceRunState = (
       ? {
           ...workspaceRun,
           status: 'COMPLETED',
-          report: input.artifact,
+          artifact: input.artifact,
           config: input.nextConfig || workspaceRun.config,
           workspaceId: input.artifact.workspaceId ?? workspaceRun.workspaceId,
           endTime: input.endTime,

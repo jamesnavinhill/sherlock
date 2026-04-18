@@ -140,7 +140,7 @@ describe('NetworkGraph launch propagation', () => {
     render(
       <MemoryRouter future={routerFuture}>
         <NetworkGraph
-          onOpenReport={vi.fn()}
+          onOpenArtifact={vi.fn()}
           onInvestigateEntity={onInvestigateEntity}
           onOpenChat={vi.fn()}
         />
@@ -177,7 +177,7 @@ describe('NetworkGraph launch propagation', () => {
     render(
       <MemoryRouter future={routerFuture}>
         <NetworkGraph
-          onOpenReport={vi.fn()}
+          onOpenArtifact={vi.fn()}
           onInvestigateEntity={vi.fn()}
           onOpenChat={onOpenChat}
         />
@@ -198,7 +198,7 @@ describe('NetworkGraph launch propagation', () => {
     render(
       <MemoryRouter future={routerFuture}>
         <NetworkGraph
-          onOpenReport={vi.fn()}
+          onOpenArtifact={vi.fn()}
           onInvestigateEntity={vi.fn()}
           onOpenChat={vi.fn()}
         />

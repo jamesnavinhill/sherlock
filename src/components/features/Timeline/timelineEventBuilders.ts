@@ -81,7 +81,7 @@ export const buildRunTimelineEvents = ({
   workspaceId,
 }: Pick<WorkspaceTimelineEventContext, 'artifacts' | 'runs' | 'workspaceId'>) =>
   runs
-    .filter((run) => run.workspaceId === workspaceId || run.report?.workspaceId === workspaceId)
+    .filter((run) => run.workspaceId === workspaceId || run.artifact?.workspaceId === workspaceId)
     .flatMap<TimelineEvent>((run) => {
       const relatedArtifactId =
         run.config?.producedArtifactId || inferArtifactForRun(run, artifacts, workspaceId);

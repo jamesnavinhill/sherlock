@@ -31,7 +31,7 @@ describe('useOperationViewInspectorState', () => {
         onInvestigateEntity: vi.fn(),
         onOpenChat,
         queueBoardPlacement: vi.fn(),
-        report: {
+        artifact: {
           id: 'artifact-1',
           workspaceId: 'ws-1',
           topic: 'Atlas Report',
@@ -99,7 +99,7 @@ describe('useOperationViewInspectorState', () => {
         onInvestigateEntity: vi.fn(),
         onOpenChat: vi.fn(),
         queueBoardPlacement,
-        report: {
+        artifact: {
           id: 'artifact-1',
           workspaceId: 'ws-1',
           topic: 'Atlas Report',

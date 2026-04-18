@@ -28,13 +28,13 @@ import { BoardTopBar } from './BoardTopBar';
 import { BoardCanvasPane } from './BoardCanvasPane';
 
 interface WorkspaceBoardProps {
-  onOpenReport: (report: Artifact) => void;
+  onOpenArtifact: (artifact: Artifact) => void;
   onOpenChat: (request: ChatOpenRequest) => void;
   onLaunchInvestigation: (request: InvestigationLaunchRequest) => void;
 }
 
 export const WorkspaceBoard: React.FC<WorkspaceBoardProps> = ({
-  onOpenReport,
+  onOpenArtifact,
   onOpenChat,
   onLaunchInvestigation,
 }) => {
@@ -123,7 +123,7 @@ export const WorkspaceBoard: React.FC<WorkspaceBoardProps> = ({
   } = useWorkspaceBoardController({
     onLaunchInvestigation,
     onOpenChat,
-    onOpenReport,
+    onOpenArtifact,
   });
 
   if (!activeWorkspace) {

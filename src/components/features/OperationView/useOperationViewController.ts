@@ -36,7 +36,7 @@ interface OperationViewControllerOptions {
   onOpenChat: (request: ChatOpenRequest) => void;
   onSelectArtifact?: (artifactId: string) => void;
   artifactOverride?: Artifact | null;
-  task: WorkspaceRun | null;
+  run: WorkspaceRun | null;
 }
 
 export function useOperationViewController({
@@ -46,7 +46,7 @@ export function useOperationViewController({
   onOpenChat,
   onSelectArtifact,
   artifactOverride = null,
-  task,
+  run,
 }: OperationViewControllerOptions) {
   const navigate = useNavigate();
   const [leftPanelOpen, setLeftPanelOpen] = useState(false);
@@ -91,8 +91,8 @@ export function useOperationViewController({
     customScopes,
   } = useOperationFeatureState();
 
-  const artifact = task?.report ?? artifactOverride;
-  const status = task?.status ?? null;
+  const artifact = run?.artifact ?? artifactOverride;
+  const status = run?.status ?? null;
   const effectiveWorkspaceId = selectedWorkspaceId ?? artifact?.workspaceId ?? null;
 
   useEffect(() => {
@@ -235,12 +235,12 @@ export function useOperationViewController({
     handleInvestigateEntity,
     handleOpenEntityChat,
     handleOpenHeadlineChat,
-    handleOpenReportChat: handleOpenArtifactChat,
-    handleOpenReportInspector: handleOpenArtifactInspector,
+    handleOpenArtifactChat,
+    handleOpenArtifactInspector,
     handleOpenWorkspaceBoard,
     handlePlaceEntityOnBoard,
     handlePlaceHeadlineOnBoard,
-    handlePlaceReportOnBoard: handlePlaceArtifactOnBoard,
+    handlePlaceArtifactOnBoard,
     inspectorMode,
     rightPanelOpen,
     selectedEntity,
@@ -262,7 +262,7 @@ export function useOperationViewController({
     onInvestigateEntity: (entityName) => handleFollowUpClick(entityName),
     onOpenChat,
     queueBoardPlacement,
-    report: artifact,
+    artifact,
     resolveScope,
     toConfigOverride,
   });
@@ -310,12 +310,12 @@ export function useOperationViewController({
     toggleFlag(entityName);
   };
 
-  const isTaskRunning = task && (status === 'RUNNING' || status === 'QUEUED');
-  const isTaskFailed = task && status === 'FAILED';
-  const statusText = task
-    ? task.parentContext
-      ? `SUB-NETWORK: "${task.topic}"`
-      : `TARGET: "${task.topic}"`
+  const isRunRunning = run && (status === 'RUNNING' || status === 'QUEUED');
+  const isRunFailed = run && status === 'FAILED';
+  const statusText = run
+    ? run.parentContext
+      ? `SUB-NETWORK: "${run.topic}"`
+      : `TARGET: "${run.topic}"`
     : '';
   const showPlaceholder = !artifact;
 
@@ -347,8 +347,8 @@ export function useOperationViewController({
     headlines,
     inspectorMode,
     isNewWorkspaceModalOpen,
-    isTaskFailed,
-    isTaskRunning,
+    isRunFailed,
+    isRunRunning,
     labelProfile,
     leadToAnalyze,
     leftPanelOpen,

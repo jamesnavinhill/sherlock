@@ -32,7 +32,7 @@ const mapRunRow = (row: typeof workspaceRuns.$inferSelect): WorkspaceRun => {
 
 const toRunInsertRow = (run: WorkspaceRun): typeof workspaceRuns.$inferInsert => ({
   id: run.id,
-  workspaceId: run.workspaceId || run.report?.workspaceId || null,
+  workspaceId: run.workspaceId || run.artifact?.workspaceId || null,
   topic: run.topic,
   status: run.status,
   packId: run.config?.packId,

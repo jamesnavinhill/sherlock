@@ -90,7 +90,7 @@ describe('useTimelineViewController', () => {
       () =>
         useTimelineViewController({
           onOpenChat: vi.fn(),
-          onOpenReport: vi.fn(),
+          onOpenArtifact: vi.fn(),
         }),
       {
         wrapper: ({ children }) =>
@@ -115,13 +115,13 @@ describe('useTimelineViewController', () => {
   });
 
   it('opens known artifacts through the injected report handler', () => {
-    const onOpenReport = vi.fn();
+    const onOpenArtifact = vi.fn();
 
     const { result } = renderHook(
       () =>
         useTimelineViewController({
           onOpenChat: vi.fn(),
-          onOpenReport,
+          onOpenArtifact,
         }),
       {
         wrapper: ({ children }) =>
@@ -131,7 +131,7 @@ describe('useTimelineViewController', () => {
 
     result.current.openArtifact('artifact-1');
 
-    expect(onOpenReport).toHaveBeenCalledWith(
+    expect(onOpenArtifact).toHaveBeenCalledWith(
       expect.objectContaining({
         id: 'artifact-1',
       })
@@ -143,7 +143,7 @@ describe('useTimelineViewController', () => {
       () =>
         useTimelineViewController({
           onOpenChat: vi.fn(),
-          onOpenReport: vi.fn(),
+          onOpenArtifact: vi.fn(),
         }),
       {
         wrapper: ({ children }) =>

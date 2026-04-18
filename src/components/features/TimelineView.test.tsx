@@ -81,7 +81,7 @@ describe('TimelineView route state', () => {
               path="/workspaces/:workspaceId/timeline"
               element={
                 <>
-                  <TimelineView onOpenReport={vi.fn()} onOpenChat={vi.fn()} />
+                  <TimelineView onOpenArtifact={vi.fn()} onOpenChat={vi.fn()} />
                   <LocationProbe />
                 </>
               }
@@ -107,7 +107,7 @@ describe('TimelineView route state', () => {
               path="/workspaces/:workspaceId/timeline"
               element={
                 <>
-                  <TimelineView onOpenReport={vi.fn()} onOpenChat={vi.fn()} />
+                  <TimelineView onOpenArtifact={vi.fn()} onOpenChat={vi.fn()} />
                   <LocationProbe />
                 </>
               }
@@ -132,7 +132,7 @@ describe('TimelineView route state', () => {
           <Routes>
             <Route
               path="/workspaces/:workspaceId/timeline"
-              element={<TimelineView onOpenReport={vi.fn()} onOpenChat={vi.fn()} />}
+              element={<TimelineView onOpenArtifact={vi.fn()} onOpenChat={vi.fn()} />}
             />
           </Routes>
         </MemoryRouter>

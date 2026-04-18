@@ -20,7 +20,7 @@ import { addNetworkEntityFocusListener } from '@/services/workspace/workspaceSur
 import { PageShell } from '@/components/system/layout/PageShell';
 
 interface NetworkGraphProps {
-  onOpenReport: (report: Artifact) => void;
+  onOpenArtifact: (artifact: Artifact) => void;
   onInvestigateEntity: (request: InvestigationLaunchRequest) => void;
   onOpenChat: (request: ChatOpenRequest) => void;
   routeState?: NetworkRouteState;
@@ -30,7 +30,7 @@ interface NetworkGraphProps {
 }
 
 export const NetworkGraph: React.FC<NetworkGraphProps> = ({
-  onOpenReport,
+  onOpenArtifact,
   onInvestigateEntity,
   onOpenChat,
   routeState,
@@ -269,7 +269,7 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({
           onDeleteNode={handleDeleteNode}
           onSetManualNodeIcon={handleSetSelectedNodeIcon}
           onInvestigate={handleLeadInvestigate}
-          onOpenReport={onOpenReport}
+          onOpenArtifact={onOpenArtifact}
           onOpenEntityChat={handleOpenEntityChat}
           onOpenReportChat={handleOpenReportChat}
           onOpenHeadlineChat={handleOpenHeadlineChat}

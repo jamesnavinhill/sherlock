@@ -48,9 +48,9 @@ export const resolveRelatedRunForArtifact = (
   return (
     workspaceRuns.find(
       (workspaceRun) =>
-        workspaceRun.report?.id === artifact.id ||
+        workspaceRun.artifact?.id === artifact.id ||
         workspaceRun.id === artifact.config?.sourceRunId ||
-        workspaceRun.report?.topic === artifact.topic
+        workspaceRun.artifact?.topic === artifact.topic
     ) || null
   );
 };

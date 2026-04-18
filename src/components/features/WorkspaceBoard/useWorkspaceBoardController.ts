@@ -25,13 +25,13 @@ import { useWorkspaceBoardAgentState } from './useWorkspaceBoardAgentState';
 interface UseWorkspaceBoardControllerInput {
   onLaunchInvestigation: (request: InvestigationLaunchRequest) => void;
   onOpenChat: (request: ChatOpenRequest) => void;
-  onOpenReport: (report: Artifact) => void;
+  onOpenArtifact: (artifact: Artifact) => void;
 }
 
 export const useWorkspaceBoardController = ({
   onLaunchInvestigation,
   onOpenChat,
-  onOpenReport,
+  onOpenArtifact,
 }: UseWorkspaceBoardControllerInput) => {
   const navigate = useNavigate();
   const {
@@ -303,7 +303,7 @@ export const useWorkspaceBoardController = ({
     createWorkspaceItem,
     handleDropEntry,
     onOpenChat,
-    onOpenReport,
+    onOpenArtifact,
     setAiBusy,
     setAiSummary,
     selectedArtifact,

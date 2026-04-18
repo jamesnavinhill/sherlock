@@ -39,7 +39,7 @@ interface UseOperationViewInspectorStateInput {
     openInBoard?: boolean;
     mode?: 'PLACE' | 'FOCUS_OR_PLACE';
   }) => void;
-  report: Artifact | null;
+  artifact: Artifact | null;
   resolveScope: (scopeId?: string) => InvestigationScope | undefined;
   toConfigOverride: (
     config?: InvestigationRunConfig
@@ -57,7 +57,7 @@ export const useOperationViewInspectorState = ({
   onInvestigateEntity,
   onOpenChat,
   queueBoardPlacement,
-  report,
+  artifact,
   resolveScope,
   toConfigOverride,
 }: UseOperationViewInspectorStateInput) => {
@@ -70,21 +70,21 @@ export const useOperationViewInspectorState = ({
   const [selectedHeadline, setSelectedHeadline] = useState<Headline | null>(null);
 
   useEffect(() => {
-    if (!report) return;
+    if (!artifact) return;
 
     const focusKey = [
-      report.id || report.topic,
+      artifact.id || artifact.topic,
       artifactRouteState?.inspector || '',
       artifactRouteState?.focusSectionId || '',
       artifactRouteState?.focusEvidenceId || '',
     ].join(':');
 
-    const shouldOpenReportInspector =
+    const shouldOpenArtifactInspector =
       artifactRouteState?.inspector === 'REPORT' ||
       !!artifactRouteState?.focusSectionId ||
       !!artifactRouteState?.focusEvidenceId;
 
-    if (shouldOpenReportInspector && lastAppliedArtifactFocusKeyRef.current !== focusKey) {
+    if (shouldOpenArtifactInspector && lastAppliedArtifactFocusKeyRef.current !== focusKey) {
       lastAppliedArtifactFocusKeyRef.current = focusKey;
       queueMicrotask(() => {
         setSelectedEntity(null);
@@ -107,7 +107,7 @@ export const useOperationViewInspectorState = ({
     artifactRouteState?.inspector,
     closeLeftPanelForMobile,
     inspectorMode,
-    report,
+    artifact,
   ]);
 
   const openInspector = useCallback(
@@ -137,12 +137,12 @@ export const useOperationViewInspectorState = ({
     [openInspector]
   );
 
-  const handleOpenReportInspector = useCallback(() => {
-    if (!report) return;
+  const handleOpenArtifactInspector = useCallback(() => {
+    if (!artifact) return;
     setSelectedEntity(null);
     setSelectedHeadline(null);
     openInspector('REPORT');
-  }, [openInspector, report]);
+  }, [artifact, openInspector]);
 
   const handleHeadlineInvestigate = useCallback(() => {
     if (!selectedHeadline || !onInvestigateHeadline) return;
@@ -152,45 +152,45 @@ export const useOperationViewInspectorState = ({
       parentContext: activeWorkspace
         ? { topic: activeWorkspace.title, summary: activeWorkspace.description || '' }
         : undefined,
-      configOverride: toConfigOverride(report?.config),
-      scope: resolveScope(report?.config?.scopeId),
-      dateRangeOverride: report?.config?.dateRangeOverride,
+      configOverride: toConfigOverride(artifact?.config),
+      scope: resolveScope(artifact?.config?.scopeId),
+      dateRangeOverride: artifact?.config?.dateRangeOverride,
       launchSource: 'OPERATION_HEADLINE',
       sourceSignalId: selectedHeadline.id,
-      parentArtifactId: report?.id,
+      parentArtifactId: artifact?.id,
     });
     setRightPanelOpen(false);
   }, [
     activeWorkspace,
     onInvestigateHeadline,
-    report?.config,
-    report?.id,
+    artifact?.config,
+    artifact?.id,
     resolveScope,
     selectedHeadline,
     toConfigOverride,
   ]);
 
-  const handleOpenReportChat = useCallback(() => {
-    if (report) {
-      const request = buildArtifactChatOpenRequest(report);
+  const handleOpenArtifactChat = useCallback(() => {
+    if (artifact) {
+      const request = buildArtifactChatOpenRequest(artifact);
       if (request) {
         onOpenChat(request);
         return;
       }
     }
 
-    const workspaceId = effectiveWorkspaceId || report?.workspaceId;
+    const workspaceId = effectiveWorkspaceId || artifact?.workspaceId;
     if (!workspaceId) return;
     onOpenChat({ workspaceId });
-  }, [effectiveWorkspaceId, onOpenChat, report]);
+  }, [artifact, effectiveWorkspaceId, onOpenChat]);
 
   const handleOpenWorkspaceBoard = useCallback(async () => {
-    const workspaceId = effectiveWorkspaceId || report?.workspaceId;
+    const workspaceId = effectiveWorkspaceId || artifact?.workspaceId;
     if (!workspaceId) return;
 
     const board = await ensureWorkspaceBoard(workspaceId);
     navigate(buildWorkspaceBoardDocumentPath(workspaceId, board.id));
-  }, [effectiveWorkspaceId, ensureWorkspaceBoard, navigate, report?.workspaceId]);
+  }, [artifact?.workspaceId, effectiveWorkspaceId, ensureWorkspaceBoard, navigate]);
 
   const handlePlaceReferenceOnBoard = useCallback(
     async (reference: WorkspaceBoardItemReference) => {
@@ -205,30 +205,30 @@ export const useOperationViewInspectorState = ({
     [ensureWorkspaceBoard, navigate, queueBoardPlacement]
   );
 
-  const handlePlaceReportOnBoard = useCallback(async () => {
-    if (!report) return;
-    const reference = buildArtifactBoardReference(report);
+  const handlePlaceArtifactOnBoard = useCallback(async () => {
+    if (!artifact) return;
+    const reference = buildArtifactBoardReference(artifact);
     if (!reference) return;
     await handlePlaceReferenceOnBoard(reference);
-  }, [handlePlaceReferenceOnBoard, report]);
+  }, [artifact, handlePlaceReferenceOnBoard]);
 
   const handleOpenEntityChat = useCallback(
     (entityName: string) => {
       const request = buildEntityChatOpenRequest({
         entityName,
-        relatedArtifactId: report?.id,
-        workspaceId: effectiveWorkspaceId || report?.workspaceId,
+        relatedArtifactId: artifact?.id,
+        workspaceId: effectiveWorkspaceId || artifact?.workspaceId,
       });
       if (!request) return;
       onOpenChat(request);
       setRightPanelOpen(false);
     },
-    [effectiveWorkspaceId, onOpenChat, report?.id, report?.workspaceId]
+    [artifact?.id, artifact?.workspaceId, effectiveWorkspaceId, onOpenChat]
   );
 
   const handlePlaceEntityOnBoard = useCallback(
     async (entityName: string) => {
-      const workspaceId = effectiveWorkspaceId || report?.workspaceId;
+      const workspaceId = effectiveWorkspaceId || artifact?.workspaceId;
       if (!workspaceId) return;
 
       const entityNameToPlace = selectedEntity?.name === entityName ? selectedEntity.name : entityName;
@@ -240,7 +240,7 @@ export const useOperationViewInspectorState = ({
       await handlePlaceReferenceOnBoard(reference);
       setRightPanelOpen(false);
     },
-    [effectiveWorkspaceId, handlePlaceReferenceOnBoard, report?.workspaceId, selectedEntity]
+    [artifact?.workspaceId, effectiveWorkspaceId, handlePlaceReferenceOnBoard, selectedEntity]
   );
 
   const handleOpenHeadlineChat = useCallback(() => {
@@ -274,12 +274,12 @@ export const useOperationViewInspectorState = ({
     handleInvestigateEntity,
     handleOpenEntityChat,
     handleOpenHeadlineChat,
-    handleOpenReportChat,
-    handleOpenReportInspector,
+    handleOpenArtifactChat,
+    handleOpenArtifactInspector,
     handleOpenWorkspaceBoard,
     handlePlaceEntityOnBoard,
     handlePlaceHeadlineOnBoard,
-    handlePlaceReportOnBoard,
+    handlePlaceArtifactOnBoard,
     inspectorMode,
     rightPanelOpen,
     selectedEntity,

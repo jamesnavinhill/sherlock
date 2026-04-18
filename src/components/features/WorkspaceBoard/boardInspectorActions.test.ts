@@ -34,7 +34,7 @@ describe('buildBoardInspectorActions', () => {
 
     const actions = buildBoardInspectorActions({
       onOpenChat: vi.fn(),
-      onOpenReport: vi.fn(),
+      onOpenArtifact: vi.fn(),
       onOpenSelectedChat: vi.fn(),
       selectedArtifact: artifact,
       selectedEntries: [

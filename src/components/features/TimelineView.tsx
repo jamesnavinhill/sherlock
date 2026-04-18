@@ -14,11 +14,11 @@ import { TimelineEventList } from './Timeline/TimelineEventList';
 import { TimelineInspectorPanel } from './Timeline/TimelineInspectorPanel';
 
 interface TimelineViewProps {
-  onOpenReport: (report: Artifact) => void;
+  onOpenArtifact: (artifact: Artifact) => void;
   onOpenChat: (request: ChatOpenRequest) => void;
 }
 
-export const TimelineView: React.FC<TimelineViewProps> = ({ onOpenReport, onOpenChat }) => {
+export const TimelineView: React.FC<TimelineViewProps> = ({ onOpenArtifact, onOpenChat }) => {
   const navigate = useNavigate();
   const {
     activeWorkspace,
@@ -83,7 +83,7 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ onOpenReport, onOpen
     workspaces,
   } = useTimelineViewController({
     onOpenChat,
-    onOpenReport,
+    onOpenArtifact,
   });
 
   if (isLoading) {

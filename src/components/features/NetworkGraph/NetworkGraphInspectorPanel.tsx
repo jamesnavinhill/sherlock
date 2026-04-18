@@ -60,7 +60,7 @@ interface NetworkGraphInspectorPanelProps {
   onDeleteNode: () => void;
   onSetManualNodeIcon: (iconId: AppIconId | null) => void;
   onInvestigate: (topic: string, context?: InvestigationContext) => void;
-  onOpenReport: (report: Artifact) => void;
+  onOpenArtifact: (artifact: Artifact) => void;
   onOpenEntityChat: (entityName: string) => void;
   onOpenReportChat: (report: Artifact) => void;
   onOpenHeadlineChat: (headline: Headline) => void;
@@ -87,7 +87,7 @@ export const NetworkGraphInspectorPanel: React.FC<NetworkGraphInspectorPanelProp
   onDeleteNode,
   onSetManualNodeIcon,
   onInvestigate,
-  onOpenReport,
+  onOpenArtifact,
   onOpenEntityChat,
   onOpenReportChat,
   onOpenHeadlineChat,
@@ -235,7 +235,7 @@ export const NetworkGraphInspectorPanel: React.FC<NetworkGraphInspectorPanelProp
           id: 'report-open',
           label: 'Open',
           icon: FolderOpen,
-          onClick: () => onOpenReport(selectedReport),
+          onClick: () => onOpenArtifact(selectedReport),
         },
         {
           id: 'report-board',
@@ -397,7 +397,7 @@ export const NetworkGraphInspectorPanel: React.FC<NetworkGraphInspectorPanelProp
           connections: selectedEntityConnections,
           openSection: entitySectionState.openSection,
           toggleSection: entitySectionState.toggleSection,
-          onOpenMention: onOpenReport,
+          onOpenMention: onOpenArtifact,
           getMentionLabel: (report) => report.topic,
         })
       : [];

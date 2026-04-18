@@ -80,7 +80,7 @@ export const buildRecentOmniboxResults = ({
           kind: 'RUN',
           title: sanitizeDisplayTitle(run.topic),
           subtitle: 'Recent run',
-          workspaceId: run.workspaceId || run.report?.workspaceId,
+          workspaceId: run.workspaceId || run.artifact?.workspaceId,
           refId: run.id,
           score: 114 - index,
           timestamp: recent.visitedAt,
@@ -172,7 +172,7 @@ export const buildRecentOmniboxResults = ({
       (run) =>
         !activeWorkspaceId ||
         run.workspaceId === activeWorkspaceId ||
-        run.report?.workspaceId === activeWorkspaceId
+        run.artifact?.workspaceId === activeWorkspaceId
     )
     .slice()
     .sort(
@@ -185,7 +185,7 @@ export const buildRecentOmniboxResults = ({
       kind: 'RUN' as const,
       title: sanitizeDisplayTitle(run.topic),
       subtitle: 'Recent run',
-      workspaceId: run.workspaceId || run.report?.workspaceId,
+      workspaceId: run.workspaceId || run.artifact?.workspaceId,
       refId: run.id,
       score: 82 - index,
       timestamp: run.endTime || run.startTime,

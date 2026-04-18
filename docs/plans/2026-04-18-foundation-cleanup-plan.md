@@ -1,6 +1,6 @@
 # 2026-04-18 Foundation Cleanup Plan
 
-Status: In Progress (`Phase 1`, `Phase 2`, `Phase 4`, `Phase 5`, and `Phase 6` completed on April 18, 2026)
+Status: In Progress (`Phase 1`, `Phase 2`, `Phase 3`, `Phase 4`, `Phase 5`, and `Phase 6` completed on April 18, 2026)
 
 Related inputs:
 
@@ -274,6 +274,32 @@ Primary targets:
 - targeted Operation View and route tests
 - `npm run build`
 
+### Progress
+
+Completed on April 18, 2026.
+
+Landed in this phase:
+
+- renamed the active Operation View contracts from mixed `task` / `report` seams to canonical `run` / `artifact` seams across:
+  - `src/components/features/OperationView/*`
+  - `src/app/routeViews.tsx`
+  - `src/app/useAppShellNavigation.ts`
+  - `src/app/useAppShellController.ts`
+  - `src/app/AppShellRoutes.tsx`
+- renamed active Files, Timeline, WorkspaceBoard, and routed shell callbacks to canonical workspace/artifact terms such as `onViewArtifact`, `onSelectArtifact`, `onOpenArtifact`, and `onStartWorkspace`
+- updated `WorkspaceRun` and its active consumers to use `artifact` instead of `report`, removing the remaining run-to-artifact drift from route helpers, workspace actions, timeline derivation, omnibox actions, and maintenance helpers
+- normalized Operation View's reader, inspector, and detail-rail internals so canonical artifact language now carries through the viewer, inspector actions, follow-up jumps, and artifact body editing paths
+- updated the active architecture doc to record that route and feature seams now use canonical runtime naming and that legacy `case` / `report` wording is intentionally bounded to compatibility seams and user-facing copy
+- refreshed focused tests across app routes, Files, Timeline, WorkspaceBoard, NetworkGraph, Operation View, and workspace-run persistence so the new names are reinforced by active test fixtures instead of legacy vocabulary
+
+Validation note:
+
+- `npm run lint` passed
+- `npm run typecheck` passed
+- `npm run test -- src/app/routeViews.test.tsx src/app/AppShellRoutes.test.tsx src/app/AppShell.test.tsx src/app/appShellNavigationHelpers.test.ts src/components/features/Files.launch.test.tsx src/components/features/Files/useFilesController.test.ts src/components/features/TimelineView.test.tsx src/components/features/Timeline/useTimelineViewController.test.ts src/components/features/WorkspaceBoard/boardInspectorActions.test.ts src/components/features/WorkspaceBoard/useWorkspaceBoardInspectorState.test.ts src/components/features/WorkspaceBoard/useWorkspaceBoardController.test.ts src/components/features/OperationView/ArtifactViewer.test.tsx src/components/features/OperationView/artifactViewerText.test.ts src/components/features/OperationView/OperationInspectorPanel.test.tsx src/components/features/OperationView/useOperationViewInspectorState.test.ts src/components/features/OperationView/useOperationViewController.test.ts src/components/features/OperationView/launchPropagation.test.tsx src/components/features/NetworkGraph/launchPropagation.test.tsx src/components/features/NetworkGraph/NetworkGraphInspectorPanel.test.tsx src/store/workspaceStore.test.ts` passed
+- `npm run build` passed
+- build still reports the pre-existing Vite chunk-size warning for `vendor-tldraw-app`; no new chunk warning was introduced in this phase
+
 ## Phase 4. Persistence And Repository Seam Extraction
 
 Purpose:
@@ -511,6 +537,16 @@ Primary targets:
 - `npm run lint`
 - `npm run typecheck`
 - targeted tests or `npm run build` if the closeout includes final code adjustments
+
+## Carry-Over After Phase 6 Execution
+
+The remaining work is now concentrated in the planned closeout phase plus a few explicitly deferred follow-ups:
+
+- complete `Phase 7` final docs reconciliation and add the cleanup closeout report in `docs/reports`
+- decide whether broader non-Operation-View `report` naming in domain/presentation, chat artifact-building, and network-graph-local helper code should be normalized in a later cleanup tranche or left as bounded internal vocabulary where it still maps cleanly to artifact generation behavior
+- continue opportunistic hotspot reduction in files that remain large but were not blocking this cleanup phase, especially:
+  - `src/components/features/Settings/themeWorkbench/SettingsThemeWorkbenchPanel.tsx`
+  - `src/components/features/WorkspaceBoard/BoardAgentRail.tsx`
 
 ## Recommended Working Sequence Inside The Cleanup
 

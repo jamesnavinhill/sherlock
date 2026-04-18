@@ -14,7 +14,7 @@ interface WorkspaceLibraryEntryLike {
 
 interface BuildBoardInspectorActionsInput {
   onOpenChat: (request: ChatOpenRequest) => void;
-  onOpenReport: (report: Artifact) => void;
+  onOpenArtifact: (artifact: Artifact) => void;
   onOpenSelectedChat: () => void;
   selectedArtifact: Artifact | null;
   selectedEntries: WorkspaceLibraryEntryLike[];
@@ -25,7 +25,7 @@ interface BuildBoardInspectorActionsInput {
 
 export const buildBoardInspectorActions = ({
   onOpenChat,
-  onOpenReport,
+  onOpenArtifact,
   onOpenSelectedChat,
   selectedArtifact,
   selectedEntries,
@@ -41,7 +41,7 @@ export const buildBoardInspectorActions = ({
       label: 'Open Report',
       shortLabel: INSPECTOR_ACTION_SHORT_LABELS.open,
       icon: FileText,
-      onClick: () => onOpenReport(selectedArtifact),
+      onClick: () => onOpenArtifact(selectedArtifact),
     });
   }
 
@@ -79,7 +79,7 @@ export const buildBoardInspectorActions = ({
         label: 'Open Source Report',
         shortLabel: INSPECTOR_ACTION_SHORT_LABELS.source,
         icon: FileText,
-        onClick: () => onOpenReport(sourceReport),
+        onClick: () => onOpenArtifact(sourceReport),
       });
     }
   }

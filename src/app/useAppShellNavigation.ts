@@ -106,15 +106,15 @@ export const useAppShellNavigation = ({
     navigate(lastNonSettingsPathRef.current);
   }, [navigate, lastNonSettingsPathRef]);
 
-  const handleViewReport = useCallback(
+  const handleViewArtifact = useCallback(
     (artifact: Artifact) => {
       setActiveWorkspaceId(artifact.workspaceId || null);
 
       const existingTask = workspaceRuns.find(
         (workspaceRun) =>
-          workspaceRun.report?.id === artifact.id ||
+          workspaceRun.artifact?.id === artifact.id ||
           workspaceRun.id === artifact.config?.sourceRunId ||
-          workspaceRun.report?.topic === artifact.topic
+          workspaceRun.artifact?.topic === artifact.topic
       );
 
       setActiveRunId(existingTask?.id || null);
@@ -170,12 +170,12 @@ export const useAppShellNavigation = ({
         return;
       }
 
-      handleViewReport(matchedRecord.artifact);
+      handleViewArtifact(matchedRecord.artifact);
     },
     [
       artifacts,
       handleSelectRun,
-      handleViewReport,
+      handleViewArtifact,
       navigate,
       workspaceBoards,
       workspaceRuns,
@@ -205,6 +205,6 @@ export const useAppShellNavigation = ({
     handleNavigateRecord,
     handleNavigateToView,
     handleSelectRun,
-    handleViewReport,
+    handleViewArtifact,
   };
 };

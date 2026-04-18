@@ -33,7 +33,7 @@ interface UseWorkspaceBoardInspectorStateInput {
   createWorkspaceItem: (item: WorkspaceItem) => Promise<unknown>;
   handleDropEntry: (entry: WorkspaceLibraryEntry, clientX?: number, clientY?: number) => void;
   onOpenChat: (request: ChatOpenRequest) => void;
-  onOpenReport: (report: Artifact) => void;
+  onOpenArtifact: (artifact: Artifact) => void;
   setAiBusy: (value: boolean) => void;
   setAiSummary: (value: string | null) => void;
   selectedArtifact: Artifact | null;
@@ -52,7 +52,7 @@ export const useWorkspaceBoardInspectorState = ({
   createWorkspaceItem,
   handleDropEntry,
   onOpenChat,
-  onOpenReport,
+  onOpenArtifact,
   setAiBusy,
   setAiSummary,
   selectedArtifact,
@@ -209,7 +209,7 @@ export const useWorkspaceBoardInspectorState = ({
     () =>
       buildBoardInspectorActions({
         onOpenChat,
-        onOpenReport,
+        onOpenArtifact,
         onOpenSelectedChat: handleOpenSelectedChat,
         selectedArtifact,
         selectedEntries,
@@ -220,7 +220,7 @@ export const useWorkspaceBoardInspectorState = ({
     [
       handleOpenSelectedChat,
       onOpenChat,
-      onOpenReport,
+      onOpenArtifact,
       selectedArtifact,
       selectedEntries,
       selectedPrimaryEntry,

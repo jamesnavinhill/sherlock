@@ -53,9 +53,16 @@ export const orderArtifactViewerSections = (
   });
 };
 
-export const buildArtifactViewerPresentation = (report: Artifact | null, purposeProfile?: PurposeProfile) => {
-  const orderedSections = orderArtifactViewerSections(report?.sections, purposeProfile, report?.artifactType);
-  const visibleEvidence = (report?.evidence || []).filter((entry) =>
+export const buildArtifactViewerPresentation = (
+  artifact: Artifact | null,
+  purposeProfile?: PurposeProfile
+) => {
+  const orderedSections = orderArtifactViewerSections(
+    artifact?.sections,
+    purposeProfile,
+    artifact?.artifactType
+  );
+  const visibleEvidence = (artifact?.evidence || []).filter((entry) =>
     entry.summary.replace(/\s+/g, ' ').trim().length > 0
   );
   const evidenceBySectionId = visibleEvidence.reduce<Record<string, ArtifactEvidence[]>>((acc, evidence) => {
@@ -65,7 +72,7 @@ export const buildArtifactViewerPresentation = (report: Artifact | null, purpose
   }, {});
 
   return {
-    artifactTypeLabel: getArtifactTypeLabel(report?.artifactType),
+    artifactTypeLabel: getArtifactTypeLabel(artifact?.artifactType),
     evidenceBySectionId,
     orderedSections,
     visibleEvidence,

@@ -415,7 +415,7 @@ describe('workspaceStore', () => {
 
     await completeRun(taskId, report);
     expect(useWorkspaceStore.getState().workspaceRuns[0].status).toBe('COMPLETED');
-    expect(useWorkspaceStore.getState().workspaceRuns[0].report?.id).toBe('rep-1');
+    expect(useWorkspaceStore.getState().workspaceRuns[0].artifact?.id).toBe('rep-1');
     expect(WorkspaceRunRepository.updateConfig).toHaveBeenCalledWith(taskId, {
       producedArtifactId: 'rep-1',
     });

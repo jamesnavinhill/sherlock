@@ -169,7 +169,7 @@ export const inferArtifactForRun = (
   workspaceId: string
 ) => {
   if (run.config?.producedArtifactId) return run.config.producedArtifactId;
-  if (run.report?.id) return run.report.id;
+  if (run.artifact?.id) return run.artifact.id;
 
   const artifactFromSourceRun = artifacts.find(
     (artifact) => artifact.workspaceId === workspaceId && artifact.config?.sourceRunId === run.id

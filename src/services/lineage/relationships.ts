@@ -10,14 +10,14 @@ const findRunProducingArtifact = (runs: WorkspaceRun[], artifactId?: string) => 
   if (!artifactId) return undefined;
 
   return runs.find(
-    (run) => run.report?.id === artifactId || run.config?.producedArtifactId === artifactId
+    (run) => run.artifact?.id === artifactId || run.config?.producedArtifactId === artifactId
   );
 };
 
 const findArtifactProducedByRun = (artifacts: Artifact[], run?: WorkspaceRun) => {
   if (!run) return undefined;
 
-  const explicitArtifactId = run.config?.producedArtifactId || run.report?.id;
+  const explicitArtifactId = run.config?.producedArtifactId || run.artifact?.id;
   if (explicitArtifactId) {
     return findArtifactById(artifacts, explicitArtifactId);
   }

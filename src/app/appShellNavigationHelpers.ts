@@ -23,7 +23,7 @@ export const resolveNavigationRecord = ({
     return { kind: 'WORKSPACE', workspace };
   }
 
-  const task = workspaceRuns.find((entry) => entry.id === id || entry.report?.id === id);
+  const task = workspaceRuns.find((entry) => entry.id === id || entry.artifact?.id === id);
   if (task) {
     return { kind: 'TASK', task };
   }

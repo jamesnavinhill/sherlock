@@ -76,7 +76,7 @@ interface InvestigationRouteViewProps {
   onBack: () => void;
   onLaunchInvestigation: (request: InvestigationLaunchRequest) => void;
   onNavigateRecord: (id: string) => void;
-  onViewReport: (report: Artifact) => void;
+  onViewArtifact: (artifact: Artifact) => void;
   onOpenChat: (request: ChatOpenRequest) => void;
 }
 
@@ -96,7 +96,7 @@ interface BoardRouteViewProps {
   setActiveWorkspaceId: (id: string | null) => void;
   setActiveWorkspaceBoardId: (id: string | null) => void;
   workspaceBoards: WorkspaceBoardRecord[];
-  onViewReport: (report: Artifact) => void;
+  onViewArtifact: (artifact: Artifact) => void;
   onOpenChat: (request: ChatOpenRequest) => void;
   onLaunchInvestigation: (request: InvestigationLaunchRequest) => void;
   workspaces: Workspace[];
@@ -105,7 +105,7 @@ interface BoardRouteViewProps {
 interface WorkspaceScopedRouteViewProps {
   activeWorkspaceId: string | null;
   setActiveWorkspaceId: (id: string | null) => void;
-  onViewReport: (report: Artifact) => void;
+  onViewArtifact: (artifact: Artifact) => void;
   onOpenChat: (request: ChatOpenRequest) => void;
   onLaunchInvestigation: (request: InvestigationLaunchRequest) => void;
   workspaces: Workspace[];
@@ -149,7 +149,7 @@ export const ArtifactRouteView: React.FC<InvestigationRouteViewProps> = ({
   onBack,
   onLaunchInvestigation,
   onNavigateRecord,
-  onViewReport,
+  onViewArtifact,
   onOpenChat,
 }) => {
   const { workspaceId, artifactId } = useParams();
@@ -178,7 +178,7 @@ export const ArtifactRouteView: React.FC<InvestigationRouteViewProps> = ({
   return (
     <Suspense fallback={<RouteViewFallback />}>
       <OperationView
-        task={relatedTask}
+        run={relatedTask}
         artifactOverride={artifact}
         artifactRouteState={artifactRouteState}
         onBack={onBack}
@@ -188,7 +188,7 @@ export const ArtifactRouteView: React.FC<InvestigationRouteViewProps> = ({
         onSelectArtifact={(artifactId) => {
           const foundArtifact = artifacts.find((entry) => entry.id === artifactId);
           if (foundArtifact) {
-            onViewReport(foundArtifact);
+            onViewArtifact(foundArtifact);
           }
         }}
         onStartWorkspace={(request) => onLaunchInvestigation({ ...request, switchToView: true })}
@@ -210,14 +210,14 @@ export const RunRouteView: React.FC<InvestigationRouteViewProps> = ({
   onBack,
   onLaunchInvestigation,
   onNavigateRecord,
-  onViewReport,
+  onViewArtifact,
   onOpenChat,
 }) => {
   const { runId } = useParams();
   const [searchParams] = useSearchParams();
   const nextRunId = runId || '';
   const task = workspaceRuns.find((workspaceRun) => workspaceRun.id === nextRunId) || null;
-  const artifact = task?.report || null;
+  const artifact = task?.artifact || null;
   const artifactRouteState = parseArtifactRouteState(searchParams);
 
   useEffect(() => {
@@ -240,7 +240,7 @@ export const RunRouteView: React.FC<InvestigationRouteViewProps> = ({
   return (
     <Suspense fallback={<RouteViewFallback />}>
       <OperationView
-        task={task}
+        run={task}
         artifactOverride={artifact}
         artifactRouteState={artifactRouteState}
         onBack={onBack}
@@ -250,7 +250,7 @@ export const RunRouteView: React.FC<InvestigationRouteViewProps> = ({
         onSelectArtifact={(artifactId) => {
           const foundArtifact = artifacts.find((entry) => entry.id === artifactId);
           if (foundArtifact) {
-            onViewReport(foundArtifact);
+            onViewArtifact(foundArtifact);
           }
         }}
         onStartWorkspace={(request) => onLaunchInvestigation({ ...request, switchToView: true })}
@@ -321,7 +321,7 @@ export const BoardRouteView: React.FC<BoardRouteViewProps> = ({
   setActiveWorkspaceId,
   setActiveWorkspaceBoardId,
   workspaceBoards,
-  onViewReport,
+  onViewArtifact,
   onOpenChat,
   onLaunchInvestigation,
   workspaces,
@@ -364,7 +364,7 @@ export const BoardRouteView: React.FC<BoardRouteViewProps> = ({
   return (
     <Suspense fallback={<RouteViewFallback />}>
       <WorkspaceBoard
-        onOpenReport={onViewReport}
+        onOpenArtifact={onViewArtifact}
         onOpenChat={onOpenChat}
         onLaunchInvestigation={onLaunchInvestigation}
       />
@@ -375,7 +375,7 @@ export const BoardRouteView: React.FC<BoardRouteViewProps> = ({
 export const TimelineRouteView: React.FC<WorkspaceScopedRouteViewProps> = ({
   activeWorkspaceId,
   setActiveWorkspaceId,
-  onViewReport,
+  onViewArtifact,
   onOpenChat,
   workspaces,
 }) => {
@@ -398,7 +398,7 @@ export const TimelineRouteView: React.FC<WorkspaceScopedRouteViewProps> = ({
 
   return (
     <Suspense fallback={<RouteViewFallback />}>
-      <TimelineView onOpenReport={onViewReport} onOpenChat={onOpenChat} />
+      <TimelineView onOpenArtifact={onViewArtifact} onOpenChat={onOpenChat} />
     </Suspense>
   );
 };
@@ -406,7 +406,7 @@ export const TimelineRouteView: React.FC<WorkspaceScopedRouteViewProps> = ({
 export const NetworkRouteView: React.FC<WorkspaceScopedRouteViewProps> = ({
   activeWorkspaceId,
   setActiveWorkspaceId,
-  onViewReport,
+  onViewArtifact,
   onOpenChat,
   onLaunchInvestigation,
   workspaces,
@@ -434,7 +434,7 @@ export const NetworkRouteView: React.FC<WorkspaceScopedRouteViewProps> = ({
     <Suspense fallback={<RouteViewFallback />}>
       <NetworkGraph
         routeState={networkRouteState}
-        onOpenReport={onViewReport}
+        onOpenArtifact={onViewArtifact}
         onInvestigateEntity={(request) =>
           onLaunchInvestigation({ ...request, switchToView: true })
         }

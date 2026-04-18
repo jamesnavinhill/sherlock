@@ -56,7 +56,7 @@ describe('buildArtifactViewerBody', () => {
     };
 
     const body = buildArtifactViewerBody({
-      report: artifact,
+      artifact,
       orderedSections: artifact.sections || [],
     });
 
@@ -92,7 +92,7 @@ describe('buildArtifactViewerBody', () => {
     };
 
     const body = buildArtifactViewerBody({
-      report: artifact,
+      artifact,
       orderedSections: artifact.sections || [],
     });
 
@@ -124,7 +124,7 @@ describe('buildArtifactViewerBody', () => {
     };
 
     const body = buildArtifactViewerBody({
-      report: artifact,
+      artifact,
       orderedSections: artifact.sections || [],
     });
 

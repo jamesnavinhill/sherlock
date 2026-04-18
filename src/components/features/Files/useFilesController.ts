@@ -28,12 +28,12 @@ import {
 
 interface UseFilesControllerInput {
   onOpenChat: (request: ChatOpenRequest) => void;
-  onSelectReport: (report: Artifact) => void;
+  onSelectArtifact: (artifact: Artifact) => void;
 }
 
 export const useFilesController = ({
   onOpenChat,
-  onSelectReport,
+  onSelectArtifact,
 }: UseFilesControllerInput) => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -317,7 +317,7 @@ export const useFilesController = ({
       if (!item.url) return;
       window.open(item.url, '_blank', 'noopener,noreferrer');
     },
-    onSelectArtifact: onSelectReport,
+    onSelectArtifact,
     overviewViewModel,
     recordFilter,
     recordsViewModel,

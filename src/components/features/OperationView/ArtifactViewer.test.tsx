@@ -79,12 +79,12 @@ const reportFixture: Artifact = {
 
 describe('ArtifactViewer', () => {
   it('renders canonical findings in the document body and hides legacy follow-up chrome', async () => {
-    const onReportBodySave = vi.fn(async () => undefined);
+    const onArtifactBodySave = vi.fn(async () => undefined);
     const onFollowUpOpen = vi.fn();
 
     render(
       <ArtifactViewer
-        report={reportFixture}
+        artifact={reportFixture}
         navStack={[
           { type: 'CASE', id: 'case-1', label: 'Atlas Review' },
           { type: 'REPORT', id: 'report-1', label: reportFixture.topic },
@@ -94,7 +94,7 @@ describe('ArtifactViewer', () => {
         showPlaceholder={false}
         onStartWorkspace={vi.fn()}
         onTitleSave={vi.fn()}
-        onReportBodySave={onReportBodySave}
+        onArtifactBodySave={onArtifactBodySave}
         onFollowUpOpen={onFollowUpOpen}
         onEntityClick={vi.fn()}
       />
@@ -159,7 +159,7 @@ describe('ArtifactViewer', () => {
     expect(
       within(executiveSummarySection as HTMLElement).queryByRole('button', { name: 'Edit' })
     ).not.toBeInTheDocument();
-    expect(onReportBodySave).not.toHaveBeenCalled();
+    expect(onArtifactBodySave).not.toHaveBeenCalled();
   });
 
 });

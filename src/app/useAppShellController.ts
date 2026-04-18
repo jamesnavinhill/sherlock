@@ -58,7 +58,7 @@ export interface AppShellController {
   handleNavigateRecord: (id: string) => void;
   handleNavigateToView: (view: AppView) => void;
   handleSelectRun: (runId: string) => void;
-  handleViewReport: (report: Artifact) => void;
+  handleViewArtifact: (artifact: Artifact) => void;
   initializeStore: () => Promise<void>;
   showApiKeyPrompt: boolean;
   isLoading: boolean;
@@ -201,7 +201,7 @@ export function useAppShellController(): AppShellController {
     handleNavigateRecord,
     handleNavigateToView,
     handleSelectRun,
-    handleViewReport,
+    handleViewArtifact,
   } = useAppShellNavigation({
     navigate,
     routeCurrentView,
@@ -324,7 +324,7 @@ export function useAppShellController(): AppShellController {
     handleNavigateRecord,
     handleNavigateToView,
     handleSelectRun,
-    handleViewReport,
+    handleViewArtifact,
     initializeStore,
     showApiKeyPrompt,
     isLoading,

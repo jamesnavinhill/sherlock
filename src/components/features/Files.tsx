@@ -45,13 +45,13 @@ import { FilesRecords } from '@/components/features/Files/FilesRecords';
 import { useFilesController } from '@/components/features/Files/useFilesController';
 
 interface FilesProps {
-  onSelectReport: (report: Artifact) => void;
-  onStartNewCase: (request: InvestigationLaunchRequest) => void;
+  onSelectArtifact: (artifact: Artifact) => void;
+  onStartWorkspace: (request: InvestigationLaunchRequest) => void;
   onOpenChat: (request: ChatOpenRequest) => void;
 }
 
-export const Files: React.FC<FilesProps> = ({ onSelectReport, onStartNewCase, onOpenChat }) => {
-  const controller = useFilesController({ onOpenChat, onSelectReport });
+export const Files: React.FC<FilesProps> = ({ onSelectArtifact, onStartWorkspace, onOpenChat }) => {
+  const controller = useFilesController({ onOpenChat, onSelectArtifact });
   const [workspaceIconTarget, setWorkspaceIconTarget] = useState<Workspace | null>(null);
   const {
     artifactLabelLower,
@@ -79,7 +79,6 @@ export const Files: React.FC<FilesProps> = ({ onSelectReport, onStartNewCase, on
     onOpenArtifactChat,
     onOpenItemChat,
     onOpenItemSource,
-    onSelectArtifact,
     overviewViewModel,
     recordFilter,
     recordsViewModel,
@@ -296,7 +295,7 @@ export const Files: React.FC<FilesProps> = ({ onSelectReport, onStartNewCase, on
           initialTopic=""
           onCancel={() => setIsNewCaseModalOpen(false)}
           onStart={(topic, configOverride, preseededEntities, scope, dateRange) => {
-            onStartNewCase({
+            onStartWorkspace({
               topic,
               configOverride,
               preseededEntities,

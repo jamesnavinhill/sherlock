@@ -49,7 +49,7 @@ import { buildArtifactViewerBody, buildArtifactViewerBodyBlocks } from './artifa
 import { getEntityToneClass } from '@/utils/entityPalette';
 
 interface ArtifactViewerProps {
-  report: Artifact | null;
+  artifact: Artifact | null;
   focusedSectionId?: string;
   focusedEvidenceId?: string;
   navStack: BreadcrumbItem[];
@@ -58,7 +58,7 @@ interface ArtifactViewerProps {
   showPlaceholder: boolean;
   onStartWorkspace: () => void;
   onTitleSave: (newTitle: string) => void;
-  onReportBodySave: (
+  onArtifactBodySave: (
     body: string,
     sectionId?: string,
     options?: { syncSummary?: boolean }
@@ -67,7 +67,7 @@ interface ArtifactViewerProps {
   onEntityClick: (entity: Entity) => void;
 }
 
-const REPORT_BODY_EDIT_KEY = '__artifact-report-body__';
+const ARTIFACT_BODY_EDIT_KEY = '__artifact-report-body__';
 
 const cx = (...classes: Array<string | false | null | undefined>) =>
   classes.filter(Boolean).join(' ');
@@ -108,7 +108,7 @@ const SECTION_HEADER_SUCCESS_ICON_BUTTON_CLASS =
 const REPORT_MENU_BUTTON_CLASS = `${getChromeMenuButtonClass(false)} osint-meta-label-strong inline-flex h-9 items-center justify-center px-3`;
 
 export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
-  report,
+  artifact,
   focusedSectionId,
   focusedEvidenceId,
   navStack,
@@ -117,12 +117,12 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
   showPlaceholder,
   onStartWorkspace,
   onTitleSave,
-  onReportBodySave,
+  onArtifactBodySave,
   onFollowUpOpen,
   onEntityClick,
 }) => {
-  const reportSources = report?.sources || [];
-  const reportEntities = report?.entities || [];
+  const artifactSources = artifact?.sources || [];
+  const artifactEntities = artifact?.entities || [];
 
   const [editingTargetKey, setEditingTargetKey] = useState<string | null>(null);
   const [editingSectionDraft, setEditingSectionDraft] = useState('');
@@ -141,7 +141,7 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
 
   useEffect(() => {
     return () => stopAudio();
-  }, [report?.id]);
+  }, [artifact?.id]);
 
   useEffect(() => {
     setEditingTargetKey(null);
@@ -149,7 +149,7 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
     setEditingSectionDraft('');
     setLocalFocusedSectionId(null);
     setLocalFocusedEvidenceId(null);
-  }, [report?.id]);
+  }, [artifact?.id]);
 
   useEffect(() => {
     setLocalFocusedSectionId(null);
@@ -190,14 +190,16 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
   };
 
   const labelProfile = getLabelProfileById(
-    report?.labelProfileId || report?.config?.labelProfileId
+    artifact?.labelProfileId || artifact?.config?.labelProfileId
   );
-  const purposeProfile = getPurposeProfileById(report?.purposeId || report?.config?.purposeId);
+  const purposeProfile = getPurposeProfileById(
+    artifact?.purposeId || artifact?.config?.purposeId
+  );
   const { evidenceBySectionId, orderedSections, visibleEvidence } = buildArtifactViewerPresentation(
-    report,
+    artifact,
     purposeProfile
   );
-  const canonicalFindings = report ? getArtifactKeyFindings(report) : [];
+  const canonicalFindings = artifact ? getArtifactKeyFindings(artifact) : [];
   const focusedEvidence =
     focusedEvidenceId && visibleEvidence.length > 0
       ? visibleEvidence.find((entry) => entry.id === focusedEvidenceId)
@@ -205,31 +207,31 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
   const keyFindingsSection = getSectionByKinds(orderedSections, ['KEY_FINDINGS']);
   const primarySummarySection = getSectionByKinds(orderedSections, ['EXECUTIVE_SUMMARY']);
   const methodologySection = getSectionByKinds(orderedSections, ['METHODOLOGY']);
-  const summaryAnchorId = primarySummarySection?.id || `${report?.id || 'artifact'}-summary`;
-  const keyFindingsAnchorId = keyFindingsSection?.id || `${report?.id || 'artifact'}-key-findings`;
+  const summaryAnchorId = primarySummarySection?.id || `${artifact?.id || 'artifact'}-summary`;
+  const keyFindingsAnchorId = keyFindingsSection?.id || `${artifact?.id || 'artifact'}-key-findings`;
   const highlightedSectionId =
     localFocusedSectionId || focusedSectionId || focusedEvidence?.sectionId || null;
   const highlightedEvidenceId = localFocusedEvidenceId || focusedEvidenceId || null;
   const visibleReportBodyBlocks = buildArtifactViewerBodyBlocks({
-    report,
+    artifact,
     orderedSections,
     labelProfile,
   });
   const visibleReportBody = buildArtifactViewerBody({
-    report,
+    artifact,
     orderedSections,
     labelProfile,
   });
-  const editableReportBody = primarySummarySection?.content || report?.summary || '';
+  const editableArtifactBody = primarySummarySection?.content || artifact?.summary || '';
   const isCompositeReportBody =
-    normalizeText(visibleReportBody) !== normalizeText(editableReportBody);
+    normalizeText(visibleReportBody) !== normalizeText(editableArtifactBody);
   const visibleFollowUps: FollowUp[] = (() => {
-    if (!report) return [];
-    const canonical = getArtifactFollowUps(report);
+    if (!artifact) return [];
+    const canonical = getArtifactFollowUps(artifact);
     if (canonical.length > 0) return canonical;
 
     return getSectionItemsByKinds(orderedSections, ['LEADS', 'NEXT_STEPS']).map((item, index) => ({
-      id: `report-follow-up-${index}`,
+      id: `artifact-follow-up-${index}`,
       kind: 'NEXT_STEP' as const,
       title: item.slice(0, 96),
       actionText: item,
@@ -237,7 +239,7 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
     }));
   })();
   const shouldRenderDiscreteReportSections = false;
-  const reportDisplayTitle = report ? sanitizeDisplayTitle(report.topic) : '';
+  const artifactDisplayTitle = artifact ? sanitizeDisplayTitle(artifact.topic) : '';
   const mainColumnClassName = 'flex-1 h-full overflow-y-auto custom-scrollbar';
   const detailActionButtonClassName = CHROME_THIN_ACTION_BUTTON_CLASS;
   useEffect(() => {
@@ -251,10 +253,10 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
       behavior: 'smooth',
       block: 'center',
     });
-  }, [highlightedEvidenceId, highlightedSectionId, report?.id]);
+  }, [highlightedEvidenceId, highlightedSectionId, artifact?.id]);
 
   const startEditingSection = (body: string, sectionId?: string, syncSummary = true) => {
-    setEditingTargetKey(sectionId || REPORT_BODY_EDIT_KEY);
+    setEditingTargetKey(sectionId || ARTIFACT_BODY_EDIT_KEY);
     setEditingSectionId(sectionId);
     setEditingSectionDraft(body);
     setEditingSyncSummary(syncSummary);
@@ -269,7 +271,7 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
 
     setIsSavingSection(true);
     try {
-      await onReportBodySave(trimmed, editingSectionId, {
+      await onArtifactBodySave(trimmed, editingSectionId, {
         syncSummary: editingSyncSummary,
       });
       setEditingTargetKey(null);
@@ -360,7 +362,7 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
 
   const getMatchingSources = (references?: string[]) =>
     dedupeById(
-      reportSources
+      artifactSources
         .filter((source) =>
           (references || []).some(
             (reference) =>
@@ -371,7 +373,7 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
     ).map(({ id: _id, ...source }) => source);
 
   const getMatchingEntity = (reference: string) => {
-    const match = reportEntities.find((entity) => {
+    const match = artifactEntities.find((entity) => {
       const candidateName = typeof entity === 'string' ? entity : entity.name;
       return matchesReference(reference, candidateName);
     });
@@ -489,7 +491,7 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
   ) => {
     const displayedSectionId = section.id;
     const saveSectionId = options?.saveSectionId;
-    const editKey = saveSectionId || REPORT_BODY_EDIT_KEY;
+    const editKey = saveSectionId || ARTIFACT_BODY_EDIT_KEY;
     const isEditing = options?.editable && editingTargetKey === editKey;
     const linkedEvidence = evidenceBySectionId[displayedSectionId] || [];
 
@@ -586,7 +588,7 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
     );
   };
 
-  if (showPlaceholder || !report) {
+  if (showPlaceholder || !artifact) {
     return (
       <div className="osint-page-stage-shell osint-shell-content-surface relative flex flex-1 items-center justify-center">
         <EmptyState
@@ -615,16 +617,16 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
             <div className="flex h-full flex-col justify-center gap-2 md:flex-row md:items-center md:justify-between">
               <Breadcrumbs items={navStack} onNavigate={onNavigate} />
               <div className="flex items-center gap-3">
-                {report.dateStr ? (
-                  <p className="osint-meta-label whitespace-nowrap">LOG DATE: {report.dateStr}</p>
+                {artifact.dateStr ? (
+                  <p className="osint-meta-label whitespace-nowrap">LOG DATE: {artifact.dateStr}</p>
                 ) : null}
               </div>
             </div>
           </div>
           <div data-testid="artifact-viewer-title-surface" className="relative z-10 px-6 py-5">
             <EditableTitle
-              value={report.topic}
-              displayValue={reportDisplayTitle}
+              value={artifact.topic}
+              displayValue={artifactDisplayTitle}
               onSave={onTitleSave}
               className="font-osint-display osint-title-page text-[clamp(var(--font-size-xl),calc(var(--font-size-lg)+0.8vw),var(--font-size-3xl))] leading-tight uppercase"
               inputClassName="font-osint-display osint-title-page text-[clamp(var(--font-size-xl),calc(var(--font-size-lg)+0.8vw),var(--font-size-3xl))] uppercase"
@@ -650,7 +652,7 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
                   </div>
                   <div className={SECTION_HEADER_ACTION_GROUP_CLASS}>
                     {!isCompositeReportBody &&
-                    editingTargetKey === (primarySummarySection?.id || REPORT_BODY_EDIT_KEY) ? (
+                    editingTargetKey === (primarySummarySection?.id || ARTIFACT_BODY_EDIT_KEY) ? (
                       <>
                         <button
                           type="button"
@@ -681,7 +683,7 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
                       <button
                         type="button"
                         onClick={() =>
-                          startEditingSection(editableReportBody, primarySummarySection?.id, true)
+                          startEditingSection(editableArtifactBody, primarySummarySection?.id, true)
                         }
                         className={SECTION_HEADER_ICON_BUTTON_CLASS}
                         title="Edit artifact text"
@@ -715,7 +717,7 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
                 </div>
 
                 {(focusedEvidenceId || focusedSectionId) &&
-                editingTargetKey !== (primarySummarySection?.id || REPORT_BODY_EDIT_KEY) ? (
+                editingTargetKey !== (primarySummarySection?.id || ARTIFACT_BODY_EDIT_KEY) ? (
                   <div className="mt-4 inline-flex items-center px-2 py-1 osint-meta-label text-osint-primary">
                     Focused Reading Target
                   </div>
@@ -727,7 +729,7 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
 
                 <div className="mt-6">
                   {!isCompositeReportBody &&
-                  editingTargetKey === (primarySummarySection?.id || REPORT_BODY_EDIT_KEY) ? (
+                  editingTargetKey === (primarySummarySection?.id || ARTIFACT_BODY_EDIT_KEY) ? (
                     <textarea
                       value={editingSectionDraft}
                       onChange={(event) => setEditingSectionDraft(event.target.value)}

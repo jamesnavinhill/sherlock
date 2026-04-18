@@ -15,7 +15,7 @@ describe('appShellNavigationHelpers', () => {
       topic: 'Atlas Run',
       status: 'RUNNING' as const,
       startTime: 1,
-      report: {
+      artifact: {
         id: 'artifact-1',
         topic: 'Atlas Report',
         summary: 'Summary',
@@ -38,19 +38,19 @@ describe('appShellNavigationHelpers', () => {
     };
 
     const byWorkspace = resolveNavigationRecord({
-      artifacts: [task.report, standaloneArtifact],
+      artifacts: [task.artifact, standaloneArtifact],
       id: 'ws-1',
       workspaceRuns: [task],
       workspaces: [workspace],
     });
     const byTask = resolveNavigationRecord({
-      artifacts: [task.report, standaloneArtifact],
+      artifacts: [task.artifact, standaloneArtifact],
       id: 'run-1',
       workspaceRuns: [task],
       workspaces: [workspace],
     });
     const byArtifact = resolveNavigationRecord({
-      artifacts: [task.report, standaloneArtifact],
+      artifacts: [task.artifact, standaloneArtifact],
       id: 'artifact-2',
       workspaceRuns: [task],
       workspaces: [workspace],
@@ -61,7 +61,7 @@ describe('appShellNavigationHelpers', () => {
     expect(byArtifact?.kind).toBe('ARTIFACT');
     expect(
       resolveNavigationRecord({
-        artifacts: [task.report],
+        artifacts: [task.artifact],
         id: 'missing',
         workspaceRuns: [task],
         workspaces: [workspace],

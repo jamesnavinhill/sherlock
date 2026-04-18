@@ -137,15 +137,15 @@ const renderNonRedundantBlock = (
 };
 
 export const buildArtifactViewerBodyBlocks = ({
-  report,
+  artifact,
   orderedSections,
   labelProfile,
 }: {
-  report: Artifact | null;
+  artifact: Artifact | null;
   orderedSections: ArtifactSection[];
   labelProfile?: LabelProfile;
 }) => {
-  if (!report) return [];
+  if (!artifact) return [];
 
   const blocks: Array<{ title: string; body: string }> = [];
   const executiveSummaryTitle = getArtifactSectionTitle(
@@ -169,10 +169,10 @@ export const buildArtifactViewerBodyBlocks = ({
     (section) => section.kind === 'EXECUTIVE_SUMMARY' && buildSectionBodyText(section).length > 0
   );
 
-  if (!hasExecutiveSummary && report.summary.trim()) {
+  if (!hasExecutiveSummary && artifact.summary.trim()) {
     blocks.push({
       title: getArtifactSectionTitle('EXECUTIVE_SUMMARY', labelProfile, 'Executive Summary'),
-      body: report.summary.trim(),
+      body: artifact.summary.trim(),
     });
   }
 
@@ -219,7 +219,7 @@ export const buildArtifactViewerBodyBlocks = ({
 };
 
 export const buildArtifactViewerBody = (args: {
-  report: Artifact | null;
+  artifact: Artifact | null;
   orderedSections: ArtifactSection[];
   labelProfile?: LabelProfile;
 }) => {
@@ -229,6 +229,6 @@ export const buildArtifactViewerBody = (args: {
     blocks
       .map((block) => (block.title ? buildTitledBlock(block.title, block.body) : block.body))
       .join('\n\n')
-      .trim() || args.report?.summary.trim() || ''
+      .trim() || args.artifact?.summary.trim() || ''
   );
 };

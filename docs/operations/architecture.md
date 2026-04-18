@@ -117,7 +117,7 @@ Examples captured directly in `src/app/routes.ts`:
 - files focus state (`workspaceId`, `focusItemId`) is URL-owned so canonical workspace items resolve to a stable Files destination
 - artifact reading focus state (`focusSectionId`, `focusEvidenceId`, `inspector`) is URL-owned so search/omnibox opens can land on a precise reading target
 - network entity focus (`focusEntity`) is URL-owned so entity mentions and omnibox results can reopen the graph in a focused state
-- artifact/entity/headline temporary inspector selection beyond the current report focus remains store/component-owned
+- artifact/entity/headline temporary inspector selection beyond the current artifact focus remains store/component-owned
 - board agent drafts, chat composer drafts, and other transient workflow state remain store/component-owned
 
 Route wrappers now enforce the same contract at runtime:
@@ -126,6 +126,7 @@ Route wrappers now enforce the same contract at runtime:
 - `TimelineView` round-trips chronology query state through `useSearchParams` with parsing/serialization centralized in `src/components/features/Timeline/timelineRouteState.ts`
 - the bare workspace chat route (`/workspaces/:workspaceId/chat`) clears stale deep-linked session selection when no `sessionId` is present
 - the bare workspace board route (`/workspaces/:workspaceId/board`) redirects to the first valid board document when one exists, and invalid board ids fall back to that same canonical board route
+- active route and feature seams now use canonical runtime naming such as `run`, `artifact`, `onViewArtifact`, `onSelectArtifact`, and `onStartWorkspace`; legacy `case` / `report` terms are intentionally bounded to compatibility seams and user-facing content where the wording is still intentional
 
 The route contract is now active runtime behavior rather than future groundwork. `AppView` still exists only as a coarse navigation label for the sidebar and route-targeting helpers, while URL-backed routing is the primary navigation mechanism.
 

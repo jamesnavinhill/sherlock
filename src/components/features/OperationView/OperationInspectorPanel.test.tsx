@@ -13,7 +13,7 @@ describe('OperationInspectorPanel', () => {
       role: 'Procurement intermediary',
       sentiment: 'NEGATIVE',
     };
-    const report: Artifact = {
+    const artifact: Artifact = {
       id: 'artifact-1',
       workspaceId: 'workspace-1',
       topic: 'Atlas Contract Network',
@@ -36,26 +36,26 @@ describe('OperationInspectorPanel', () => {
       <OperationInspectorPanel
         isOpen
         mode="ENTITY"
-        report={report}
+        artifact={artifact}
         labelProfile={getLabelProfileById()}
         workspaceTitle="Atlas Workspace"
         entity={entity}
         headline={null}
-        reports={[report]}
+        artifacts={[artifact]}
         onEntitySave={vi.fn()}
         onFlagEntity={vi.fn()}
         onInvestigateEntity={vi.fn()}
         onInvestigateHeadline={vi.fn()}
         onOpenEntityChat={vi.fn()}
         onOpenHeadlineChat={vi.fn()}
-        onOpenReportChat={vi.fn()}
+        onOpenArtifactChat={vi.fn()}
         onPlaceEntityOnBoard={vi.fn()}
         onPlaceHeadlineOnBoard={vi.fn()}
-        onPlaceReportOnBoard={vi.fn()}
-        onSelectReportEntity={vi.fn()}
-        onOpenReportLead={vi.fn()}
-        onJumpToReportSection={vi.fn()}
-        onJumpToReportEvidence={vi.fn()}
+        onPlaceArtifactOnBoard={vi.fn()}
+        onSelectArtifactEntity={vi.fn()}
+        onOpenArtifactFollowUp={vi.fn()}
+        onJumpToArtifactSection={vi.fn()}
+        onJumpToArtifactEvidence={vi.fn()}
         onNavigate={onNavigate}
       />
     );
@@ -88,26 +88,26 @@ describe('OperationInspectorPanel', () => {
       <OperationInspectorPanel
         isOpen
         mode="ENTITY"
-        report={null}
+        artifact={null}
         labelProfile={getLabelProfileById()}
         workspaceTitle={null}
         entity={entity}
         headline={null}
-        reports={[]}
+        artifacts={[]}
         onEntitySave={vi.fn()}
         onFlagEntity={vi.fn()}
         onInvestigateEntity={vi.fn()}
         onInvestigateHeadline={vi.fn()}
         onOpenEntityChat={vi.fn()}
         onOpenHeadlineChat={vi.fn()}
-        onOpenReportChat={vi.fn()}
+        onOpenArtifactChat={vi.fn()}
         onPlaceEntityOnBoard={vi.fn()}
         onPlaceHeadlineOnBoard={vi.fn()}
-        onPlaceReportOnBoard={vi.fn()}
-        onSelectReportEntity={vi.fn()}
-        onOpenReportLead={vi.fn()}
-        onJumpToReportSection={vi.fn()}
-        onJumpToReportEvidence={vi.fn()}
+        onPlaceArtifactOnBoard={vi.fn()}
+        onSelectArtifactEntity={vi.fn()}
+        onOpenArtifactFollowUp={vi.fn()}
+        onJumpToArtifactSection={vi.fn()}
+        onJumpToArtifactEvidence={vi.fn()}
         onNavigate={vi.fn()}
       />
     );
@@ -122,11 +122,11 @@ describe('OperationInspectorPanel', () => {
   });
 
   it('replaces report metrics with the existing report detail sections', () => {
-    const onJumpToReportSection = vi.fn();
-    const onOpenReportLead = vi.fn();
-    const onSelectReportEntity = vi.fn();
+    const onJumpToArtifactSection = vi.fn();
+    const onOpenArtifactFollowUp = vi.fn();
+    const onSelectArtifactEntity = vi.fn();
 
-    const report: Artifact = {
+    const artifact: Artifact = {
       id: 'artifact-1',
       workspaceId: 'workspace-1',
       topic: 'Atlas Contract Network',
@@ -188,26 +188,26 @@ describe('OperationInspectorPanel', () => {
       <OperationInspectorPanel
         isOpen
         mode="REPORT"
-        report={report}
+        artifact={artifact}
         labelProfile={getLabelProfileById()}
         workspaceTitle="Atlas Workspace"
         entity={null}
         headline={null}
-        reports={[report]}
+        artifacts={[artifact]}
         onEntitySave={vi.fn()}
         onFlagEntity={vi.fn()}
         onInvestigateEntity={vi.fn()}
         onInvestigateHeadline={vi.fn()}
         onOpenEntityChat={vi.fn()}
         onOpenHeadlineChat={vi.fn()}
-        onOpenReportChat={vi.fn()}
+        onOpenArtifactChat={vi.fn()}
         onPlaceEntityOnBoard={vi.fn()}
         onPlaceHeadlineOnBoard={vi.fn()}
-        onPlaceReportOnBoard={vi.fn()}
-        onSelectReportEntity={onSelectReportEntity}
-        onOpenReportLead={onOpenReportLead}
-        onJumpToReportSection={onJumpToReportSection}
-        onJumpToReportEvidence={vi.fn()}
+        onPlaceArtifactOnBoard={vi.fn()}
+        onSelectArtifactEntity={onSelectArtifactEntity}
+        onOpenArtifactFollowUp={onOpenArtifactFollowUp}
+        onJumpToArtifactSection={onJumpToArtifactSection}
+        onJumpToArtifactEvidence={vi.fn()}
         onNavigate={vi.fn()}
       />
     );
@@ -224,13 +224,13 @@ describe('OperationInspectorPanel', () => {
     expect(
       screen.getByText('Coordinated contract awards cluster around the same vendor network.')
     ).toBeInTheDocument();
-    fireEvent.click(screen.getByRole('button', { name: /^Open$/i }));
-    expect(onJumpToReportSection).toHaveBeenCalledWith('section-executive_summary-0');
+    fireEvent.click(screen.getByRole('button', { name: /Open finding context/i }));
+    expect(onJumpToArtifactSection).toHaveBeenCalledWith('section-executive_summary-0');
 
     fireEvent.click(screen.getByRole('button', { name: /Investigative Leads/i }));
     expect(screen.getByText('Trace shared directors across the vendor cluster.')).toBeInTheDocument();
-    fireEvent.click(screen.getByRole('button', { name: /^Open$/i }));
-    expect(onOpenReportLead).toHaveBeenCalledWith(
+    fireEvent.click(screen.getByRole('button', { name: /Open follow-up/i }));
+    expect(onOpenArtifactFollowUp).toHaveBeenCalledWith(
       expect.objectContaining({
         actionText: 'Trace shared directors across the vendor cluster.',
       })
@@ -238,7 +238,7 @@ describe('OperationInspectorPanel', () => {
 
     fireEvent.click(screen.getByRole('button', { name: /Entities/i }));
     fireEvent.click(screen.getByRole('button', { name: 'Atlas Holdings' }));
-    expect(onSelectReportEntity).toHaveBeenCalledWith(
+    expect(onSelectArtifactEntity).toHaveBeenCalledWith(
       expect.objectContaining({ name: 'Atlas Holdings' })
     );
   });

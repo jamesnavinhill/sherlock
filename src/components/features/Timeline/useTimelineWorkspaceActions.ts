@@ -28,7 +28,7 @@ interface UseTimelineWorkspaceActionsInput {
   focusReference: (track: TimelineTrack, refId?: string) => void;
   labelArtifactLabel: string;
   onOpenChat: (request: ChatOpenRequest) => void;
-  onOpenReport: (artifactId?: string) => void;
+  onOpenArtifact: (artifactId?: string) => void;
   parentArtifactId?: string;
   placeBoardItem: (input: {
     workspaceId: string;
@@ -52,7 +52,7 @@ export const useTimelineWorkspaceActions = ({
   focusReference,
   labelArtifactLabel,
   onOpenChat,
-  onOpenReport,
+  onOpenArtifact,
   parentArtifactId,
   placeBoardItem,
   previousArtifactId,
@@ -186,7 +186,7 @@ export const useTimelineWorkspaceActions = ({
       buildTimelineDetailActions({
         focusReference,
         labelArtifactLabel,
-        onOpenArtifact: onOpenReport,
+        onOpenArtifact,
         onOpenItemSource: () => {
           if (selectedWorkspaceItem?.url) {
             window.open(selectedWorkspaceItem.url, '_blank', 'noopener,noreferrer');
@@ -209,7 +209,7 @@ export const useTimelineWorkspaceActions = ({
       detailEvent,
       focusReference,
       labelArtifactLabel,
-      onOpenReport,
+      onOpenArtifact,
       openWorkspaceChat,
       openWorkspaceItem,
       parentArtifactId,
