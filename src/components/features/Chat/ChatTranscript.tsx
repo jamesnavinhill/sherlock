@@ -78,7 +78,7 @@ export const ChatTranscript: React.FC<ChatTranscriptProps> = ({
   return (
     <section className="relative z-10 flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden px-4 sm:px-6">
       <div
-        className={`osint-chat-transcript-surface relative z-10 mx-auto flex min-h-0 w-full max-w-4xl flex-1 overflow-hidden border ${CHROME_CARD_SURFACE_CLASS}`}
+        className={`osint-page-stage-shell osint-chat-transcript-surface relative z-10 mx-auto flex min-h-0 w-full max-w-4xl flex-1 overflow-hidden border ${CHROME_CARD_SURFACE_CLASS}`}
         data-testid="chat-transcript-shell"
       >
         <div

@@ -588,7 +588,7 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
 
   if (showPlaceholder || !report) {
     return (
-      <div className="osint-shell-content-surface relative flex flex-1 items-center justify-center">
+      <div className="osint-page-stage-shell osint-shell-content-surface relative flex flex-1 items-center justify-center">
         <EmptyState
           icon={FileText}
           title="No Workspace Selected"
@@ -604,7 +604,7 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
   }
 
   return (
-    <div className="osint-shell-content-surface relative flex flex-1 overflow-hidden animate-in fade-in duration-500">
+    <div className="osint-page-stage-shell osint-shell-content-surface relative flex flex-1 overflow-hidden animate-in fade-in duration-500">
       <div className={mainColumnClassName} data-app-scroll-region>
         <div className="relative">
           <MainContentDotGrid testId="artifact-viewer-dot-grid-background" />

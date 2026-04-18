@@ -221,7 +221,7 @@ export const Chat: React.FC<ChatProps> = ({ onLaunchInvestigation }) => {
         />
       ) : null}
 
-      <main className="osint-shell-content-surface relative flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
+      <main className="osint-page-stage-shell osint-shell-content-surface relative flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
         <MainContentDotGrid testId="chat-dot-grid-background" />
         <ChatTranscript
           activeWorkspace={activeWorkspace}

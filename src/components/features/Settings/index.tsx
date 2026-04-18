@@ -166,7 +166,7 @@ export const Settings: React.FC<SettingsProps> = ({
         </header>
       }
     >
-      <main className="relative flex-1 overflow-y-auto custom-scrollbar" data-app-scroll-region>
+      <main className="osint-page-stage-shell relative flex-1 overflow-y-auto custom-scrollbar" data-app-scroll-region>
         <div className="relative min-h-full w-full">
           <MainContentDotGrid testId="settings-dot-grid-background" />
           <div className="relative z-10 min-h-full w-full p-6 lg:p-8">

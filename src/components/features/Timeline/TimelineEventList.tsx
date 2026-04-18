@@ -55,7 +55,7 @@ export const TimelineEventList: React.FC<TimelineEventListProps> = ({
   onSelectEvent,
   onFocusReference,
 }) => (
-  <main className="osint-shell-content-surface relative flex min-w-0 flex-1 flex-col overflow-hidden border-r">
+  <main className="osint-page-stage-shell osint-shell-content-surface relative flex min-w-0 flex-1 flex-col overflow-hidden border-r">
     <MainContentDotGrid testId="timeline-dot-grid-background" />
     <div
       className="relative z-10 min-h-0 flex-1 overflow-y-auto p-4 custom-scrollbar"
