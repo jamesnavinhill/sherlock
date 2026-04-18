@@ -1,4 +1,4 @@
-import React, { useEffect, useId, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Check, ChevronDown } from 'lucide-react';
 import {
@@ -81,6 +81,39 @@ const resolveMenuPlacement = (
   return 'top';
 };
 
+const getPortalledMenuStyle = (
+  requestedPlacement: NonNullable<OsintSelectProps['menuPlacement']>,
+  rect: DOMRect
+): { placement: 'top' | 'bottom'; style: React.CSSProperties } => {
+  const placement = resolveMenuPlacement(requestedPlacement, rect);
+  const availableHeight =
+    placement === 'top'
+      ? Math.max(MIN_MENU_HEIGHT, rect.top - VIEWPORT_PADDING - MENU_OFFSET)
+      : Math.max(
+          MIN_MENU_HEIGHT,
+          window.innerHeight - rect.bottom - VIEWPORT_PADDING - MENU_OFFSET
+        );
+
+  return {
+    placement,
+    style: {
+      position: 'fixed',
+      left: rect.left,
+      width: rect.width,
+      maxHeight: Math.min(availableHeight, MAX_MENU_HEIGHT),
+      zIndex: 1400,
+      ...(placement === 'top'
+        ? {
+            top: rect.top - MENU_OFFSET,
+            transform: 'translateY(-100%)',
+          }
+        : {
+            top: rect.bottom + MENU_OFFSET,
+          }),
+    },
+  };
+};
+
 export const OsintSelect: React.FC<OsintSelectProps> = ({
   value,
   options,
@@ -155,38 +188,21 @@ export const OsintSelect: React.FC<OsintSelectProps> = ({
     optionRefs.current[activeIndex]?.focus();
   }, [activeIndex, isOpen]);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!isOpen || !rootRef.current) return undefined;
 
     const updateMenuPosition = () => {
       if (!rootRef.current) return;
 
       const rect = rootRef.current.getBoundingClientRect();
-      const nextPlacement = resolveMenuPlacement(menuPlacement, rect);
-      setResolvedMenuPlacement(nextPlacement);
+      if (!portalledMenu) {
+        setResolvedMenuPlacement(resolveMenuPlacement(menuPlacement, rect));
+        return;
+      }
 
-      if (!portalledMenu) return;
-
-      const availableHeight =
-        nextPlacement === 'top'
-          ? Math.max(MIN_MENU_HEIGHT, rect.top - VIEWPORT_PADDING - MENU_OFFSET)
-          : Math.max(MIN_MENU_HEIGHT, window.innerHeight - rect.bottom - VIEWPORT_PADDING - MENU_OFFSET);
-
-      setPortalMenuStyle({
-        position: 'fixed',
-        left: rect.left,
-        width: rect.width,
-        maxHeight: Math.min(availableHeight, MAX_MENU_HEIGHT),
-        zIndex: 1400,
-        ...(nextPlacement === 'top'
-          ? {
-              top: rect.top - MENU_OFFSET,
-              transform: 'translateY(-100%)',
-            }
-          : {
-              top: rect.bottom + MENU_OFFSET,
-            }),
-      });
+      const { placement, style } = getPortalledMenuStyle(menuPlacement, rect);
+      setResolvedMenuPlacement(placement);
+      setPortalMenuStyle(style);
     };
 
     updateMenuPosition();
@@ -201,6 +217,16 @@ export const OsintSelect: React.FC<OsintSelectProps> = ({
 
   const openMenu = () => {
     if (disabled || options.length === 0) return;
+
+    if (portalledMenu && rootRef.current) {
+      const { placement, style } = getPortalledMenuStyle(
+        menuPlacement,
+        rootRef.current.getBoundingClientRect()
+      );
+      setResolvedMenuPlacement(placement);
+      setPortalMenuStyle(style);
+    }
+
     const nextIndex =
       selectedIndex >= 0 && !options[selectedIndex]?.disabled
         ? selectedIndex
