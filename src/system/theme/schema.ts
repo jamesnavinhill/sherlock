@@ -239,6 +239,8 @@ const DEFAULT_DIVIDER_TONES: SherlockThemeModeState<SherlockThemeTone> = {
   light: { hue: 72, lightness: 0.56, chroma: 0.032, opacity: 1 },
 };
 
+const DEFAULT_DIVIDER_STRENGTH = 0.35;
+
 const createDividerModeState = (
   width: number,
   strength: number,
@@ -285,7 +287,7 @@ export const DEFAULT_SHERLOCK_THEME: SherlockTheme = {
     contentWidth: 1160,
     density: 1,
     surfaceOpacity: 1,
-    ...createDividerModeState(1, 0.72, 0, 0),
+    ...createDividerModeState(1, DEFAULT_DIVIDER_STRENGTH, 0, 0),
   },
   controls: {
     chrome: 'glass',
@@ -416,7 +418,7 @@ const BLUEBERRY_SHERLOCK_THEME: SherlockTheme = {
     contentWidth: 980,
     density: 1,
     surfaceOpacity: 1,
-    ...createDividerModeState(1, 1, 0, 0, {
+    ...createDividerModeState(1, DEFAULT_DIVIDER_STRENGTH, 0, 0, {
       dark: { hue: 286, lightness: 0.48, chroma: 0.018, opacity: 1 },
       light: { hue: 70, lightness: 0.58, chroma: 0.038, opacity: 1 },
     }),

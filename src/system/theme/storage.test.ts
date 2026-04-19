@@ -4,6 +4,7 @@ import { DEFAULT_THEME_FONT_SETTINGS } from '@/utils/themeFonts';
 import { buildSherlockThemeCssVars } from './cssVars';
 import {
   createDefaultSherlockThemeGraphs,
+  createInitialSavedThemes,
   createInitialThemeWorkspace,
 } from './schema';
 import {
@@ -19,6 +20,15 @@ import {
 } from './storage';
 
 describe('theme workspace storage helpers', () => {
+  it('starts every factory theme with 35% divider strength in both modes', () => {
+    const savedThemes = createInitialSavedThemes();
+
+    Object.values(savedThemes).forEach((theme) => {
+      expect(theme.shell.dividerStrength.dark).toBe(0.35);
+      expect(theme.shell.dividerStrength.light).toBe(0.35);
+    });
+  });
+
   it('migrates legacy split theme settings into a unified workspace', () => {
     const workspace = migrateLegacySherlockThemeWorkspace({
       accentSettings: { hue: 20, lightness: 0.62, chroma: 0.18 },
