@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { LandingPage } from './LandingPage';
 
 describe('LandingPage', () => {
-  it('renders the shared grid background and routes CTA clicks through', () => {
+  it('renders the shared grid background, docs link, and routes CTA clicks through', () => {
     const onGetStarted = vi.fn();
 
     render(
@@ -11,6 +11,7 @@ describe('LandingPage', () => {
     );
 
     expect(screen.getByTestId('landing-dot-grid-background')).toBeInTheDocument();
+    expect(screen.getAllByRole('link', { name: /docs/i })[0]).toHaveAttribute('href', '/docs');
 
     fireEvent.click(screen.getAllByRole('button', { name: /open workspace/i })[0]);
 

@@ -18,11 +18,17 @@ To support direct entry for deep-linked client routes on Vercel, `vercel.json` n
 
 - `/(.*)` -> `/index.html`
 
+Sherlock's public documentation can also be proxied through the app domain at `/docs` by placing the Mintlify rewrites above the SPA catch-all:
+
+- `/docs` -> `https://jamesnavinhill.mintlify.dev/docs`
+- `/docs/:match*` -> `https://jamesnavinhill.mintlify.dev/docs/:match*`
+
 This ensures Vercel serves the SPA entry document for non-root client routes so the browser app can take over routing after load.
 
 Notes:
 
 - this rewrite is needed because Vercel otherwise treats path-based requests as server-resolved paths and can return a 404 before the client router boots
+- the Mintlify `/docs` proxy rules must stay above the SPA fallback rule or Vercel will serve `index.html` for documentation requests
 - client routes such as `/runs/:runId`, `/workspaces/:workspaceId/artifacts/:artifactId`, `/workspaces/:workspaceId/chat`, `/workspaces/:workspaceId/chat/:sessionId`, `/workspaces/:workspaceId/board`, `/workspaces/:workspaceId/board/:boardId`, `/workspaces/:workspaceId/timeline`, and `/workspaces/:workspaceId/network` now resolve through the browser router after load
 - once loaded, route wrappers canonicalize landing behavior in-app: the bare workspace chat route clears stale session selection, while the bare workspace board route redirects to the first valid board document when one exists
 - if Sherlock later adds first-party server endpoints or other path-based server concerns, the rewrite rules should be revisited so client-route fallback does not mask those paths
@@ -44,10 +50,13 @@ Notes:
    `installCommand`: `npm ci`
    `buildCommand`: `npm run build`
    `outputDirectory`: `dist`
-3. Leave provider env vars unset in Vercel for public BYOK hosting.
-4. Set `VITE_TLDRAW_LICENSE_KEY` in Vercel for environments that need the `tldraw 4.x` board.
-5. Deploy the site.
-6. Open the deployed app and add provider keys through `Settings -> Runtime` on a per-browser basis.
+3. If Mintlify docs should live under the same domain at `/docs`, enable `Host at /docs` in Mintlify Custom domain setup and keep the `/docs` proxy rewrites in `vercel.json` ahead of the SPA fallback.
+4. Leave provider env vars unset in Vercel for public BYOK hosting.
+5. Set `VITE_TLDRAW_LICENSE_KEY` in Vercel for environments that need the `tldraw 4.x` board.
+6. Deploy the site.
+7. Open the deployed app and add provider keys through `Settings -> Runtime` on a per-browser basis.
+
+For the Mintlify repository split, workflow, and dashboard setup, see `docs/operations/MINTLIFY_DOCS.md`.
 
 ## Persistence Caveats
 

@@ -296,30 +296,51 @@ export function LandingPage({ themeMode, onToggleTheme, onGetStarted }: LandingP
           </p>
 
           <div className="mt-10 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
-              <button
-                onClick={onGetStarted}
-                className="inline-flex items-center gap-2.5 rounded-lg px-8 py-3 text-sm font-semibold uppercase tracking-wider transition-all duration-200"
-                style={{
-                  backgroundColor: LANDING_ACCENT_FILL,
-                  border: '1px solid var(--osint-primary-soft-border)',
-                  color: 'var(--osint-primary)',
-                  boxShadow: 'none',
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = LANDING_ACCENT_FILL_STRONG;
-                  e.currentTarget.style.borderColor =
-                    'color-mix(in oklab, var(--osint-primary) 60%, transparent)';
-                  e.currentTarget.style.boxShadow = LANDING_ACCENT_GLOW;
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = LANDING_ACCENT_FILL;
-                  e.currentTarget.style.borderColor = 'var(--osint-primary-soft-border)';
-                  e.currentTarget.style.boxShadow = 'none';
-                }}
-              >
-                Open Workspace
-                <ArrowRight className="h-4 w-4" />
+            <button
+              onClick={onGetStarted}
+              className="inline-flex items-center gap-2.5 rounded-lg px-8 py-3 text-sm font-semibold uppercase tracking-wider transition-all duration-200"
+              style={{
+                backgroundColor: LANDING_ACCENT_FILL,
+                border: '1px solid var(--osint-primary-soft-border)',
+                color: 'var(--osint-primary)',
+                boxShadow: 'none',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = LANDING_ACCENT_FILL_STRONG;
+                e.currentTarget.style.borderColor =
+                  'color-mix(in oklab, var(--osint-primary) 60%, transparent)';
+                e.currentTarget.style.boxShadow = LANDING_ACCENT_GLOW;
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = LANDING_ACCENT_FILL;
+                e.currentTarget.style.borderColor = 'var(--osint-primary-soft-border)';
+                e.currentTarget.style.boxShadow = 'none';
+              }}
+            >
+              Open Workspace
+              <ArrowRight className="h-4 w-4" />
             </button>
+            <a
+              href="/docs"
+              className="inline-flex items-center gap-2.5 rounded-lg px-8 py-3 text-sm font-semibold uppercase tracking-wider transition-all duration-200"
+              style={{
+                border: '1px solid var(--osint-interaction-border)',
+                backgroundColor: 'var(--osint-interaction-bg)',
+                color: 'var(--osint-text-heading)',
+                boxShadow: 'none',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.borderColor = 'var(--osint-raised-outline-strong)';
+                e.currentTarget.style.boxShadow = 'var(--osint-rail-interaction-shadow)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.borderColor = 'var(--osint-interaction-border)';
+                e.currentTarget.style.boxShadow = 'none';
+              }}
+            >
+              Read Docs
+              <BookOpen className="h-4 w-4" />
+            </a>
           </div>
 
           <p
@@ -669,15 +690,24 @@ export function LandingPage({ themeMode, onToggleTheme, onGetStarted }: LandingP
         }}
       >
         <span className="text-xs font-mono tracking-wide">Sherlock · MIT License</span>
-        <a
-          href="https://github.com/jamesnavinhill/sherlock"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-xs font-mono tracking-wide transition-colors duration-200"
-          style={{ color: 'var(--osint-text-quiet)' }}
-        >
-          GitHub
-        </a>
+        <div className="flex items-center gap-4">
+          <a
+            href="/docs"
+            className="text-xs font-mono tracking-wide transition-colors duration-200"
+            style={{ color: 'var(--osint-text-quiet)' }}
+          >
+            Docs
+          </a>
+          <a
+            href="https://github.com/jamesnavinhill/sherlock"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-xs font-mono tracking-wide transition-colors duration-200"
+            style={{ color: 'var(--osint-text-quiet)' }}
+          >
+            GitHub
+          </a>
+        </div>
       </footer>
       </div>
     </div>

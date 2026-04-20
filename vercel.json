@@ -5,6 +5,14 @@
   "outputDirectory": "dist",
   "rewrites": [
     {
+      "source": "/docs",
+      "destination": "https://jamesnavinhill.mintlify.dev/docs"
+    },
+    {
+      "source": "/docs/:match*",
+      "destination": "https://jamesnavinhill.mintlify.dev/docs/:match*"
+    },
+    {
       "source": "/(.*)",
       "destination": "/index.html"
     }

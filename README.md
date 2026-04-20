@@ -124,6 +124,7 @@ Sherlock deploys cleanly to Vercel as a static Vite app.
 - Workspace and artifact data stay in the browser via SQLite over IndexedDB.
 - API keys stay browser-local when users add them through `Settings -> Runtime`.
 - Each origin has its own local data, so Vercel preview URLs do not share storage with production.
+- Public product documentation can be proxied at `/docs` through Mintlify while the app remains deployed from this repo.
 - If `public/seeds/demo-workspace.json` exists, an empty browser profile will import it once on first load for demo browsing. The seed file can be either a full workspace-data backup from `Settings -> Data` or a canonical single-workspace export JSON with `workspace` and `artifacts` keys.
 
 Recommended flow:
@@ -173,6 +174,7 @@ The current foundation-cleanup closeout validation succeeded on this checkout:
 - `docs/operations/ARCHITECTURE.md`
 - `docs/operations/BROAD_SCOPE.md`
 - `docs/operations/DEPLOYMENT.md`
+- `docs/operations/MINTLIFY_DOCS.md`
 - `docs/operations/SCOPES.md`
 - `docs/operations/DATA_PERSISTENCE.md`
 - `docs/operations/OPERATIONS_RUNBOOK.md`
