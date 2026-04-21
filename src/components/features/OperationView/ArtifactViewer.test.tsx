@@ -116,9 +116,19 @@ describe('ArtifactViewer', () => {
     expect(screen.getByTestId('artifact-viewer-top-header')).toHaveClass(
       'min-h-[var(--osint-shell-toolbar-height)]'
     );
+    expect(screen.getByTestId('artifact-viewer-top-header').firstElementChild).toHaveClass(
+      'mx-auto',
+      'w-full',
+      'max-w-4xl'
+    );
     expect(screen.getByTestId('artifact-viewer-dot-grid-background')).toBeInTheDocument();
     expect(screen.getByTestId('artifact-viewer-title-surface')).toBeInTheDocument();
     expect(screen.getByTestId('artifact-viewer-title-surface')).not.toHaveClass('border-b');
+    expect(screen.getByTestId('artifact-viewer-title-surface').firstElementChild).toHaveClass(
+      'mx-auto',
+      'w-full',
+      'max-w-4xl'
+    );
     expect(screen.getAllByText('Award timing irregularity')).toHaveLength(1);
     const findingCard = screen.getByRole('heading', { name: 'Award timing irregularity' }).closest('article');
     expect(findingCard).not.toBeNull();
@@ -156,6 +166,11 @@ describe('ArtifactViewer', () => {
     );
 
     expect(executiveSummarySection).toHaveClass('p-6');
+    expect(executiveSummarySection?.parentElement).toHaveClass(
+      'mx-auto',
+      'w-full',
+      'max-w-4xl'
+    );
     expect(
       within(executiveSummarySection as HTMLElement).queryByRole('button', { name: 'Edit' })
     ).not.toBeInTheDocument();

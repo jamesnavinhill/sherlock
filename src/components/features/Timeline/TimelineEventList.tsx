@@ -82,7 +82,7 @@ export const TimelineEventList: React.FC<TimelineEventListProps> = ({
           }}
         />
       ) : (
-        <div className="space-y-8">
+        <div className="mx-auto w-full max-w-4xl space-y-8" data-testid="timeline-event-list-stack">
           {groupedEvents.map((group) => (
             <section key={group.label}>
               <div className="mb-3 flex items-center gap-3">

@@ -361,7 +361,7 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
             data-testid="artifact-viewer-top-header"
             className={`relative z-10 px-6 pb-2 pt-4 ${CHROME_TOP_PANEL_HEADER_MIN_HEIGHT_CLASS}`}
           >
-            <div className="flex h-full flex-col justify-center gap-2 md:flex-row md:items-center md:justify-between">
+            <div className="mx-auto flex h-full w-full max-w-4xl flex-col justify-center gap-2 md:flex-row md:items-center md:justify-between">
               <Breadcrumbs items={navStack} onNavigate={onNavigate} />
               <div className="flex items-center gap-3">
                 {artifact.dateStr ? (
@@ -371,16 +371,18 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
             </div>
           </div>
           <div data-testid="artifact-viewer-title-surface" className="relative z-10 px-6 py-5">
-            <EditableTitle
-              value={artifact.topic}
-              displayValue={artifactDisplayTitle}
-              onSave={onTitleSave}
-              className="font-osint-display osint-title-page text-[clamp(var(--font-size-xl),calc(var(--font-size-lg)+0.8vw),var(--font-size-3xl))] leading-tight uppercase"
-              inputClassName="font-osint-display osint-title-page text-[clamp(var(--font-size-xl),calc(var(--font-size-lg)+0.8vw),var(--font-size-3xl))] uppercase"
-            />
+            <div className="mx-auto w-full max-w-4xl">
+              <EditableTitle
+                value={artifact.topic}
+                displayValue={artifactDisplayTitle}
+                onSave={onTitleSave}
+                className="font-osint-display osint-title-page text-[clamp(var(--font-size-xl),calc(var(--font-size-lg)+0.8vw),var(--font-size-3xl))] leading-tight uppercase"
+                inputClassName="font-osint-display osint-title-page text-[clamp(var(--font-size-xl),calc(var(--font-size-lg)+0.8vw),var(--font-size-3xl))] uppercase"
+              />
+            </div>
           </div>
 
-          <div className="relative z-10 space-y-8 px-6 pb-6 pt-6">
+          <div className="relative z-10 mx-auto w-full max-w-4xl space-y-8 px-6 pb-6 pt-6">
             <ArtifactSummarySection
               editableArtifactBody={editableArtifactBody}
               editingSectionDraft={editingSectionDraft}
