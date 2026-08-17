@@ -1,4 +1,5 @@
 import React, { Suspense } from 'react';
+import { Analytics } from '@vercel/analytics/react';
 
 import { AppView } from '@/types';
 import { ApiKeyModal } from '@/components/ui/ApiKeyModal';
@@ -124,6 +125,7 @@ export function AppShell() {
           />
         )}
         <ToastContainer />
+        <Analytics />
       </div>
     );
   }
@@ -131,6 +133,7 @@ export function AppShell() {
   return (
     <AppWorkbenchHostProvider>
       <AppShellWorkspaceChrome controller={controller} />
+      <Analytics />
     </AppWorkbenchHostProvider>
   );
 }
