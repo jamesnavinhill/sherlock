@@ -1,20 +1,13 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useLocation, useNavigate, Link } from 'react-router-dom';
 import ReactMarkdown from 'react-markdown';
 import {
-  BookOpen,
   Search,
   ArrowLeft,
   ChevronRight,
   ExternalLink,
   Copy,
   Check,
-  Info,
-  AlertTriangle,
-  Lightbulb,
-  FileText,
-  Sparkles,
-  Layers,
   Menu,
   X,
   Compass
