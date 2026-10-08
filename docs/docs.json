@@ -1,0 +1,101 @@
+{
+  "$schema": "https://mintlify.com/docs.json",
+  "theme": "linden",
+  "name": "Sherlock",
+  "description": "Sherlock documentation for local-first AI investigations, workspace chat, boards, timeline analysis, and deployment.",
+  "logo": {
+    "dark": "/images/logo-dark.jpg",
+    "light": "/images/logo-dark.jpg",
+    "href": "/"
+  },
+  "favicon": {
+    "dark": "/images/logo-dark.jpg",
+    "light": "/images/logo-light.jpg"
+  },
+  "colors": {
+    "primary": "#9b6288",
+    "light": "#c18ead",
+    "dark": "#7a4d69"
+  },
+  "appearance": {
+    "default": "dark"
+  },
+  "navbar": {
+    "primary": {
+      "type": "github",
+      "href": "https://github.com/jamesnavinhill/sherlock"
+    },
+    "links": []
+  },
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Sherlock",
+        "href": "https://sherlock-osint.vercel.app/welcome"
+      },
+      {
+        "tab": "Docs",
+        "icon": "book-open",
+        "groups": [
+          {
+            "group": "Get Started",
+            "pages": [
+              "index",
+              "introduction",
+              "quickstart",
+              "provider-setup"
+            ]
+          },
+          {
+            "group": "Core Concepts",
+            "pages": [
+              "concepts/workspaces",
+              "concepts/artifacts",
+              "concepts/scopes-and-domains",
+              "concepts/data-and-privacy"
+            ]
+          },
+          {
+            "group": "Features",
+            "pages": [
+              "features/running-investigations",
+              "features/research-board",
+              "features/chat",
+              "features/timeline",
+              "features/network-graph",
+              "features/live-monitor",
+              "features/files"
+            ]
+          },
+          {
+            "group": "Configuration",
+            "pages": [
+              "configuration/settings",
+              "configuration/themes",
+              "configuration/export-import"
+            ]
+          },
+          {
+            "group": "Deployment",
+            "pages": [
+              "deployment/vercel",
+              "deployment/byok"
+            ]
+          },
+          {
+            "group": "Changelog",
+            "pages": [
+              "changelog/2026-08-17",
+              "changelog/2026-04-21"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "footer": {
+    "socials": {
+      "github": "https://github.com/jamesnavinhill/sherlock"
+    }
+  }
+}

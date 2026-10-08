@@ -1,0 +1,109 @@
+---
+title: "Timeline: chronological research history in Sherlock"
+description: "Browse and filter a full chronological record of your workspace activity — runs, artifacts, signals, and chat — with saved views and snapshot export."
+---
+
+The Timeline gives you a complete, filterable chronological record of everything that has happened inside a workspace. Every investigation run, artifact, saved signal, canonical item, and notable chat action appears as a dated event in a single stream — so you can trace the arc of your research, understand how findings emerged, and jump directly back to any moment in your work.
+
+## What appears on the timeline
+
+<AccordionGroup>
+  <Accordion title="Runs and artifacts">
+    Every investigation run you launch appears when it starts. The artifact it produces appears when it is saved. Lineage chips connect runs to their source signals and the artifacts they produced, so you can see the chain of analysis at a glance.
+  </Accordion>
+  <Accordion title="Saved signals">
+    Signals you save to the workspace — headlines, monitor results, or manual entries — each appear as dated signal events. Clicking one opens the signal detail in the inspector drawer.
+  </Accordion>
+  <Accordion title="Canonical items">
+    Notes, links, files, and promoted chat excerpts that live in your workspace library each get events for their creation, material updates, and reuse across sessions.
+  </Accordion>
+  <Accordion title="Chat sessions and actions">
+    When the Chat track is enabled, chat session starts appear on the timeline, along with high-signal actions such as workspace searches, saved artifact drafts, appended notes, and follow-up launches.
+  </Accordion>
+  <Accordion title="Entity milestones (opt-in)">
+    The Entity track is off by default. Turn it on to see first-seen moments, repeated-mention thresholds, and artifact-backed reappearance milestones for entities derived from your research.
+  </Accordion>
+  <Accordion title="Board activity">
+    Board-related events surface when canvas items from the workspace are created or substantially changed, keeping board work visible alongside your other research activity.
+  </Accordion>
+</AccordionGroup>
+
+## Navigating to the timeline
+
+The Timeline is scoped to one workspace. Open it from the workspace sidebar or navigate directly to `/workspaces/:workspaceId/timeline`. The workspace selector in the toolbar lets you switch between workspaces without leaving the page.
+
+## Filtering and searching
+
+<CardGroup cols={2}>
+  <Card title="Keyword search" icon="magnifying-glass">
+    Type into the header search bar to filter events by title, summary, badge labels, or search text. The URL updates as you type so filtered views are bookmarkable.
+  </Card>
+  <Card title="Date range" icon="calendar">
+    Use the date-range control to narrow the event stream to a specific window. Choose from preset ranges or enter exact start and end dates.
+  </Card>
+  <Card title="Track filters" icon="filter">
+    Toggle individual tracks — **Runs**, **Artifacts**, **Signals**, **Items**, **Chat**, **Entities** — to show only the event types that matter for your current question.
+  </Card>
+  <Card title="Lineage focus" icon="diagram-project">
+    Click a lineage chip on any run or artifact event to focus the view on all events related to that lineage chain, surfacing the full story of how a result was produced.
+  </Card>
+</CardGroup>
+
+<Note>
+  The timeline's search text, date range, and active track filters are all stored in the URL. You can bookmark or share a specific filtered view and it will open in exactly the same state.
+</Note>
+
+## Inspecting events
+
+Click any event row to open it in the **details drawer** on the right. The drawer shows the event's metadata, related records, and direct action buttons:
+
+- **Jump to artifact** — open the artifact in the full Operation View reader
+- **Open chat session** — resume the exact chat session that generated the event
+- **Place on board** — send the artifact, signal, or entity to the research board
+- **Source link** — open the original URL for signal events that carry a source
+
+## Saved views
+
+You can save your current combination of search text, date range, and track filters as a named view.
+
+<Steps>
+  <Step title="Set your filters">
+    Apply the keyword search, date range, and track toggles you want to preserve.
+  </Step>
+  <Step title="Save the view">
+    Open the **Tools** panel from the toolbar and click **Save View**. Give the view a name.
+  </Step>
+  <Step title="Reopen from the omnibox">
+    Press the omnibox search bar (or use the keyboard shortcut) and type the view name. Saved timeline views appear as dedicated results you can open directly.
+  </Step>
+</Steps>
+
+## Snapshot export
+
+The timeline's current filtered state can be saved as an artifact for reference or sharing.
+
+From the **Tools** panel, choose **Export Snapshot** to download the current view as JSON or Markdown, or choose **Save as Artifact** to persist a `TIMELINE` artifact directly to your workspace. The saved artifact captures the event data visible at that moment — not a live-updating record — so it works as a timestamped checkpoint of your research history.
+
+<Tip>
+  Save a snapshot before archiving a completed investigation. The resulting artifact gives you a durable, human-readable record of the full research timeline you can attach to reports or revisit later.
+</Tip>
+
+## Typical workflow
+
+<Steps>
+  <Step title="Open your workspace">
+    Go to **Files**, click your workspace card, then click **Timeline** in the sidebar — or navigate directly to `/workspaces/:workspaceId/timeline`.
+  </Step>
+  <Step title="Filter to the date range you care about">
+    Use the date-range control to scope the stream to your investigation window. Enable or disable tracks to reduce noise.
+  </Step>
+  <Step title="Search for a keyword or topic">
+    Type a keyword into the header search bar to narrow events to the thread you want to trace.
+  </Step>
+  <Step title="Click an event to inspect it">
+    Select any event row to open the details drawer. Review metadata, follow lineage chips, and use the action buttons to jump directly to related artifacts or chat sessions.
+  </Step>
+  <Step title="Save the view for later">
+    If this filter combination is useful to revisit, open the Tools panel and save it as a named view. It will appear in the omnibox for quick re-access.
+  </Step>
+</Steps>

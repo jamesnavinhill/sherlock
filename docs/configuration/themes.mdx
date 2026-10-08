@@ -1,0 +1,125 @@
+---
+title: "Customize the Sherlock visual theme and appearance"
+description: "How to use the Sherlock theme workbench to adjust colors, surfaces, typography, dividers, and border radius — and save named theme configurations."
+---
+
+Sherlock includes a full theme workbench that lets you customize the visual appearance of the entire workspace without touching any code. You can change the accent color, surface stack, graph palette, background treatment, divider styling, typography, and border radii — all with live preview across every page.
+
+The active theme applies workspace-wide: the artifact viewer, research board, network graph, timeline, chat, and settings all reflect the same theme configuration simultaneously.
+
+## Opening the theme workbench
+
+You can open the workbench from two places:
+
+- **Settings → Themes** — click **Open Workbench** from the Themes tab in Settings
+- **Sidebar trigger** — a workbench panel trigger is available on every routed page via the sidebar, so you can adjust the theme from anywhere in the workspace without navigating to Settings
+
+## Light and dark mode
+
+Dark and light mode are toggled independently from the theme template itself. You can switch between modes without changing your accent color or other theme values — each mode stores its own accent color and surface configuration separately. The current mode is shown in the Themes tab header.
+
+## What you can customize
+
+The workbench organizes controls across several tabs and sections:
+
+### Accent color
+
+The accent color defines the primary highlight across buttons, focus states, active indicators, and interactive elements. Accent is set per mode (light and dark independently), using a color model with three controls:
+
+- **Hue** — the color angle (0–360)
+- **Lightness** — how light or dark the accent reads
+- **Chroma** — the saturation intensity
+
+A live color swatch updates as you adjust the values.
+
+### Graph palette
+
+The graph palette controls the colors used for nodes and clusters in the network graph view. Each palette slot has its own hue, lightness, chroma, and opacity controls. You can also use **Derive From Accent** to automatically generate a cohesive palette from your current accent color.
+
+### Background
+
+The background section controls the treatment behind the main shell surface — options include flat fills, gradient treatments, and noise overlays. This lets you tune whether the workspace feels flat or has a subtle sense of depth.
+
+### Surfaces
+
+Surfaces define the four layers of the visual stack:
+
+- **Shell** — the outermost container and body background
+- **Rail** — the main navigation and side column
+- **Panel** — sidebar panels and secondary containers
+- **Surface** — the primary content area where artifacts, chat, and cards appear
+
+Each surface layer has hue, lightness, chroma, and opacity controls. A live stack diagram shows how the layers nest so you can see spatial relationships as you adjust.
+
+You can also use **Match Accent Hue** to shift all surface hues to match your current accent, which produces a more tinted, unified palette.
+
+### Shell geometry and rendering
+
+Under the Shell tab you can adjust structural dimensions:
+
+- Sidebar width, rail width, utility dock width, toolbar height, and content measure
+- Surface solidity (opacity of surface layers) and density (overall spacing scale)
+
+### Dividers
+
+Dividers are the thin separator lines between shell sections. You can control:
+
+- **Tone** — hue, lightness, and chroma of the divider color
+- **Width** — pixel thickness (0–4px)
+- **Strength** — overall opacity of the divider line
+- **Accent tint** — how much of the accent color bleeds into the divider
+- **Edge glow** — a subtle luminance glow at the divider edge
+
+Divider settings are per-mode, so dark mode and light mode can have different divider treatments.
+
+### Typography
+
+The Typography tab shows the current font family assignments for the four type roles — UI, Display, Label, and Mono — along with a live scale preview of every text style used across the workspace.
+
+### Border radius
+
+Four radius values control the rounding of different element tiers:
+
+- **Shell** — outermost containers
+- **Panel** — cards and panel surfaces
+- **Control** — buttons and inputs
+- **Pill** — tags, badges, and chip elements
+
+## Theme templates
+
+The workbench includes a library of named theme templates you can switch between. Selecting a template applies it immediately so you can preview it live. Templates are shown as swatches in the Themes section of the workbench.
+
+You can also save your own custom configuration into a named slot using **Fork To Custom Slot**, which copies the current state into an editable custom template. This is useful for building variations from a factory template without losing the original.
+
+To restore a template to its factory defaults, use **Factory Reset Active Theme**. To reset every template in the library to factory state, use **Factory Reset All Themes**.
+
+## Creating and saving a custom theme
+
+<Steps>
+  <Step title="Open the workbench">
+    Go to Settings → Themes and click **Open Workbench**, or use the workbench trigger in the sidebar on any page.
+  </Step>
+  <Step title="Adjust the accent color">
+    In the workbench, expand the **Accent** section. Use the Hue, Lightness, and Chroma sliders to dial in the accent color you want. Watch the live swatch update as you adjust.
+  </Step>
+  <Step title="Adjust the background and surfaces">
+    Expand the **Background** section to choose a background treatment. Then expand **Surfaces** and adjust the shell, rail, panel, and surface layers to complement your accent.
+  </Step>
+  <Step title="Refine dividers and radius">
+    Expand **Dividers** to fine-tune the separator lines, and expand **Radius System** to adjust border rounding to match your aesthetic.
+  </Step>
+  <Step title="Save to a custom slot">
+    In the **Themes** section of the workbench, click **Fork To Custom Slot**. This saves your current state to a custom theme template that you can return to and continue editing.
+  </Step>
+  <Step title="Apply the theme">
+    Select your custom slot from the template grid to confirm it as the active theme. The change takes effect immediately across all workspace pages.
+  </Step>
+</Steps>
+
+<Note>
+  Theme state is stored in the browser's SQLite database and is not included in workspace data exports or backups. If you clear browser storage or move to a different device, your custom theme configuration will not carry over automatically.
+</Note>
+
+<Tip>
+  You can experiment with the workbench without committing changes — your edits are reflected live, but they only become a saved template when you explicitly fork to a custom slot. Use **Factory Reset Active Theme** to discard uncommitted changes and restore the current template to its original state.
+</Tip>

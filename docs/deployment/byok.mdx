@@ -1,0 +1,84 @@
+---
+title: "BYOK: using your own AI provider key with Sherlock"
+description: "How Sherlock's bring-your-own-key model works for users and deployers — where keys are stored, which providers are supported, and how to manage them."
+---
+
+Sherlock is built on a bring-your-own-key (BYOK) model. Sherlock never holds API keys on its servers — there are no server-side credentials, no shared provider pool, and no account system that stores your keys. Every user provides their own key directly in the app, and that key stays in their browser.
+
+This matters for two reasons: your API usage is billed directly to your own provider account, and Sherlock has no visibility into your queries or the content you investigate. Your requests go from your browser straight to the AI provider.
+
+## How it works for users
+
+When you want to run analysis or use chat, you add your provider API key in **Settings → Runtime** under the Access Credentials section. The key is stored in your browser's `localStorage`, scoped to the origin (domain) of the Sherlock deployment you're using. From that point on, every API call Sherlock makes on your behalf uses your key from that browser.
+
+Keys are not exported in workspace backups, not stored in the Sherlock SQLite database, and not synced across devices. They stay in the browser where you entered them.
+
+To remove a key, clear the key field in Settings → Runtime and save.
+
+## How it works for deployers
+
+For public or shared Sherlock deployments, you leave all provider API key environment variables unset in your hosting configuration. Each visitor who wants to run analysis adds their own key in-app. Visitors who just want to browse existing workspace content can do so without entering a key at all.
+
+<Warning>
+  Do not set `VITE_GEMINI_API_KEY`, `VITE_OPENROUTER_API_KEY`, `VITE_OPENAI_API_KEY`, or `VITE_ANTHROPIC_API_KEY` in your Vercel (or other static host) environment variables for a public-facing deployment. These are `VITE_` prefixed variables, which means they are embedded in the client-side JavaScript bundle at build time and readable by anyone who loads the page. Setting a shared provider key in Vercel would expose that key to all visitors and route all API charges to your account.
+</Warning>
+
+## Supported providers
+
+<CardGroup cols={2}>
+  <Card title="Google Gemini" href="https://aistudio.google.com">
+    Get a free API key from Google AI Studio. Gemini models include Gemini 2.5 Pro, Gemini Flash, and others. Good default choice for general research and analysis.
+  </Card>
+  <Card title="OpenRouter" href="https://openrouter.ai">
+    Get a key from the OpenRouter keys dashboard. OpenRouter proxies hundreds of models from dozens of providers — one key gives you access to everything on the platform, including many models with free tiers.
+  </Card>
+  <Card title="OpenAI" href="https://platform.openai.com">
+    Get a key from the OpenAI platform API keys page. Enables GPT-4o, o3, and other OpenAI models.
+  </Card>
+  <Card title="Anthropic" href="https://console.anthropic.com">
+    Get a key from the Anthropic console API keys page. Enables Claude 3.5 Sonnet, Claude 3 Opus, and other Anthropic models.
+  </Card>
+</CardGroup>
+
+<Note>
+  OpenRouter is worth considering even if you already have keys for other providers. A single OpenRouter key gives you access to Gemini, Claude, GPT, Mistral, Llama, and many other models through a unified interface. OpenRouter's free-tier models let you explore Sherlock without any API cost.
+</Note>
+
+## Where keys are stored
+
+Provider keys live exclusively in your browser's `localStorage`, scoped to the Sherlock origin you're using. Specifically:
+
+- **Not** in the browser's SQLite database (where workspace data lives)
+- **Not** exported in workspace backups from Settings → Data
+- **Not** synced across devices or browsers
+- **Not** visible to other users, even on shared deployments
+
+## Per-user isolation on shared deployments
+
+Because keys are stored per browser origin and per browser profile, multi-user shared hosting works naturally. Each person who uses the same deployed Sherlock URL on their own device has their own keys and their own workspace data. There is no cross-contamination between visitors.
+
+If two people use the same physical computer and same browser, they can use separate browser profiles to maintain isolated key storage.
+
+## Entering and managing keys
+
+<Steps>
+  <Step title="Open Settings → Runtime">
+    Navigate to Settings and click the **Runtime** tab. The Access Credentials section lists all four provider key fields.
+  </Step>
+  <Step title="Enter your key">
+    Paste your API key into the relevant provider field. Use the Show/Hide toggle to reveal the value as you paste if needed.
+  </Step>
+  <Step title="Save">
+    The key is saved to `localStorage` automatically when you leave the field. You can verify it's stored by returning to the field and confirming it's populated.
+  </Step>
+  <Step title="Select the provider">
+    In the Runtime Profile section, set your Active Provider to the provider whose key you just entered, then select the model you want to use.
+  </Step>
+  <Step title="Run analysis">
+    Start a new investigation or chat session. Sherlock will route API calls using your key.
+  </Step>
+</Steps>
+
+## Removing a key
+
+To remove a key, open Settings → Runtime, click **Clear** next to the relevant provider field, and confirm. The key is deleted from `localStorage` immediately. Any subsequent analysis requests that require that provider will prompt you to re-enter a key.

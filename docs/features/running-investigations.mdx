@@ -1,0 +1,211 @@
+---
+title: "Running AI-powered investigations and analysis in Sherlock"
+description: "Launch structured AI investigations, configure scope and model, read results in Operation View, follow up on findings, and export artifacts."
+---
+
+Sherlock investigations are the core unit of work in the product. When you launch a run, Sherlock sends a structured prompt to your chosen AI provider, receives a typed report back, and saves it as an artifact in your workspace. You can read the results in Operation View, edit sections directly, follow up on suggested leads, and export the finished artifact in multiple formats. Every run is scoped to a domain pack and purpose profile so the AI output stays relevant to your investigation context.
+
+## Before you begin
+
+You need at least one provider API key configured before you can launch a run. Add keys in **Settings → Runtime**.
+
+<CardGroup cols={2}>
+  <Card title="Supported providers" icon="cpu">
+    Gemini, OpenRouter, OpenAI, Anthropic
+  </Card>
+  <Card title="Configure keys" icon="key">
+    Settings → Runtime → provider key fields
+  </Card>
+</CardGroup>
+
+## Core workflow
+
+<Steps>
+  <Step title="Open a workspace">
+    Navigate to any workspace from the Files overview or the omnibox. You can also launch a run from Operation View, the Live Monitor, the Network Graph, or a chat follow-up.
+  </Step>
+  <Step title="Click New Run">
+    Use the **New Run** button in the workspace toolbar or header. The Run Setup modal opens.
+  </Step>
+  <Step title="Configure run setup">
+    Work through the six-step setup wizard to define your investigation. See the [Run setup reference](#run-setup-reference) below for details on each step.
+  </Step>
+  <Step title="Launch the run">
+    Click **Launch** (or the purpose-specific label, such as "Investigate" or "Analyze") on the final step. Sherlock creates a workspace run, routes it to your provider, and streams the result.
+  </Step>
+  <Step title="Read results in Operation View">
+    Once generation completes, the artifact opens in Operation View. Read the key findings block at the top, then work through the typed sections below. Use the inspector panel on the right for entities, follow-ups, and provenance detail.
+  </Step>
+</Steps>
+
+## Run setup reference
+
+The Run Setup modal walks you through six steps. You can navigate back to any completed step to revise your choices before launching.
+
+<AccordionGroup>
+  <Accordion title="Step 1 — Scope and purpose">
+    Choose a **domain pack** (scope) that matches your investigation context. Built-in scopes include:
+
+    - Government fraud
+    - Corporate due diligence
+    - Geopolitical analysis
+    - Cybersecurity research
+    - Competitive intelligence
+    - Scientific research
+    - AI and technology landscape
+    - Policy and regulation
+    - Open investigation (default)
+
+    After selecting a scope, choose a **purpose profile** — the type of output you want (for example, a full investigation report, a summary brief, or a deep dive). Available purposes are filtered to what makes sense for your chosen scope.
+
+    Set a **date range** to bound the investigation's temporal context. Sherlock pre-fills a default range from the scope, which you can adjust.
+  </Accordion>
+  <Accordion title="Step 2 — Topic and starter prompt">
+    Enter your main investigation topic. This is the primary prompt that drives the AI's research focus.
+
+    Below the topic field, Sherlock surfaces **pack starters** — pre-built prompt templates tuned for your selected scope and purpose. Click a starter to populate the topic field with its prompt, then edit as needed.
+
+    If you have **saved templates** from previous runs, they appear here as well. Apply a template to restore a full run configuration with a single click.
+  </Accordion>
+  <Accordion title="Step 3 — Investigation angle (optional)">
+    Provide a secondary framing angle or hypothesis. Use this to direct the AI toward a specific aspect of the topic — for example, "focus on financial relationships" or "prioritize timeline reconstruction." Leave blank to let the scope's default framing apply.
+  </Accordion>
+  <Accordion title="Step 4 — Seed entities (optional)">
+    Add named entities — people, organizations, concepts, or sources — to pre-seed the investigation. Sherlock passes these to the AI as known anchor points, which can improve entity coherence in the output and in the resulting network graph.
+  </Accordion>
+  <Accordion title="Step 5 — Priority sources (optional)">
+    List source names, domains, or source categories you want the AI to prioritize. Your selected scope surfaces suggested source libraries; click any suggested source to append it to the field.
+  </Accordion>
+  <Accordion title="Step 6 — Model, persona, and generation settings">
+    Select your **AI provider** and **model**. The selector shows all models available for the chosen provider, including recent selections and, for OpenRouter, a full live catalog.
+
+    Choose an **agent persona** tailored for your scope. Personas inject role-specific instruction into the prompt, shaping the tone and analytical frame of the output.
+
+    Adjust **generation mode**, **search depth**, and **thinking budget** for this run. See [Generation modes](#generation-modes), [Search depth](#search-depth), and [Thinking budget](#thinking-budget) below for details on each.
+
+    Optionally check **Save as template** and enter a name to save this full configuration for reuse.
+  </Accordion>
+</AccordionGroup>
+
+## Generation modes
+
+Sherlock supports two generation modes. You can set a global default in **Settings → Runtime** and override it per run in step 6 of the setup.
+
+<Tabs>
+  <Tab title="Single pass">
+    Sherlock sends one request to the AI and receives a complete artifact in a single response. This is the faster option and works well for focused investigations with a clear scope.
+  </Tab>
+  <Tab title="Staged">
+    Sherlock breaks the investigation into multiple steps, sending each step to the AI in sequence and building up the artifact progressively. This mode is suited to complex investigations where each phase of analysis informs the next.
+  </Tab>
+</Tabs>
+
+## Search depth
+
+Search depth controls how broadly and rigorously the AI investigates your topic. Choose between two levels in step 6 of the run setup or in **Settings → Runtime**:
+
+<Tabs>
+  <Tab title="Standard">
+    The default level. Sherlock sends a focused prompt that balances breadth and speed. Suitable for most investigations where you have a clear topic and scope.
+  </Tab>
+  <Tab title="Deep">
+    Sherlock increases the breadth of synthesis, investigative rigor, and evidence gathering. Use this for complex topics where you want the AI to explore more angles, cross-reference more sources, and produce more detailed evidence records. Deep runs take longer and consume more tokens.
+  </Tab>
+</Tabs>
+
+## Thinking budget
+
+Some AI models support **extended reasoning** — an internal thinking step where the model plans its analysis before generating output. When you select a model that supports this capability, a **Thinking Budget** slider appears in step 6 of the run setup.
+
+- The slider ranges from **0** to **8,192** tokens in increments of 512.
+- A higher budget gives the model more room to reason before writing, which can improve the quality and coherence of complex investigations.
+- Set the budget to **0** to disable extended reasoning for that run.
+- If the selected model does not support thinking budgets, the control is disabled automatically.
+
+<Tip>
+  Thinking budget is most useful for longer, multi-faceted investigations where you want the AI to plan its structure and cross-reference findings before committing to output. For quick, focused runs, the default value is usually sufficient.
+</Tip>
+
+## OpenRouter and web search
+
+<Tip>
+  OpenRouter gives you access to hundreds of models from multiple labs — including free-tier options — through a single API key. It is a good starting point if you want to experiment with different models before committing to a direct provider subscription.
+</Tip>
+
+When you select OpenRouter as your provider, Sherlock can enable **server-side web search** via `openrouter:web_search`. Configure the following in **Settings → Runtime**:
+
+- **Search engine** — the engine used for web retrieval
+- **Result limit** — how many search results the AI receives per query
+- **Domain filters** — restrict or exclude specific domains from web results
+
+Web search adds live retrieval context to your investigation and is particularly useful for topics where recency matters. When web search is active, your artifact will include provenance hints indicating which claims were informed by retrieved results.
+
+## Reading results in Operation View
+
+After a run completes, the artifact opens in **Operation View** — a document-first reading surface.
+
+**Document layout:**
+
+- **Key findings** appear near the top of the document body as a dedicated block. Each finding is a discrete, citable claim extracted from the AI's analysis.
+- **Typed sections** follow below, rendered in purpose-aware order. Depending on your scope and purpose, sections may include methodology, implications, anomalies, evidence, and timeline.
+- **Evidence records** appear inline as jump cues within sections and are accessible in full from the inspector panel.
+
+**Inspector panel (right rail):**
+
+The right inspector panel surfaces:
+
+- Entity mentions extracted from the artifact
+- Follow-up actions suggested by the investigation
+- Provenance and source metadata
+- Board and chat handoff actions for the active artifact or inspected entity
+
+## Editing sections
+
+You can edit artifact content directly in Operation View.
+
+- Click the **edit control** on the executive summary or any substantive content section (such as methodology or implications) to open an inline editor.
+- Make your changes and save. The edit is persisted to the artifact.
+
+<Note>
+  Editing is available on the executive summary and most typed content sections. Key findings and evidence records are not directly editable but can be annotated through the inspector panel.
+</Note>
+
+## Following up on leads
+
+Investigation outputs often include **suggested follow-up actions** — specific leads, related topics, or recommended next steps identified by the AI. These appear in the inspector panel under the Follow-ups section.
+
+To act on a follow-up:
+
+1. Click the follow-up in the inspector panel.
+2. Sherlock pre-populates a new run setup with the follow-up topic and inherits relevant context from the parent artifact.
+3. Review and adjust the setup, then launch the follow-up run.
+
+The resulting artifact is linked to the parent by lineage, which is reflected in the Timeline chronology.
+
+## Templates
+
+Templates let you save a full run configuration — scope, purpose, model, persona, generation mode, and priority sources — for reuse.
+
+- **Save during setup:** Check **Save as template** on the final step of the run setup and enter a name.
+- **Apply during setup:** Saved templates appear in step 2 of the setup wizard; click any template to restore its configuration.
+- **Manage templates:** View, rename, and delete templates in **Settings → Scopes**.
+
+## Exporting artifacts
+
+Export any artifact from the artifact viewer toolbar.
+
+<CardGroup cols={3}>
+  <Card title="HTML" icon="file-code">
+    Self-contained HTML document with all sections and formatting preserved.
+  </Card>
+  <Card title="Markdown" icon="file-text">
+    Plain Markdown suitable for pasting into a wiki, notes app, or version-controlled repo.
+  </Card>
+  <Card title="JSON" icon="braces">
+    Full artifact payload including typed sections, key findings, evidence records, and metadata.
+  </Card>
+</CardGroup>
+
+<Warning>
+  Artifact data is stored in your browser via SQLite over IndexedDB. Use **Settings → Data → Export** to back up your workspace data before clearing browser storage.
+</Warning>

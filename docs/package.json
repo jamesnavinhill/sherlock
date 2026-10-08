@@ -1,0 +1,10 @@
+{
+  "name": "sherlock-docs",
+  "private": true,
+  "scripts": {
+    "dev": "mint dev",
+    "check:links": "mint broken-links",
+    "validate": "mint validate",
+    "check": "mint broken-links && mint validate"
+  }
+}

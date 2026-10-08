@@ -26,6 +26,9 @@ const Feed = lazy(() => import('@/components/features/Feed').then((m) => ({ defa
 const LandingPage = lazy(() =>
   import('@/components/features/LandingPage').then((m) => ({ default: m.LandingPage }))
 );
+const DocsView = lazy(() =>
+  import('@/components/features/Docs/DocsView').then((m) => ({ default: m.DocsView }))
+);
 
 interface AppShellRoutesProps {
   controller: AppShellController;
@@ -230,6 +233,8 @@ export function AppShellRoutes({ controller }: AppShellRoutesProps) {
           />
         }
       />
+      <Route path="/docs" element={<DocsView />} />
+      <Route path="/docs/*" element={<DocsView />} />
       <Route path="*" element={<Navigate to={buildLandingPath()} replace />} />
     </Routes>
   );

@@ -1,0 +1,122 @@
+---
+title: "Artifacts: structured AI investigation reports in Sherlock"
+description: "Artifacts are the structured reports Sherlock produces from an AI run, containing key findings, evidence records, entities, sources, and follow-ups."
+---
+
+An artifact is what Sherlock produces when an AI investigation run completes. It is not a raw transcript — it is a structured document organized into typed sections, with key findings surfaced prominently, evidence records attached to specific claims, entities extracted from the content, and follow-up actions ready to act on. Artifacts are the primary output of your research workflow: you read them in the document viewer, edit sections directly, share them via export, and use them as the foundation for follow-up runs and research board composition.
+
+## Artifact types
+
+Sherlock produces several types of artifacts depending on the run configuration and purpose:
+
+<AccordionGroup>
+  <Accordion title="Report">
+    The standard long-form investigation output. A report includes an executive summary, key findings, methodology, implications, anomalies, evidence, entities, sources, and follow-ups. This is the default type for most investigation and due-diligence runs.
+  </Accordion>
+  <Accordion title="Synthesis">
+    A cross-source synthesis that draws connections across multiple inputs or prior runs. Useful when you want the AI to reconcile evidence from different angles rather than investigate from scratch.
+  </Accordion>
+  <Accordion title="Brief">
+    A shorter, more focused output suited to quick-turnaround summaries or status updates on a topic.
+  </Accordion>
+  <Accordion title="Digest">
+    A structured digest format, typically used for monitoring and signal synthesis — condensing recent developments into a scannable format.
+  </Accordion>
+  <Accordion title="Comparison">
+    A side-by-side comparative analysis of two or more subjects (companies, policies, technologies, etc.).
+  </Accordion>
+  <Accordion title="Timeline">
+    A saved snapshot of the workspace timeline. Timeline artifacts use the same persistence path as reports and appear alongside other artifacts in the workspace.
+  </Accordion>
+  <Accordion title="Monitor Snapshot">
+    A point-in-time capture of live monitoring results, saved as a structured artifact for later review.
+  </Accordion>
+</AccordionGroup>
+
+## Inside a report artifact
+
+### Key findings
+
+Key findings are the most important conclusions Sherlock extracted from the investigation. They appear near the top of the document in the artifact viewer — before the full body sections — so you can grasp the core takeaways without reading the entire report. Each finding has a title, a summary, and optional support references linking it to evidence or sections elsewhere in the document.
+
+### Typed sections
+
+The report body is organized into typed sections. The sections present in any given artifact depend on the scope, purpose, and generation mode used for the run. Common section types include:
+
+| Section | What it contains |
+|---|---|
+| Executive Summary | A high-level overview of the investigation and its conclusions |
+| Key Findings | A structured rendering of the canonical findings records |
+| Methodology | How the AI approached the investigation and what sources it drew on |
+| Implications | Analysis of what the findings mean in context |
+| Anomalies | Unusual patterns, inconsistencies, or red flags surfaced during analysis |
+| Evidence | Organized citations and source references |
+| Timeline | A chronological narrative of events relevant to the investigation |
+| Next Steps | Recommendations for follow-on research or action |
+
+### Evidence records
+
+Evidence records are first-class citations attached to specific claims in the report. Each record can include:
+
+- A title and summary of the evidence
+- A direct quote from the source
+- A link to the source URL and source title
+- A classification of the evidence kind (source, quote, finding, data point, timeline event, method)
+
+Evidence records are indexed into the workspace search context, which means chat sessions grounded in this workspace can surface evidence-level snippets when you ask follow-up questions.
+
+### Entities
+
+Entities are the people, organizations, and concepts extracted from the artifact. Sherlock tags each entity with a type (person, organization, or unknown) and an optional role and sentiment. Entities extracted from artifacts feed into the workspace network graph, where you can visualize relationships, manually add nodes and links, and hand off to research boards.
+
+### Follow-ups
+
+Follow-ups are actionable next steps generated from the investigation output — or promoted by you from chat. Each follow-up has:
+
+- A kind: question, task, hypothesis, gap, or next step
+- A title and action text describing what to do
+- A status: open, in progress, resolved, or dismissed
+- Optional links to entities, sources, and the artifact or signal that originated it
+
+Follow-ups can seed new investigation runs, maintaining a lineage chain from signal through run through artifact through follow-up through the next run.
+
+## Reading artifacts in Operation View
+
+When you open an artifact, you enter the **Operation View** — Sherlock's document-first reading surface.
+
+<Steps>
+  <Step title="Document reader">
+    The main panel renders the artifact as a structured document, with key findings displayed near the top, followed by the typed sections in purpose-ordered sequence. Evidence jump cues inline with the text let you navigate directly to the supporting evidence records.
+  </Step>
+  <Step title="Inspector panel">
+    The right-hand inspector panel gives you focused access to findings, entities, and follow-ups without leaving the document view. You can promote follow-ups, jump to entity detail, and review the run configuration that produced this artifact.
+  </Step>
+  <Step title="Section-level editing">
+    You can edit the executive summary and other substantive sections directly in the document. Click into a section to enter edit mode. Changes persist back to the artifact record in your local database.
+  </Step>
+  <Step title="Route-backed focus">
+    Deep links into specific sections and evidence records are supported via URL routing, so you can share a link that opens the artifact scrolled to the exact section or evidence item you're referencing.
+  </Step>
+</Steps>
+
+<Note>
+  You can edit the executive summary and substantive sections directly in Operation View. Key findings and evidence records have their own structured edit flows accessible from the inspector panel.
+</Note>
+
+## Exporting artifacts
+
+Sherlock supports three export formats for artifacts:
+
+<Tabs>
+  <Tab title="HTML">
+    A self-contained HTML file suitable for sharing or archiving. Renders the artifact with its full structure and styling, readable in any browser without Sherlock installed.
+  </Tab>
+  <Tab title="Markdown">
+    A plain-text Markdown export of the artifact content. Useful for pasting into other tools, version control, or note-taking apps that support Markdown rendering.
+  </Tab>
+  <Tab title="JSON">
+    A structured JSON export of the full artifact record, including sections, key findings, evidence, entities, sources, and follow-ups. Use this format when you want to import data into another system or inspect the raw structure.
+  </Tab>
+</Tabs>
+
+You can also include artifacts in a full workspace-data backup from **Settings → Data**, which packages workspaces, artifacts, runs, chat history, boards, and more into a single restorable JSON snapshot.

@@ -1,0 +1,119 @@
+---
+title: "How Sherlock stores your data and protects privacy"
+description: "All Sherlock workspace data stays in your browser using local SQLite storage. No research data is sent to or stored on any Sherlock server."
+---
+
+Sherlock is designed around a simple principle: your research data stays on your device. All workspace data, artifacts, chat history, research boards, signals, and timeline views are stored locally in your browser using SQLite backed by IndexedDB. No Sherlock server ever receives or stores your research content. When you run an investigation, the AI request goes to your chosen AI provider (using your own API key), but the resulting artifact is written directly into your local browser database — it never passes through a Sherlock backend.
+
+## Where your data lives
+
+Sherlock uses two browser storage mechanisms:
+
+**SQLite via IndexedDB** stores all structured research data:
+
+- Workspaces
+- Artifacts (including sections, evidence, key findings, follow-ups, entities, and sources)
+- Runs
+- Chat sessions and message history
+- Research boards and board documents
+- Signals
+- Canonical workspace items (notes, links, files, excerpts)
+- Templates
+- Saved timeline views
+- Manual graph nodes and links
+- Board agent sessions and action history
+
+**Browser localStorage** stores a small number of non-tabular values that don't belong in the research database:
+
+- API keys for your AI providers (Gemini, OpenRouter, OpenAI, Anthropic)
+- Runtime configuration defaults
+- Cached OpenRouter model catalog
+- Recent model selections
+- Omnibox recent destinations
+
+## API key handling
+
+Your API keys are stored in your browser's localStorage, scoped to the current origin (domain). They are never written to the SQLite database, never included in backup exports, and never sent to any Sherlock server. You add them once in **Settings → Runtime**, and they persist in your browser until you remove them or clear site data.
+
+Because keys live in localStorage, they are origin-scoped: keys you add on the production deployment are not accessible from a Vercel preview URL, and vice versa.
+
+## Origin isolation
+
+Every browser origin (domain + port combination) maintains a completely separate data store. This has a few practical implications:
+
+<CardGroup cols={2}>
+  <Card title="Production vs. preview">
+    Workspaces you create on the production URL are not visible on Vercel preview deployment URLs, and vice versa. Each origin has its own isolated SQLite database.
+  </Card>
+  <Card title="Local development">
+    If you run Sherlock locally (e.g., on `localhost:3000`), that data is separate from any hosted deployment. Backing up and restoring is the supported way to move data between origins.
+  </Card>
+  <Card title="Redeployments">
+    Redeploying Sherlock to the same production domain does not clear your local data. The app code updates, but IndexedDB and localStorage on your device are untouched.
+  </Card>
+  <Card title="Browser profiles">
+    Different browser profiles (or different browsers) on the same device each have their own storage. A workspace created in Chrome is not visible in Firefox.
+  </Card>
+</CardGroup>
+
+## Backing up and restoring your data
+
+Because all data is local, you are responsible for your own backups. Sherlock provides an export and import tool in **Settings → Data**.
+
+### What a backup includes
+
+A full workspace-data backup is a JSON snapshot containing:
+
+- Workspaces (including display title and launch metadata)
+- Artifacts, sections, evidence, key findings, follow-ups, entities, and sources
+- Runs
+- Chat sessions, messages, attachments, and chat actions
+- Research boards and board documents
+- Board agent sessions and action history
+- Signals
+- Canonical workspace items (notes, links, files, excerpts)
+- Manual graph nodes and links
+- Templates
+- Timeline snapshots (stored as artifacts with type `TIMELINE`)
+
+### What a backup does not include
+
+The following are intentionally excluded from backups:
+
+- **API keys** — these are device-local by design; you re-enter them on each device or browser profile
+- **Visual theme preferences** — theme templates and light/dark mode settings stay device-local
+- **App preferences** — quiet mode and other browser-local settings are not exported
+
+### Restoring a backup
+
+Importing a backup from **Settings → Data** replaces your current workspace data domain entirely. The import runs inside a single database transaction, so a failed import does not leave your data in a partial state — either the full restore succeeds, or your existing data remains intact.
+
+<Steps>
+  <Step title="Export a backup">
+    Go to **Settings → Data** and click **Export**. Sherlock downloads a JSON file containing all your workspace data.
+  </Step>
+  <Step title="Store the file safely">
+    Keep the backup file in a location you control — a local folder, cloud storage, or version control. Sherlock has no cloud backup mechanism.
+  </Step>
+  <Step title="Import on another device or origin">
+    On the target device, go to **Settings → Data** and click **Import**. Select your backup file. Sherlock will clear the current workspace domain and restore from the backup.
+  </Step>
+</Steps>
+
+## Multi-device usage
+
+Sherlock does not currently support automatic synchronization across devices. Each device has its own independent local database. To move your research from one device to another:
+
+1. Export a backup on the source device (**Settings → Data → Export**)
+2. Transfer the JSON file to the target device
+3. Import it on the target device (**Settings → Data → Import**)
+
+After importing, both devices will have the same data as of the export timestamp. Any changes made on either device after that point will not be reflected on the other.
+
+## Vercel Web Analytics on hosted deployments
+
+Sherlock's default build includes the Vercel Web Analytics component. On deployments hosted at Vercel with analytics turned on in the project dashboard, Vercel receives pageview and route-change events (route path, referrer, approximate country, device type). It does **not** receive workspace names, artifact contents, chat messages, board contents, API keys, or anything else from your local SQLite or localStorage. See [Vercel Web Analytics](/deployment/vercel#vercel-web-analytics) for how to enable, verify, or remove the integration.
+
+<Warning>
+  Clearing your browser's site data for the Sherlock origin will permanently delete your local SQLite database and all your workspaces, artifacts, chat history, and research boards. This cannot be undone. Always export a backup from **Settings → Data** before clearing browser storage, switching to a new device, or changing the origin you use for Sherlock.
+</Warning>

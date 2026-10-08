@@ -1,0 +1,104 @@
+---
+title: "Network graph: visualize entity relationships in Sherlock"
+description: "Explore an interactive graph of entities, artifacts, and sources in your workspace — with manual nodes, entity resolution, and investigation handoffs."
+---
+
+The Network Graph gives you a visual map of the relationships between entities, artifacts, and sources that have emerged from your research. Every person, organization, and concept extracted from your artifacts appears as a node. Sources that back those artifacts appear as source nodes. You can add your own manual nodes and draw connections between any combination of records — making the graph both an analytical output and an active thinking surface.
+
+## Navigating to the graph
+
+The Network Graph is scoped to one workspace. Open it from the workspace sidebar or navigate directly to `/workspaces/:workspaceId/network`. The graph loads with nodes derived from all artifacts in the workspace, plus any manual nodes and links you have added in previous sessions.
+
+## What appears in the graph
+
+<CardGroup cols={2}>
+  <Card title="Entity nodes" icon="user">
+    People, organizations, and concepts automatically extracted from your artifacts. Each node shows the entity's name, subtype icon, and connections to the artifacts it appeared in.
+  </Card>
+  <Card title="Source nodes" icon="link">
+    Source URLs and references drawn from artifact provenance. Useful for mapping the information landscape behind your research rather than just the entities within it.
+  </Card>
+  <Card title="Manual nodes" icon="pen-to-square">
+    Custom nodes you create yourself — any concept, person, organization, or source — with a label and optional icon override. Manual nodes persist across sessions.
+  </Card>
+  <Card title="Manual links" icon="arrows-left-right">
+    Custom edges you draw between any two nodes in the graph, including between automatic entity nodes and your own manual nodes.
+  </Card>
+</CardGroup>
+
+## Interacting with the graph
+
+**Click any node** to open the entity inspector panel on the right. The inspector shows:
+
+- All artifacts in which the entity appears
+- Saved signals mentioning the entity
+- Source references linked to the entity
+- Action buttons to launch a new investigation, start a chat session, or place the entity on the research board
+
+**Drag nodes** to rearrange the layout. The graph uses a force-directed D3 layout by default, but you can pull nodes into positions that make structural relationships clearer.
+
+**Zoom and pan** using the viewport controls in the bottom corner, or scroll to zoom and drag the canvas background to pan.
+
+### Flagging and hiding nodes
+
+Right-click any node (or use the node context menu) to flag it for attention or hide it from the current view. Hidden nodes are still in the workspace — use the control bar to toggle hidden nodes back into view when you need them.
+
+## Adding manual nodes and links
+
+<Steps>
+  <Step title="Open the add-node overlay">
+    Click **Add Node** in the graph control bar to open the node creation overlay.
+  </Step>
+  <Step title="Choose a node type and label">
+    Select **Person**, **Organization**, **Concept**, or **Source**. Enter a label and optionally pick a custom icon from the icon picker.
+  </Step>
+  <Step title="Confirm to place the node">
+    The new node appears in the graph. Drag it into position.
+  </Step>
+  <Step title="Draw a link">
+    Hover over any node to reveal its link handle, then drag from that handle to another node to create a manual connection between them.
+  </Step>
+</Steps>
+
+## Entity resolution
+
+When the same person or organization appears under multiple names across different artifacts, Sherlock may create separate entity nodes for each variant. Entity resolution lets you merge those duplicates into a single canonical node.
+
+<Tip>
+  If the same person appears as both "Jane Smith" and "J. Smith" in your graph, use entity resolution to merge them. Select one node, open the inspector, and choose **Resolve Entity** to select the duplicate to merge into this record. All artifact and signal associations from both nodes transfer to the merged canonical node.
+</Tip>
+
+## Launching investigations and chat from the graph
+
+From any node's inspector panel, you can:
+
+- **Launch investigation** — open Run Setup pre-populated with the entity's name and its related artifact context
+- **Start chat** — open a workspace chat session grounded in the selected entity's artifact associations
+- **Place on board** — send the entity, an associated artifact, or a related signal directly to the research board
+
+## Omnibox entity focus
+
+Search for an entity in the omnibox without navigating away from the graph. When you select an entity result, the graph recenters on that node and opens its inspector panel in place — no route change needed.
+
+## Typical workflow
+
+<Steps>
+  <Step title="Open your workspace and go to Network">
+    Navigate to the workspace, then click **Network** in the sidebar or go to `/workspaces/:workspaceId/network`.
+  </Step>
+  <Step title="Explore the automatic nodes">
+    Scan the graph for clusters and connections that emerged from your artifact analysis. Drag nodes to clarify relationships.
+  </Step>
+  <Step title="Click an entity node to inspect it">
+    Select any node to open the inspector. Review its artifact associations and source links.
+  </Step>
+  <Step title="Add manual nodes and connections if needed">
+    Use **Add Node** to bring in concepts or people not yet captured in your artifacts. Draw manual links to represent relationships you know exist.
+  </Step>
+  <Step title="Resolve duplicate entities">
+    If you see the same person or organization under multiple nodes, use entity resolution to merge them into one canonical record.
+  </Step>
+  <Step title="Launch a chat or investigation from the inspector">
+    From the inspector panel, click **Launch Investigation** or **Start Chat** to continue your research grounded in the selected entity and its related artifacts.
+  </Step>
+</Steps>

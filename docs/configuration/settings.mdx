@@ -1,0 +1,114 @@
+---
+title: "Sherlock settings: API keys, scopes, and data controls"
+description: "A guide to every configurable area in Sherlock Settings — API keys, provider defaults, scopes, OpenRouter web search, workspace data, and themes."
+---
+
+The Settings page (`/settings`) is your control panel for everything Sherlock stores and uses locally in your browser. There is no Sherlock account, no cloud sync, and no server-side profile — every preference you configure here lives on your device, scoped to the browser origin you're using.
+
+Settings is organized into five tabs: **Runtime**, **Scopes**, **Templates**, **Data**, and **Themes**. Each tab focuses on a distinct configuration concern, from the AI provider you use to the visual look of the workspace.
+
+<AccordionGroup>
+  <Accordion title="Runtime — API keys and generation defaults">
+    The Runtime tab controls how Sherlock connects to AI providers and how it runs analysis.
+
+    **Access credentials**
+
+    You can enter API keys for any combination of the four supported providers:
+
+    - **Google Gemini** — paste your key from [Google AI Studio](https://aistudio.google.com)
+    - **OpenRouter** — paste your key from the OpenRouter keys dashboard
+    - **OpenAI** — paste your key from the OpenAI platform
+    - **Anthropic** — paste your key from the Anthropic console
+
+    Each key field has a Show/Hide toggle and a Clear button. Keys are stored in your browser's `localStorage` and never leave your device through Sherlock.
+
+    **Runtime profile**
+
+    Under the Runtime Profile section you set your workspace-wide defaults:
+
+    - **Active provider** — which provider Sherlock routes to when you start an analysis or chat
+    - **Active model** — the specific model within that provider; you can browse the full OpenRouter catalog or enter an OpenRouter model slug manually
+    - **Generation mode** — **Single pass** generates the full artifact in one request; **Staged** generates in structured phases and is recommended for longer, more detailed reports
+    - **Search depth** — **Standard** for focused investigations; **Deep** for broader synthesis and more rigorous evidence gathering
+    - **Thinking budget** — a slider (0–8,192 tokens) that controls how much reasoning budget the AI uses before generating output; only active when the selected model supports extended reasoning
+
+    Individual runs can override these defaults at launch time, so the Runtime settings represent your starting point rather than a hard constraint.
+
+    **OpenRouter web search**
+
+    When your active provider is OpenRouter, an additional section appears for the `openrouter:web_search` feature. See the [OpenRouter search section](#openrouter-search) below.
+  </Accordion>
+
+  <Accordion title="Scopes — built-in and custom investigation domains">
+    The Scopes tab lets you view the built-in domain packs that ship with Sherlock and create your own custom scopes to shape how analysis is framed.
+
+    Each scope defines:
+
+    - **ID** — a unique identifier used internally
+    - **Name** — the display label shown in launch setup and run metadata
+    - **Description** — a short summary of what the scope covers
+    - **Domain context** — the thematic framing that gets injected into prompts for runs using this scope
+    - **Categories** — organizational tags for grouping
+    - **Personas** — analyst perspectives that influence how findings are written
+
+    Built-in scopes cover domains like threat intelligence, corporate research, geopolitical analysis, and more. Custom scopes you create appear alongside the built-ins and are available in run setup, guided run mode, and chat.
+
+    Custom scopes are stored locally in your browser's SQLite database and are included in workspace data exports.
+  </Accordion>
+
+  <Accordion title="OpenRouter search — web search configuration">
+    When you're using OpenRouter as your active provider and have the `openrouter:web_search` model selected, the Runtime tab surfaces a dedicated section for configuring web search behavior:
+
+    - **Search engine** — choose which underlying search engine OpenRouter routes to
+    - **Max results per query** — how many results to fetch in a single search call
+    - **Max total results** — an upper limit across all search calls in a run
+    - **Context window size** — how much of each result's content to include in the model context
+    - **Allowed domains** — restrict results to a specific list of domains (leave empty to allow all)
+    - **Excluded domains** — block specific domains from appearing in results
+
+    These settings apply globally as your defaults. Individual runs may override them through the run setup panel.
+  </Accordion>
+
+  <Accordion title="Data — workspace backup, restore, and preferences">
+    The Data tab contains two sections: **Operational Preferences** and **Workspace Data**.
+
+    **Operational preferences**
+
+    - **Auto-resolve entities** — when enabled, Sherlock automatically groups nearby name variations of the same entity during analysis and review
+    - **Quiet mode** — suppresses non-critical system notifications while keeping core warnings and errors visible
+
+    **Workspace data**
+
+    This section gives you controls for backing up and managing all the workspace content Sherlock has stored in your browser:
+
+    - **Export** — downloads a full JSON backup of your workspace data, including workspaces, artifacts, runs, chat history, research boards, saved signals, library items, templates, and manual graph data
+    - **Restore Backup** — imports a JSON backup file, replacing your current workspace data
+    - **Delete Data** — permanently removes all local workspace data; this action cannot be reversed
+
+    API keys, theme settings, and device-local preferences are intentionally excluded from exports. For details on what's included and excluded, see [Export and import your Sherlock workspace data](/configuration/export-import).
+  </Accordion>
+
+  <Accordion title="Themes — visual appearance and the theme workbench">
+    The Themes tab shows your current theme configuration and gives you a quick link to the full theme workbench. From here you can see your active theme template name, current light/dark mode, and whether you have unsaved changes.
+
+    Click **Open Workbench** to launch the theme workbench panel, where you can adjust accent colors, surface layers, graph palette colors, background treatment, divider styling, typography, border radius, and more.
+
+    The workbench is also available on all routed pages via the sidebar trigger — you don't have to visit Settings to make visual adjustments.
+
+    Theme state is stored in the browser's SQLite database separately from workspace data and is not included in workspace backups or exports. For a full walkthrough of theme customization, see [Customizing the Sherlock visual theme](/configuration/themes).
+  </Accordion>
+</AccordionGroup>
+
+## Navigating to settings
+
+Open Settings from the navigation sidebar on any workspace page. The URL is `/settings`.
+
+<Tip>
+  Settings changes take effect immediately in the current browser session. There is no save button for most sections — provider keys and generation defaults are saved when you leave the field or click the explicit save action shown in the Runtime tab.
+</Tip>
+
+## Local-only storage
+
+Everything in Settings lives in your browser. There is no Sherlock account, and none of your configuration is synced across devices or browsers. If you use Sherlock on multiple computers or browser profiles, you'll need to configure each one separately.
+
+This also means clearing your browser's storage for the Sherlock origin will reset all settings, API keys, and workspace data at once. Export a workspace backup from Settings → Data before clearing browser storage if you want to preserve your work.

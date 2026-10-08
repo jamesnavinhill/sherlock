@@ -1,0 +1,131 @@
+---
+title: "Connect an AI provider to Sherlock with an API key"
+description: "Add API keys for Gemini, OpenRouter, OpenAI, or Anthropic in Settings → Runtime to unlock AI investigation runs and workspace chat."
+---
+
+Sherlock is a bring-your-own-key (BYOK) application. It connects directly from your browser to the AI provider of your choice — no Sherlock-managed credentials, no server-side proxying. To run investigations or use the chat feature, you need at least one API key from a supported provider. This page covers how to get a key from each provider and how to add it to Sherlock.
+
+## Adding a key in the UI
+
+Open **Settings** from the top navigation bar, then select the **Runtime** tab. Scroll to the **Access Credentials** section. You'll see a field for each supported provider: Google Gemini, OpenRouter, OpenAI, and Anthropic.
+
+Paste your key into the appropriate field and click **Save**. Sherlock stores the key locally in your browser — it is never transmitted to Sherlock's own servers. The field shows a key count when credentials are configured, so you can confirm your key was saved at a glance.
+
+<Note>
+  Keys are stored only in your browser's local storage. This means they don't roam between devices or browsers. If you switch browsers or clear your storage, you'll need to re-enter your key. For shared or public deployments, each user adds their own key — there are no server-side credentials to configure.
+</Note>
+
+## Supported providers
+
+<Tabs>
+  <Tab title="Gemini">
+    Google Gemini is the recommended starting point for most users. It's free to get started via Google AI Studio, and Gemini models are well-suited for structured research and investigation tasks.
+
+    **Get a Gemini API key:**
+
+    1. Go to [Google AI Studio](https://aistudio.google.com/app/apikey).
+    2. Sign in with your Google account.
+    3. Click **Create API key** and copy the key that appears.
+
+    **Add it to Sherlock:**
+
+    1. Open **Settings → Runtime → Access Credentials**.
+    2. Paste your key into the **Google Gemini API Key** field.
+    3. Click **Save**.
+
+    <Tip>
+      Gemini offers a generous free tier through AI Studio that covers typical research workloads. Check the AI Studio quota page if you're running frequent or large investigation runs.
+    </Tip>
+  </Tab>
+  <Tab title="OpenRouter">
+    OpenRouter routes requests to hundreds of models from many providers through a single API key. It's a good choice if you want flexibility to switch models without managing multiple keys, or if you want access to free-tier models.
+
+    **Get an OpenRouter API key:**
+
+    1. Go to [openrouter.ai](https://openrouter.ai) and create an account.
+    2. Navigate to **Keys** in your account settings.
+    3. Click **Create key**, give it a name, and copy the key.
+
+    **Add it to Sherlock:**
+
+    1. Open **Settings → Runtime → Access Credentials**.
+    2. Paste your key into the **OpenRouter API Key** field.
+    3. Click **Save**.
+
+    <Tip>
+      After adding an OpenRouter key, use the **Browse** button in the model selector to search and filter the full OpenRouter model catalog. Sherlock maintains a local snapshot of available models and can refresh it on demand. OpenRouter also supports server-side web search via the `openrouter:web_search` route — you can configure search engine, result limits, and domain filters in **Settings → Runtime**.
+    </Tip>
+  </Tab>
+  <Tab title="OpenAI">
+    OpenAI provides GPT-4 and other models through the OpenAI API. Use this option if you have an existing OpenAI account or prefer GPT-series models for your research.
+
+    **Get an OpenAI API key:**
+
+    1. Go to [platform.openai.com](https://platform.openai.com) and sign in or create an account.
+    2. Navigate to **API keys** in your account settings.
+    3. Click **Create new secret key**, give it a name, and copy the key immediately — it won't be shown again.
+
+    **Add it to Sherlock:**
+
+    1. Open **Settings → Runtime → Access Credentials**.
+    2. Paste your key into the **OpenAI API Key** field.
+    3. Click **Save**.
+
+    <Warning>
+      OpenAI API keys are shown only once at creation. If you lose the key before saving it, you'll need to generate a new one.
+    </Warning>
+  </Tab>
+  <Tab title="Anthropic">
+    Anthropic provides Claude models through the Anthropic API. Claude is well-suited to long-context research tasks and nuanced analytical writing.
+
+    **Get an Anthropic API key:**
+
+    1. Go to [console.anthropic.com](https://console.anthropic.com) and sign in or create an account.
+    2. Navigate to **API Keys** in the console.
+    3. Click **Create Key**, give it a name, and copy the key.
+
+    **Add it to Sherlock:**
+
+    1. Open **Settings → Runtime → Access Credentials**.
+    2. Paste your key into the **Anthropic API Key** field.
+    3. Click **Save**.
+  </Tab>
+</Tabs>
+
+## Choosing a model
+
+After you add a key, the model selector in run setup and in **Settings → Runtime → Runtime Profile** shows the models available for that provider. You can switch providers and models each time you launch a run — your saved default is a starting point, not a lock-in.
+
+For OpenRouter, click **Browse** in the model selector to open a searchable catalog with filter options. Sherlock includes a curated list of quick picks alongside the full catalog, and you can also enter a model slug manually if you know the exact identifier.
+
+## Self-hosted configuration via environment variables
+
+If you're self-hosting Sherlock and want to pre-configure a key for local development, you can set provider keys as environment variables instead of entering them in the UI. This is intended for local development setups only — do not use this approach for a public or shared deployment.
+
+Copy `.env.example` to `.env.local` in the repo root and set the variables you need:
+
+```bash
+cp .env.example .env.local
+```
+
+Then edit `.env.local`:
+
+```bash
+# Google Gemini
+VITE_GEMINI_API_KEY=your_gemini_api_key_here
+
+# OpenRouter
+VITE_OPENROUTER_API_KEY=your_openrouter_api_key_here
+
+# OpenAI
+VITE_OPENAI_API_KEY=your_openai_api_key_here
+
+# Anthropic
+VITE_ANTHROPIC_API_KEY=your_anthropic_api_key_here
+```
+
+Restart the dev server after editing `.env.local`. The keys will be baked into the client build and available without manual entry in the Settings UI.
+
+<Warning>
+  Environment variable keys are embedded in the built client bundle. For any public or shared deployment — including Vercel — leave provider env vars unset and have each user enter their own key in **Settings → Runtime**. Setting a shared provider key in a public deployment exposes that key to anyone who inspects the bundle.
+</Warning>

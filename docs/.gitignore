@@ -1,0 +1,6 @@
+.agents/
+node_modules/
+skills-lock.json
+.mint-dev*.log
+.preview-*.html
+output/

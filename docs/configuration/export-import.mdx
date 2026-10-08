@@ -1,0 +1,119 @@
+---
+title: "Back up, export, and import your Sherlock workspace data"
+description: "How to export a full workspace backup, restore from a backup file, clear all local data, and seed a self-hosted Sherlock with a demo workspace."
+---
+
+Because Sherlock keeps all your workspace data in the browser, it's important to export backups before clearing browser storage, switching devices, or migrating to a new deployment. The backup system in Settings → Data lets you download a complete JSON snapshot of your workspace, restore from any prior snapshot, or wipe all local data when you want a clean slate.
+
+## Where to find backup controls
+
+All backup and restore actions live in **Settings → Data**, under the **Workspace Data** section.
+
+## Exporting a backup
+
+Click **Export** → **Workspace Data as JSON Backup** to download a `.json` file containing everything Sherlock has stored for your workspace. The file is saved to your browser's download location with a timestamped filename.
+
+### What's included in a backup
+
+A full workspace backup captures:
+
+<CardGroup cols={2}>
+  <Card title="Workspaces">
+    Workspace metadata, display titles, launch topics, and configuration.
+  </Card>
+  <Card title="Artifacts">
+    Full reports including key findings, evidence records, artifact sections, follow-up records, entities, and sources.
+  </Card>
+  <Card title="Investigation runs">
+    All workspace run records with their pack, purpose, and model configuration.
+  </Card>
+  <Card title="Chat history">
+    Chat sessions, messages, message attachments, and action audit records.
+  </Card>
+  <Card title="Research boards">
+    Board-agent sessions and the full action history for each board session.
+  </Card>
+  <Card title="Saved signals">
+    All signals saved to the workspace.
+  </Card>
+  <Card title="Library items">
+    Workspace library entries — notes, links, files, and promoted chat excerpts.
+  </Card>
+  <Card title="Boards and snapshots">
+    Workspace board shells and all persisted board canvas snapshots.
+  </Card>
+  <Card title="Graph data">
+    Manual nodes and links added to the network graph.
+  </Card>
+  <Card title="Templates">
+    Saved run templates.
+  </Card>
+</CardGroup>
+
+### What's NOT included
+
+The following are intentionally excluded from backups:
+
+- **API keys** — stored separately in `localStorage` and never exported
+- **Visual theme settings** — theme templates and mode preference are stored in the database but excluded from workspace backups
+- **Device-local preferences** — quiet mode, auto-resolve, and similar per-device settings
+
+This means you can safely share a workspace backup without exposing your credentials or personal display preferences.
+
+## Restoring a backup
+
+<Warning>
+  Importing a backup **replaces all current workspace data**. Sherlock clears your existing workspaces, artifacts, runs, chat history, boards, signals, library items, and graph data before restoring the backup file. This cannot be undone. Export your current data first if you want to keep it.
+</Warning>
+
+Click **Restore Backup** and select your `.json` backup file. Sherlock validates and imports the file inside a single database transaction — if anything goes wrong during the import, your workspace domain is not left in a partial state.
+
+The import also accepts older backup formats for backwards compatibility.
+
+## Exporting a backup and restoring it later
+
+<Steps>
+  <Step title="Open Settings → Data">
+    Navigate to Settings and click the **Data** tab.
+  </Step>
+  <Step title="Export your backup">
+    Under Workspace Data, click **Export** → **Workspace Data as JSON Backup**. Save the downloaded file somewhere you'll find it later.
+  </Step>
+  <Step title="Continue working or switch environments">
+    Use Sherlock normally, or move to a new browser or deployment.
+  </Step>
+  <Step title="Open Settings → Data on the new environment">
+    Navigate to Settings → Data on the browser or deployment where you want to restore.
+  </Step>
+  <Step title="Restore the backup">
+    Click **Restore Backup**, select the `.json` file you exported, and confirm. Sherlock will import the backup and restore your workspace.
+  </Step>
+</Steps>
+
+## Clearing all workspace data
+
+The **Delete Data** button in the Workspace Data section permanently removes all local workspace content — workspaces, artifacts, runs, chats, signals, templates, boards, library items, and graph data. It also resets graph hide/flag filters that reference workspace data.
+
+This action is irreversible. Export a backup first if there's anything you want to keep.
+
+## Single-workspace export
+
+In addition to full backups, you can export individual workspaces from the artifact viewer or workspace actions. These single-workspace exports are available in HTML, Markdown, and JSON formats and are useful for sharing or archiving a specific investigation without exporting everything.
+
+A single-workspace JSON export uses a different shape (`workspace` and `artifacts` keys) than a full backup. Both formats are accepted by the import flow.
+
+## Demo workspace seeding for self-hosted deployments
+
+If you self-host Sherlock, you can pre-seed the workspace for first-time visitors by placing a backup file at:
+
+```
+public/seeds/demo-workspace.json
+```
+
+When a new browser profile visits your deployment for the first time with an empty workspace, Sherlock automatically imports the seed file once. After that first import, the seed is not re-applied to that browser profile.
+
+The seed file can be either a full workspace-data backup (from Settings → Data → Export) or a single-workspace JSON export with `workspace` and `artifacts` keys.
+
+<Tip>
+  The demo seed is applied per browser origin. Visitors on a Vercel preview URL have a separate browser storage namespace from visitors on the production domain, so the seed can apply independently to each.
+</Tip>

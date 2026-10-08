@@ -1,0 +1,89 @@
+{
+  "projectType": "saas",
+  "projectName": "Sherlock",
+  "projectDescription": "Sherlock is an AI-powered research and investigation workspace that helps users run structured analyses, manage findings, and explore entity relationships across customizable domain scopes.",
+  "theme": "luma",
+  "primaryColor": "#6c7472",
+  "lightColor": "#0f0f0f",
+  "darkColor": "#9f9f9e",
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Documentation",
+        "groups": [
+          {
+            "group": "Get Started",
+            "pages": [
+              "introduction",
+              "quickstart",
+              "provider-setup"
+            ]
+          },
+          {
+            "group": "Core Concepts",
+            "pages": [
+              "concepts/workspaces",
+              "concepts/artifacts",
+              "concepts/scopes-and-domains",
+              "concepts/data-and-privacy"
+            ]
+          },
+          {
+            "group": "Features",
+            "pages": [
+              "features/running-investigations",
+              "features/research-board",
+              "features/chat",
+              "features/timeline",
+              "features/network-graph",
+              "features/live-monitor",
+              "features/files"
+            ]
+          },
+          {
+            "group": "Configuration",
+            "pages": [
+              "configuration/settings",
+              "configuration/themes",
+              "configuration/export-import"
+            ]
+          },
+          {
+            "group": "Deployment",
+            "pages": [
+              "deployment/vercel",
+              "deployment/byok"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "keyFeatures": [
+    "AI-powered investigation runs across multiple domains (government fraud, cybersecurity, geopolitics, competitive intelligence, and more)",
+    "Visual research boards built on tldraw for canvas-based investigation and entity mapping",
+    "Workspace-grounded chat with streaming AI responses and @mention references",
+    "Timeline view for chronological research history with saved snapshot views",
+    "Network graph for entity relationship visualization with D3.js",
+    "Live Monitor for real-time signal scanning and alert generation",
+    "Files browser for managing workspaces, artifacts, and canonical workspace items",
+    "Bring Your Own Key (BYOK) support for Gemini, OpenRouter, OpenAI, and Anthropic",
+    "Browser-local SQLite storage — no server database required, all data stays in your browser",
+    "Full workspace export and import in HTML, Markdown, and JSON formats"
+  ],
+  "publicApiSurface": [
+    "Settings -> Runtime (provider API key configuration)",
+    "Run Setup modal (scope, domain pack, purpose, model, date range, priority sources)",
+    "Workspace CRUD (create, rename, icon, delete, purge)",
+    "Artifact viewer (section editing, evidence, key findings, follow-ups, export)",
+    "Research Board (multi-board canvas, library placement, board-agent sessions)",
+    "Chat (workspace-grounded sessions, @mentions, transcript export, guided run mode)",
+    "Timeline (chronology filters, saved views, snapshot export)",
+    "Network Graph (manual nodes/links, entity resolution, flag/hide, board handoff)",
+    "Live Monitor (scan configuration, source filters, auto-save to signals)",
+    "Files (workspace browser, artifact/item grid and list, deep-link focus)",
+    "Settings -> Data (backup export, import, clear workspace data)",
+    "Settings -> Scopes (custom scope creation and management)",
+    "Settings -> Themes (theme workbench, accent colors, dark/light mode)"
+  ]
+}

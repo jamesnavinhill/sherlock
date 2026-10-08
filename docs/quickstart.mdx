@@ -1,0 +1,88 @@
+---
+title: "Sherlock quickstart: from setup to first investigation"
+description: "Add an API key, create a workspace, and launch your first AI investigation — the complete first-run walkthrough for new Sherlock users."
+---
+
+This guide walks you through everything you need to go from a fresh Sherlock session to a completed AI investigation run. The whole process takes about five minutes. If you already have an API key from a supported provider (Gemini, OpenRouter, OpenAI, or Anthropic), you can be running your first analysis before the end of this page.
+
+## Before you begin
+
+You need at least one API key from a supported AI provider to run investigations or use the chat feature. If you don't have one yet, read [Configure your AI provider](/provider-setup) for step-by-step instructions on getting a key from each provider. Browsing existing workspaces and artifacts works without a key.
+
+## First-run walkthrough
+
+<Steps>
+  <Step title="Open Sherlock">
+    Navigate to your Sherlock URL. New visitors land on the `/welcome` page, which gives you a brief overview of the workspace.
+
+    Click **Open Workspace** to continue. A modal appears offering two paths:
+
+    - **Enter an API key** — paste your key to unlock investigation runs and chat
+    - **Browse without a key** — skip into the Files browser to explore any pre-seeded content
+
+    If a demo workspace was seeded by the deployment, you'll find it waiting in your Files view when you skip or after you authenticate. This gives you real artifacts and research content to explore before running your own analysis.
+  </Step>
+  <Step title="Add your API key">
+    If you didn't enter your key in the welcome modal, open **Settings** from the top navigation and select the **Runtime** tab.
+
+    Under **Access Credentials**, find the field for your provider and paste your API key. The field accepts keys for:
+
+    - Google Gemini
+    - OpenRouter
+    - OpenAI
+    - Anthropic
+
+    Your key is stored locally in your browser and never sent to Sherlock's servers. Click **Save** to apply.
+
+    <Note>
+      You can add keys for multiple providers at once. Sherlock lets you choose which provider and model to use each time you launch a run, so having more than one key gives you more flexibility.
+    </Note>
+  </Step>
+  <Step title="Create a workspace">
+    Click **Files** in the top navigation to open the workspace browser. This is Sherlock's home surface — it shows all your workspaces and the artifacts inside them.
+
+    Click **New Workspace** to create your first workspace. Give it a name that describes your research project or topic, then confirm. Sherlock creates the workspace and opens it.
+
+    A workspace holds everything related to a single investigation or research area: runs, artifacts, chat sessions, research boards, signals, and source records. You can create as many workspaces as you need.
+  </Step>
+  <Step title="Launch an investigation run">
+    From inside your workspace, click **New Run** (or look for the run launch option in the workspace toolbar). This opens the run setup panel.
+
+    In run setup, configure:
+
+    - **Scope / domain** — choose a domain pack that matches your research area (for example, cybersecurity, finance, or general research)
+    - **Purpose** — select an analysis purpose, such as a background investigation, a threat assessment, or a summary report
+    - **Model** — pick the provider and model you want to use; the selector shows models available for the keys you've added
+    - **Topic / prompt** — describe what you want to investigate
+
+    When you're ready, click **Launch**. Sherlock sends your prompt to the AI provider and streams the response back as a structured artifact. You can watch it build in real time and stop the run at any point.
+
+    <Tip>
+      Start with a focused, specific topic for your first run. Broad questions produce longer outputs; a tighter scope tends to give you more actionable findings to work with.
+    </Tip>
+  </Step>
+  <Step title="Review your artifact">
+    When the run finishes, Sherlock opens the resulting artifact in **Operation View** — a document-first reading surface that shows key findings near the top, with inline evidence, typed sections, and an inspector panel on the side.
+
+    From here you can:
+
+    - Read through the structured findings and evidence records
+    - Open **Chat** to ask follow-up questions grounded in the artifact
+    - Add content to your **Research Board** for visual analysis
+    - Launch follow-up runs to dig deeper into specific threads
+  </Step>
+</Steps>
+
+## What's next
+
+<CardGroup cols={3}>
+  <Card title="Investigation runs" icon="magnifying-glass" href="/features/running-investigations">
+    Learn about domain scopes, purpose profiles, generation modes, and guided run building.
+  </Card>
+  <Card title="Research board" icon="chalkboard" href="/features/research-board">
+    Build a visual canvas with your artifacts, entities, and signals using the tldraw-powered board.
+  </Card>
+  <Card title="Workspaces" icon="folder" href="/concepts/workspaces">
+    Understand how workspaces organize your research and how to export and import your data.
+  </Card>
+</CardGroup>

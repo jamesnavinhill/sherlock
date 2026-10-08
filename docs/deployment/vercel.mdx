@@ -1,0 +1,117 @@
+---
+title: "Deploy Sherlock to Vercel: step-by-step setup guide"
+description: "Step-by-step guide to deploying Sherlock on Vercel, including env var setup, BYOK hosting configuration, and SPA routing requirements."
+---
+
+Sherlock is a static Vite application that deploys cleanly to Vercel with no server database required. Workspace and artifact data live entirely in the visitor's browser via SQLite over IndexedDB, and API keys stay browser-local when users add them through Settings → Runtime. This makes Vercel an ideal host — you get global CDN delivery and zero backend infrastructure to manage.
+
+## How the deployment works
+
+Sherlock builds to a standard static `dist/` directory. The repo includes a `vercel.json` that configures the build commands and ensures all page routes work correctly for direct navigation and bookmarked links.
+
+<Note>
+  The `vercel.json` at the repo root handles routing automatically. If you configure the build manually in the Vercel dashboard, set install command to `npm ci --include=optional`, build command to `npm run build`, and output directory to `dist`.
+</Note>
+
+## Deploying to Vercel
+
+<Steps>
+  <Step title="Import the GitHub repository">
+    Go to [vercel.com](https://vercel.com) and click **Add New Project**. Select the Sherlock GitHub repository. Vercel will detect the `vercel.json` configuration automatically.
+  </Step>
+  <Step title="Review build settings">
+    Vercel reads the build configuration from `vercel.json`. You should see install command `npm ci --include=optional`, build command `npm run build`, and output directory `dist`. No manual changes are needed.
+  </Step>
+  <Step title="Configure the tldraw license key (optional)">
+    If your deployment uses Sherlock's research board feature (powered by tldraw 4.x), add `VITE_TLDRAW_LICENSE_KEY` as an environment variable in the Vercel project settings before deploying. This is an app-level license for the canvas SDK — it's different from the AI provider API keys.
+  </Step>
+  <Step title="Leave provider API keys unset for public BYOK hosting">
+    For a public or shared deployment where each visitor uses their own AI provider account, do **not** set `VITE_GEMINI_API_KEY`, `VITE_OPENROUTER_API_KEY`, `VITE_OPENAI_API_KEY`, or `VITE_ANTHROPIC_API_KEY` in Vercel. Each visitor will add their own key in Settings → Runtime after the site loads.
+  </Step>
+  <Step title="Add a demo workspace seed (optional)">
+    If you want first-time visitors to land in a pre-seeded demo workspace, place a workspace backup JSON file at `public/seeds/demo-workspace.json` in the repository before deploying. Sherlock will auto-import it once for any browser profile that visits with an empty workspace.
+  </Step>
+  <Step title="Deploy">
+    Click **Deploy**. Once the build completes, your Sherlock instance is live. Each visitor can start using it immediately for browsing and will be prompted to add a provider API key when they want to run analysis or chat.
+  </Step>
+</Steps>
+
+## Environment variables
+
+<CodeGroup>
+  ```bash .env.local (local development)
+  # Get your free API key from https://aistudio.google.com/app/apikey
+  VITE_GEMINI_API_KEY=your_key_here
+
+  # VITE_OPENROUTER_API_KEY=your_key_here
+  # VITE_OPENAI_API_KEY=your_key_here
+  # VITE_ANTHROPIC_API_KEY=your_key_here
+
+  # tldraw SDK license key — for local testing or deployments using tldraw 4.x
+  # VITE_TLDRAW_LICENSE_KEY=your_key_here
+  ```
+
+  ```bash Vercel project environment variables
+  # Only set VITE_TLDRAW_LICENSE_KEY in Vercel for public deployments.
+  # Leave all provider API keys unset — each user enters their own in-app.
+  VITE_TLDRAW_LICENSE_KEY=your_tldraw_license_key_here
+  ```
+</CodeGroup>
+
+<Warning>
+  Do not set `VITE_GEMINI_API_KEY`, `VITE_OPENROUTER_API_KEY`, `VITE_OPENAI_API_KEY`, or `VITE_ANTHROPIC_API_KEY` in Vercel for a public-facing deployment. Because these are `VITE_` prefixed variables, they are baked into the client bundle at build time and visible to every visitor. Every request made through the site would be charged to your provider account. For public hosting, use strict BYOK mode — see [BYOK: bring your own key to Sherlock](/deployment/byok).
+</Warning>
+
+## Important notes
+
+**Preview URLs have isolated storage**
+
+Each Vercel preview URL is a separate browser origin. Workspace data and API keys stored on `preview-xyz.vercel.app` are completely separate from data on your production domain. This is useful for testing — you can use a preview deployment without touching production data.
+
+**Redeploying does not wipe user data**
+
+Deploying a new version to the same domain does not clear visitors' browser storage. Their workspaces, artifacts, and saved keys persist across redeployments unless they explicitly clear their browser data or use the Delete Data action in Settings.
+
+**VITE_TLDRAW_LICENSE_KEY is not a provider API key**
+
+The tldraw license key is an SDK license for the board canvas feature. It's configured at deploy time in Vercel (or in `.env.local` for local development) rather than entered in Settings → Runtime like provider API keys. You only need it if you're using the research board surface.
+
+## Vercel Web Analytics
+
+Sherlock's app shell includes the `@vercel/analytics` React component at the root of both the landing view and the workspace chrome view. When you deploy to Vercel and turn Web Analytics on for the project, the app sends privacy-friendly pageview and route-change events to Vercel Analytics automatically. No configuration is required inside Sherlock itself.
+
+### When it applies
+
+The analytics component only reports data when the app is served from a Vercel deployment with Web Analytics enabled in the project dashboard. In local development or on non-Vercel hosts, the component is a no-op — it does not send events and does not require an API key.
+
+### Turn it on
+
+<Steps>
+  <Step title="Deploy to Vercel">
+    Deploy the project following the steps above. The `<Analytics />` component is already wired into `src/app/AppShell.tsx`, so no code changes are needed.
+  </Step>
+  <Step title="Enable Web Analytics in the dashboard">
+    In the Vercel project dashboard, open the **Analytics** tab and click **Enable**. Vercel begins recording pageviews on the next request served from your deployment.
+  </Step>
+  <Step title="Verify events are firing">
+    Load your deployed site and open your browser's DevTools **Network** tab. Look for requests to `/_vercel/insights/view` — one fires per route change. If you see them, tracking is live.
+  </Step>
+</Steps>
+
+### What gets tracked
+
+Web Analytics records pageviews and route changes for the Sherlock SPA. It does **not** capture research content, artifact bodies, chat messages, board contents, entered API keys, or any other data from your local SQLite database. Sherlock's local-first data model (see [How Sherlock stores your data and protects privacy](/concepts/data-and-privacy)) is unaffected — analytics only sees which routes visitors navigate to and standard visitor metadata (approximate country, device type, referrer).
+
+### Turn it off
+
+To disable analytics for a self-hosted fork, remove the `<Analytics />` component from `src/app/AppShell.tsx` (both the landing view and the workspace chrome view) and drop `@vercel/analytics` from `package.json`. Deployments that don't enable Web Analytics in the Vercel dashboard also won't record data even with the component present.
+
+## Alternative static hosts
+
+Because Sherlock outputs a standard `dist/` directory from Vite, it deploys to any static hosting platform that supports SPA routing. You'll need to configure a catch-all rewrite rule (equivalent to the one in `vercel.json`) on whatever platform you use:
+
+- **Netlify** — add a `_redirects` file with `/* /index.html 200`
+- **Cloudflare Pages** — add a `_routes.json` or configure custom headers
+- **GitHub Pages** — requires a workaround for SPA routing (a 404.html copy of index.html)
+
+The build output itself is identical across all platforms.

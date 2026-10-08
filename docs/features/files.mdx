@@ -1,0 +1,165 @@
+---
+title: "Files: browse and manage all your research workspaces"
+description: "Browse all your workspaces in a grid, navigate into individual workspaces to view artifacts and items, and take actions like chat handoff and export."
+---
+
+Files is the main workspace browser in Sherlock. When you open it, you see all your workspaces laid out in a grid — each one showing its name, icon, and artifact count. From there you can navigate into any workspace to browse its artifacts and canonical items, open records in the viewer or chat, place things on the board, and manage workspace settings.
+
+## Navigating to Files
+
+Go to `/files` at any time, or click **Files** in the main sidebar. If this is your first time using Sherlock, Files is where you land after completing the onboarding step.
+
+<Tip>
+  Click a workspace's icon in the Files grid to open the icon picker and customize it. Icons carry across all surfaces where the workspace appears — the omnibox, the sidebar, and the network graph.
+</Tip>
+
+## All-workspaces overview
+
+The landing view shows every workspace as a card. Each card displays:
+
+- **Workspace name** — click anywhere on the card to open the workspace
+- **Icon** — click just the icon to open the icon picker
+- **Artifact count** — how many saved artifacts the workspace contains
+
+Use the **New Workspace** button (or press `Ctrl+N`) to create a workspace without leaving Files.
+
+## Browsing a workspace
+
+Click a workspace card to open it. Inside the workspace view, three tabs let you filter what you see:
+
+<Tabs>
+  <Tab title="All">
+    Shows artifacts and canonical items in a single combined list, ordered by most recent activity.
+  </Tab>
+  <Tab title="Artifacts">
+    Shows only investigation artifacts — the structured analysis documents produced by your runs. Each row shows the artifact title, date, and type badge.
+  </Tab>
+  <Tab title="Items">
+    Shows canonical workspace items: notes, links, files and media, and promoted chat excerpts. Each item includes a provenance summary indicating where it came from.
+  </Tab>
+</Tabs>
+
+## Working with artifacts
+
+From the **Artifacts** tab, each artifact row gives you direct access to the most common actions:
+
+<AccordionGroup>
+  <Accordion title="Open in viewer">
+    Click the artifact title to open it in the full Operation View reader, where you can read findings, inspect evidence, edit sections, and launch follow-ups.
+  </Accordion>
+  <Accordion title="Start a chat session">
+    Click the chat icon to open a new workspace chat session grounded in this artifact. The artifact is attached as retrieval context from the start.
+  </Accordion>
+  <Accordion title="Place on board">
+    Click the board icon to send the artifact to the research board. If the artifact is already placed on the board, this focuses the existing card instead of placing a duplicate.
+  </Accordion>
+  <Accordion title="Source link">
+    For artifacts that carry a primary source URL, click the source icon to open that URL in a new tab.
+  </Accordion>
+  <Accordion title="Export">
+    Download the artifact as HTML, Markdown, or JSON for external use or archiving.
+  </Accordion>
+  <Accordion title="Delete">
+    Remove the artifact from the workspace. This action is permanent and cannot be undone from within the app.
+  </Accordion>
+</AccordionGroup>
+
+## Working with workspace items
+
+From the **Items** tab, each item shows its type (note, link, file, or promoted excerpt), a provenance summary, and action buttons:
+
+- **Chat** — open a chat session with this item as context
+- **Board** — place the item on the research board
+- **Source link** — open the item's associated URL (for link and file items)
+
+## Uploading documents
+
+You can upload files from your device into any workspace. Sherlock reads the content of text-based files and saves them either as workspace items or as artifact drafts, depending on which route you choose.
+
+**Supported file types for text extraction:**
+
+- `.txt`, `.md`, `.markdown`, `.csv`, `.json`, `.xml`, `.yaml`, `.yml`, `.html`
+- Any file with a `text/*` MIME type
+
+Image and video files can also be uploaded — they are stored with a preview thumbnail but without text extraction.
+
+**How to upload:**
+
+1. Open the upload dialog from **Files**, the **Research Board**, or **Chat** using the upload action in the toolbar or context menu.
+2. Select one or more files from your device.
+3. Choose a **destination route**:
+   - **Save as item** — creates a workspace item (note-type record) with the file's extracted text content and metadata. The item appears in the Library rail and can be placed on boards or referenced in chat.
+   - **Create artifact draft** — creates a new artifact with the file's content as its body. You choose an artifact type (Report, Synthesis, Brief, Digest, Comparison, Note, Timeline, or Monitor Snapshot) before saving.
+4. Select the **target workspace** if you have multiple workspaces.
+5. Confirm to save. Sherlock extracts readable text from supported formats and attaches file metadata (name, type, size) automatically.
+
+<Note>
+  Uploaded files are processed entirely in your browser. No file data is sent to any external server — the extracted text and metadata are saved to your local database alongside your other workspace data.
+</Note>
+
+## Grid and list modes
+
+Use the view toggle in the toolbar to switch between:
+
+- **Grid** — workspace cards arranged in a responsive grid, better for browsing many workspaces at once
+- **List** — a denser row-based layout, better for scanning names and artifact counts quickly
+
+## Deep-linking to a specific item
+
+Every canonical workspace item has a stable URL:
+
+```
+/files?workspaceId=<workspaceId>&focusItemId=<itemId>
+```
+
+This URL opens Files directly to the item, scrolling it into view and highlighting it. Chat mentions, omnibox results, and timeline handoffs all use this format when pointing at workspace items — so any link you receive or generate for a specific item will land in exactly the right place.
+
+## Managing workspaces from Files
+
+Right-click a workspace card (or open its context menu) to access workspace management actions:
+
+<CardGroup cols={2}>
+  <Card title="Rename" icon="pen">
+    Change the workspace's display name. The new name takes effect immediately across all surfaces.
+  </Card>
+  <Card title="Change icon" icon="image">
+    Open the icon picker to choose a new icon from the curated icon library.
+  </Card>
+  <Card title="Export" icon="download">
+    Download a full workspace backup including all artifacts, chat history, board snapshots, items, signals, and graph data.
+  </Card>
+  <Card title="Delete" icon="trash">
+    Remove the workspace and all of its contents permanently. Sherlock asks you to confirm before proceeding.
+  </Card>
+  <Card title="Purge" icon="eraser">
+    Remove all artifacts, runs, chat history, signals, and board content from the workspace while keeping the workspace itself. The workspace name and settings remain; only its research history is cleared.
+  </Card>
+  <Card title="New workspace" icon="plus">
+    Create a new empty workspace. You can also use `Ctrl+N` from anywhere in the app to reach the same new-workspace modal.
+  </Card>
+</CardGroup>
+
+<Warning>
+  **Purge** removes all artifacts and history from a workspace but keeps the workspace record itself. **Delete** removes everything including the workspace. Neither action can be undone from within the app — use **Export** first if you need to preserve the data.
+</Warning>
+
+## Searching in Files
+
+Use the header omnibox to search across all workspaces, artifacts, and items by name. Results appear as you type, and selecting a workspace or artifact result navigates directly to it.
+
+## Typical workflow
+
+<Steps>
+  <Step title="Open Files">
+    Navigate to `/files` or click **Files** in the sidebar. You see your workspace grid.
+  </Step>
+  <Step title="Select a workspace">
+    Click the workspace card you want to browse. The workspace view opens with the **All** tab active.
+  </Step>
+  <Step title="Switch to the Artifacts tab">
+    Click **Artifacts** to filter the list to investigation artifacts only.
+  </Step>
+  <Step title="Open an artifact in the viewer">
+    Click the artifact's title to open it in the full Operation View reader.
+  </Step>
+</Steps>

@@ -1,0 +1,79 @@
+---
+title: "Live Monitor: scan for signals across your research scope"
+description: "Configure a scan scope, run a batch signal scan for breaking developments, and feed results into investigations or your workspace signal library."
+---
+
+Live Monitor is a batch scanning tool that watches your configured domain scope for new signals — breaking news, new publications, threat alerts, or any developments relevant to your research area. Run a scan, review the results as they arrive, and take action on any result: save it as a signal, expand it for detail, or launch a full investigation grounded in it.
+
+<Note>
+  Live Monitor requires a configured AI provider key to run scans. Add your key under **Settings → Runtime** before starting. Browsing previously scanned results does not require a key.
+</Note>
+
+## Navigating to Live Monitor
+
+Live Monitor is a global surface, not scoped to a single workspace. Navigate to it directly at `/monitor`. You can also reach it from the main sidebar.
+
+## How a scan works
+
+When you run a scan, Live Monitor calls your active AI provider with your configured scope, source priorities, and date window. Results arrive progressively — the feed updates as the scan receives data — so you can start reviewing while the scan is still running.
+
+<Steps>
+  <Step title="Select a workspace">
+    Use the workspace selector in the toolbar to choose which workspace the scan should run against. This sets the research context for the scan and determines where signals are saved.
+  </Step>
+  <Step title="Configure scope and sources">
+    Open **Settings** (gear icon in the toolbar) to configure your monitoring window:
+    - **News count** — how many news-type results to request
+    - **Social count** — how many social-signal results to request
+    - **Official count** — how many official-source results to request
+    - **Priority sources** — comma-separated domains or source names to weight more heavily
+    - **Date range** — optional window to constrain results to a specific period
+  </Step>
+  <Step title="Run the scan">
+    Click the **Scan** button in the toolbar. The page shows a scanning indicator while the request is active, then switches to a receiving indicator as results arrive.
+  </Step>
+  <Step title="Review results">
+    Results appear as cards in a responsive grid. Each card shows the signal content, source name, threat or category label, and action buttons. Click a card to expand it for the full detail.
+  </Step>
+  <Step title="Save signals or launch an investigation">
+    From any expanded card, click **Save Signal** to persist the result to your workspace signal library, or click **Investigate** to open Run Setup pre-populated with that signal as context.
+  </Step>
+</Steps>
+
+## Signal auto-save
+
+Enable **Auto-save** in the Settings panel to automatically persist every incoming scan result as a signal in the active workspace. This is useful when you want to capture everything from a scan without manually reviewing each card.
+
+<Warning>
+  Auto-save saves all scan results to your workspace, including low-signal or noisy results. Turn it off when you want to be selective about what enters your signal library.
+</Warning>
+
+## Filtering results
+
+Use the filter controls in the Settings panel to narrow the visible cards after a scan:
+
+- **Category / threat level** — filter by INFO, CAUTION, or CRITICAL result labels
+- **All** — show all results regardless of category
+
+Filtering only affects what is visible in the current session — it does not remove saved signals from your workspace.
+
+## Stopping a scan
+
+Click the **Stop** button (which replaces the Scan button during an active run) to cancel an in-progress scan. Results received before you stopped remain visible in the feed.
+
+## Clearing the feed
+
+Open **Settings** and click **Clear Feed** to remove all current scan results from the view. This does not delete any signals already saved to your workspace.
+
+## Live Monitor vs. Finder
+
+<CardGroup cols={2}>
+  <Card title="Live Monitor" icon="satellite-dish">
+    For ongoing monitoring of a configured scope. Run on demand to check for new developments. Results can be saved as signals or launched into investigations.
+  </Card>
+  <Card title="Finder" icon="search">
+    For discovery scanning and launching analysis from a broader search. Uses a shared toolbar date-range control to filter the discovery sweep.
+  </Card>
+</CardGroup>
+
+Use Live Monitor when you have a defined research scope and want to watch it for new signals over time. Use Finder when you are starting fresh and want to discover what is out there before committing to an investigation angle.

@@ -1,0 +1,139 @@
+---
+title: "Sherlock chat: AI conversations grounded in your workspace"
+description: "Ask questions grounded in your workspace artifacts and signals. Use @mentions, save responses as artifacts, and launch follow-up investigations from chat."
+---
+
+Sherlock's chat surface gives you a conversational interface into your workspace. Every chat session is scoped to the active workspace, which means the AI can reference your existing artifacts, key findings, saved signals, and workspace items directly — rather than answering from general knowledge alone. Use chat to interrogate a specific artifact, ask follow-up questions after an investigation, synthesize findings across multiple reports, or build a new investigation conversationally using guided run mode.
+
+## Starting a chat
+
+Open chat from any workspace at `/workspaces/:workspaceId/chat`, or use a chat handoff action from:
+
+- **Operation View** — launches a session grounded in the active artifact or an inspected entity
+- **Files** — opens a session with the selected workspace item as context
+- **Network Graph** — opens a session focused on an inspected artifact, entity, or signal
+
+When you open chat via a handoff, Sherlock pins the source artifact, entity, or signal as launch context for the session. That context is visible in the context drawer and is passed to the AI in the session primer.
+
+## Typical workflow
+
+<Steps>
+  <Step title="Open your workspace">
+    Navigate to any workspace from the Files overview or the omnibox.
+  </Step>
+  <Step title="Click Chat">
+    Open the chat surface from the workspace navigation. A new session starts automatically if none exists for the workspace.
+  </Step>
+  <Step title="Type your question with an @mention">
+    In the message composer, type your question. Use `@` to mention a specific artifact, key finding, entity, or signal to ground the AI's response in that record's content.
+  </Step>
+  <Step title="Read the streaming response">
+    The AI streams its response into the transcript. You can stop generation at any time using the stop button that appears in the composer during a live turn.
+  </Step>
+  <Step title="Save useful output">
+    When the AI produces something worth keeping, save it — either as a new artifact, appended to an existing one, or promoted to the workspace library as an excerpt.
+  </Step>
+</Steps>
+
+## @mentions
+
+<Tip>
+  Mention a specific artifact by typing `@` followed by its name to ground the AI's response directly in that report's content. The AI receives the artifact's executive summary, key findings, and relevant sections as explicit context for the turn.
+</Tip>
+
+Type `@` in the message composer to open a mention picker. You can mention:
+
+- **Artifacts** — full investigation reports in the workspace
+- **Key findings** — individual findings extracted from artifacts
+- **Workspace items** — notes, links, files, and promoted excerpts
+- **Entities** — people, organizations, and concepts tracked in the workspace
+- **Signals** — saved signals from the Live Monitor or manual saves
+
+Mentioned records are resolved and attached to your message as explicit context. They appear as inline tokens in the sent message and can be clicked to reopen the referenced record in its native surface.
+
+## Streaming responses and stop support
+
+The AI streams its response token by token. A stop button appears in the composer toolbar while a response is in progress — click it to halt generation and keep whatever the AI has produced so far. You can then send a follow-up message or edit your question.
+
+## Context drawer
+
+The context drawer (right panel) shows what Sherlock is using to ground the current session:
+
+<AccordionGroup>
+  <Accordion title="Recent artifacts">
+    The most recently updated artifacts in the workspace, available as quick context for the AI.
+  </Accordion>
+  <Accordion title="Recent signals">
+    Saved signals from the workspace, surfaced as retrieval context.
+  </Accordion>
+  <Accordion title="Pinned launch context">
+    The artifact, entity, or signal that was passed in when the session was opened via a handoff action. This stays pinned for the life of the session.
+  </Accordion>
+  <Accordion title="Last-turn retrieval snippets">
+    The specific workspace passages the AI retrieved and used in its most recent response. These give you visibility into which content shaped the answer.
+  </Accordion>
+  <Accordion title="Action log">
+    A record of chat actions taken in the session — saves, appends, follow-up launches, and promotions — for audit and reference.
+  </Accordion>
+</AccordionGroup>
+
+## Session management
+
+Each workspace can have multiple named chat sessions. Manage them from the session list in the left rail:
+
+- **Create a new session** — click the new session button to start a fresh conversation
+- **Rename a session** — right-click a session or use the session menu to give it a descriptive name
+- **Switch between sessions** — click any session in the list to load its full transcript history
+- **Delete a session** — remove a session and its transcript permanently from the session menu
+
+<Note>
+  Chat history is persisted in your browser alongside workspace data. Use **Settings → Data → Export** to include chat history in a workspace backup.
+</Note>
+
+## Actions from chat
+
+After the AI responds, you can act on the output directly from the transcript:
+
+<CardGroup cols={2}>
+  <Card title="Save as artifact" icon="file-plus">
+    Save the AI's response as a new artifact in the workspace. It appears in Files and Operation View like any other investigation artifact.
+  </Card>
+  <Card title="Append to artifact" icon="file-plus-2">
+    Add the response as a new section in an existing artifact. Choose which artifact to append to from a picker.
+  </Card>
+  <Card title="Launch follow-up run" icon="play">
+    Open the Run Setup modal pre-populated with context from the conversation, then launch a structured investigation run.
+  </Card>
+  <Card title="Promote excerpt" icon="bookmark">
+    Promote a specific retrieval snippet into the canonical workspace library so it appears in the Library rail and board.
+  </Card>
+  <Card title="Place on board" icon="layout">
+    Send a retrieval excerpt or response snippet directly onto the active research board.
+  </Card>
+  <Card title="Copy transcript" icon="clipboard">
+    Copy the full session transcript to the clipboard.
+  </Card>
+</CardGroup>
+
+## Transcript export
+
+Export the full chat transcript at any time from the session menu:
+
+<Tabs>
+  <Tab title="Markdown">
+    A formatted Markdown file with speaker labels and message timestamps, suitable for notes apps, wikis, or version-controlled documentation.
+  </Tab>
+  <Tab title="JSON">
+    The raw session payload including message metadata, mention refs, retrieval attachments, and action records — useful for programmatic processing or archiving.
+  </Tab>
+</Tabs>
+
+## Guided run mode
+
+Guided run mode lets you build an investigation through dialogue instead of filling out the run setup form directly. Start a guided session from the session list; Sherlock walks you through scope, topic, angle, sources, and model selection conversationally, then constructs a run configuration from your answers.
+
+When the configuration is complete, you can review it and launch the run — or switch to the manual Run Setup modal to make final adjustments before launching.
+
+<Tip>
+  Guided run mode is particularly useful when you are exploring a new topic and are not yet sure which scope or purpose fits best. The conversational flow helps you narrow down your focus before committing to a full investigation run.
+</Tip>

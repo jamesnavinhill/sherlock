@@ -1,0 +1,126 @@
+---
+title: "Research boards for visual investigation in Sherlock"
+description: "Map investigation findings, entities, signals, and notes on a visual canvas. Place items from the library, run the AI board agent, and present your work."
+---
+
+The research board is Sherlock's visual canvas workspace. It gives you a free-form surface — built on tldraw — where you can map out findings, entities, sources, signals, and notes alongside the structured artifacts produced by your investigations. Use the board to see relationships that are hard to spot in a document view, organize leads spatially, build a narrative for a briefing, or hand off context to collaborators. Each workspace supports multiple named boards so you can keep different investigation angles or time periods separated without losing work.
+
+## Getting started
+
+<Steps>
+  <Step title="Open your workspace">
+    Navigate to any workspace from the Files overview or the omnibox. The workspace home shows counts, recent activity, and direct links into workspace surfaces.
+  </Step>
+  <Step title="Click Board">
+    Open the board from the workspace navigation. The route is `/workspaces/:workspaceId/board`. If the workspace has existing boards, Sherlock opens the first one automatically.
+  </Step>
+  <Step title="Open the Library rail">
+    Click the Library icon in the left toolbar to open the Library rail. This panel lists all the items available to place on your board.
+  </Step>
+  <Step title="Drag an artifact onto the canvas">
+    Find an artifact in the Library rail and drag it onto the canvas, or click it to place it at the center. The artifact appears as a card on the board, linked back to the original record.
+  </Step>
+</Steps>
+
+## Multiple boards per workspace
+
+Each workspace can have as many named boards as you need. Create a new board from the board top bar, then name it for the angle or phase it covers — for example, "Entity map," "Timeline reconstruction," or "Source cross-reference."
+
+Boards are fully independent: items placed on one board do not appear on others. The board selector in the top bar lets you switch between boards without losing your canvas state.
+
+## Library panel
+
+The Library rail (left side) is your source of items to place on the board. It organizes available content into browsable sections:
+
+<CardGroup cols={2}>
+  <Card title="Artifacts" icon="file">
+    Structured investigation reports from your workspace.
+  </Card>
+  <Card title="Key findings" icon="search">
+    Individual findings extracted from artifacts.
+  </Card>
+  <Card title="Entities" icon="user">
+    People, organizations, and concepts identified across your workspace.
+  </Card>
+  <Card title="Sources" icon="link">
+    Source records and URLs referenced in your investigations.
+  </Card>
+  <Card title="Signals" icon="bell">
+    Saved signals from the Live Monitor or manual saves.
+  </Card>
+  <Card title="Notes, links, and files" icon="paperclip">
+    Workspace-native notes, links, and uploaded files or media.
+  </Card>
+</CardGroup>
+
+**Promoted chat excerpts** — retrieval snippets you promoted from the Chat surface — also appear in the Library and can be placed on the board like any other item.
+
+## Placing items on the canvas
+
+Drag any item from the Library rail onto the canvas, or click it to place it at the center of the current viewport. Once placed, you can move, resize, group, and annotate items using the standard tldraw canvas tools.
+
+Items placed from the Library retain their link back to the canonical record. That means you can jump from a board card directly back to the original artifact, entity, or signal using the handoff actions on each card.
+
+## Handoff actions from the board
+
+From any placed item on the board, you can jump directly to related workspace surfaces:
+
+- **View artifact** — opens the artifact in Operation View
+- **Open in timeline** — focuses the workspace Timeline on the item's chronology
+- **Open in network graph** — centers the Network Graph on the related entity or artifact
+- **Open in chat** — starts or continues a Chat session grounded in the item
+
+These handoffs make the board a navigation hub, not just a display surface.
+
+## Presentation mode
+
+Switch the board into presentation mode from the top bar to display your canvas in a clean, tool-free view. Use presentation mode for briefings, screenshots, or review sessions where you want to hide the editor chrome.
+
+## Board agent
+
+The board agent is an AI assistant that works directly with your canvas. You give it a goal in plain language, it plans out a set of actions, and you review the plan before anything changes on the board.
+
+<Note>
+  The board agent works with your current board state. Give it specific, actionable goals for best results — for example, "group these artifacts by entity," "add a note summarizing the key findings," or "connect the source cards to the artifacts that cite them."
+</Note>
+
+### Using the board agent
+
+<Steps>
+  <Step title="Open the Agent rail">
+    Click the Agent tab in the right inspector panel to open the board agent input.
+  </Step>
+  <Step title="Enter your request">
+    Type a goal in the prompt field. You can also choose from starter intents — pre-built prompts for common board organization tasks.
+  </Step>
+  <Step title="Review the plan">
+    The agent responds with a preview of the actions it intends to take: which items it will move, group, annotate, or create. Review the list before committing.
+  </Step>
+  <Step title="Approve or adjust">
+    Click **Approve** to execute the planned actions, or deselect individual actions from the list to skip them. Click **Cancel** at any time to discard the plan without making changes.
+  </Step>
+  <Step title="Review action receipts">
+    After execution, the agent shows an action receipt listing each action as completed, skipped, or failed. The receipt is saved in the session history so you can audit what changed.
+  </Step>
+</Steps>
+
+### Auto-approve for low-risk moves
+
+Toggle **Auto-approve** in the agent rail to skip the review step for low-risk organization actions — such as moving or grouping items — while still requiring approval for higher-impact changes like deletions or workspace writes.
+
+<Warning>
+  Auto-approve bypasses the approval step for matching actions. Leave it off if you want to review every change before it applies.
+</Warning>
+
+### Cancellation
+
+You can cancel a running agent session at any time using the **Cancel** button in the agent rail. Actions already executed before cancellation are not reversed, but the receipt will mark subsequent planned actions as cancelled.
+
+## Manual AI actions
+
+Outside of full agent sessions, you can trigger individual AI actions from the selection or canvas menu:
+
+- **Selection summary** — generate a text summary of the currently selected items
+- **Draft board note** — ask the AI to draft an annotation or note for selected content
+
+These one-shot actions do not require an approval step.

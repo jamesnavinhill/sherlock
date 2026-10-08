@@ -1,0 +1,63 @@
+---
+title: "Sherlock: AI-powered research and investigation tool"
+description: "Sherlock is a browser-based AI workspace for investigations, research boards, chat, and monitoring — all data stays local in your browser."
+---
+
+Sherlock is an AI-powered research and investigation workspace that runs entirely in your browser. You bring your own API key from a supported AI provider, point it at a topic, and Sherlock helps you run structured analysis, build visual research boards, chat with an AI grounded in your findings, track activity over time, and monitor for new signals — with every byte of your data staying in your browser, not on Sherlock's servers.
+
+## How Sherlock works
+
+Sherlock organizes your research into **workspaces**. Each workspace holds the artifacts (investigation reports), chat sessions, board canvases, signals, and source records that belong to a single research project or topic. You can have as many workspaces as you need, and each one persists locally in your browser — no account or server required.
+
+When you launch a run, Sherlock sends your prompt and workspace context directly to the AI provider you've configured — Gemini, OpenRouter, OpenAI, or Anthropic. The response comes back as a structured artifact that you can read, annotate, cite, and build on. Nothing passes through Sherlock's own servers.
+
+## Key capabilities
+
+<CardGroup cols={2}>
+  <Card title="Investigation runs" icon="magnifying-glass" href="/features/running-investigations">
+    Launch structured AI analysis with domain-specific scopes, purpose profiles, starter prompts, and model selection.
+  </Card>
+  <Card title="Research board" icon="chalkboard" href="/features/research-board">
+    Build visual canvas investigations with tldraw — place artifacts, entities, signals, notes, and links on a shared canvas.
+  </Card>
+  <Card title="Chat" icon="message" href="/features/chat">
+    Chat with an AI grounded in your active workspace, with @mention references to artifacts and streaming responses.
+  </Card>
+  <Card title="Timeline" icon="timeline" href="/features/timeline">
+    Explore a chronological view of your workspace activity — runs, artifacts, signals, and chat sessions — with saved views and snapshot export.
+  </Card>
+  <Card title="Network graph" icon="diagram-project" href="/features/network-graph">
+    Visualize entity relationships with a D3-powered graph, including manual nodes, link weights, and entity resolution.
+  </Card>
+  <Card title="Live monitor" icon="satellite-dish" href="/features/live-monitor">
+    Scan for live signals across your domain scope and feed them directly into new investigation runs.
+  </Card>
+  <Card title="Files" icon="folder-open" href="/features/files">
+    Browse all your workspaces and artifacts in one place, with grid and list views, filtering, and direct export actions.
+  </Card>
+</CardGroup>
+
+## Bring your own key (BYOK)
+
+Sherlock does not provide AI access on your behalf. To run investigations or use the chat feature, you need at least one API key from a supported provider:
+
+- **Google Gemini** — available from Google AI Studio
+- **OpenRouter** — a single key that routes to hundreds of models, including free tiers
+- **OpenAI** — GPT-4 and other OpenAI models
+- **Anthropic** — Claude models
+
+You add your key once in **Settings → Runtime**, and it stays in your browser. Sherlock never transmits your key to its own servers. For shared or public deployments, every user adds their own key — there are no server-side credentials to manage.
+
+<Note>
+  You can browse existing workspaces and artifacts without an API key. A key is only required when you want to run new AI analysis or start a chat session.
+</Note>
+
+## Your data stays local
+
+Sherlock stores all workspace data — artifacts, chat history, research boards, signals, and run records — in a browser-local SQLite database backed by IndexedDB. This means:
+
+- No account or login required
+- No data leaves your browser unless you explicitly export it
+- Clearing your browser storage removes your local data, so export backups when it matters
+
+You can export individual artifacts as HTML, Markdown, or JSON, and export full workspace backups from **Settings → Data** to move your research between devices or share it with others.
