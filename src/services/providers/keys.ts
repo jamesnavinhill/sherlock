@@ -28,7 +28,14 @@ const KEY_CONFIG: Record<AIProvider, ProviderKeyConfig> = {
     storageKeys: ['ANTHROPIC_API_KEY'],
     envKeys: ['VITE_ANTHROPIC_API_KEY', 'ANTHROPIC_API_KEY'],
   },
+  YRKA: {
+    storageKeys: ['YRKA_GATEWAY_TOKEN'],
+    envKeys: ['VITE_YRKA_GATEWAY_TOKEN'],
+  },
 };
+
+export const YRKA_MCP_TOKEN_STORAGE_KEY = 'YRKA_MCP_GATEWAY_TOKEN';
+const YRKA_MCP_TOKEN_ENV_KEYS = ['VITE_YRKA_MCP_GATEWAY_TOKEN'];
 
 const trimOrUndefined = (value: string | null): string | undefined => {
   if (typeof value !== 'string') return undefined;
@@ -166,4 +173,35 @@ export const clearApiKey = (provider?: AIProvider): void => {
   if (provider === 'GEMINI') {
     localStorage.removeItem('sherlock_api_key');
   }
+};
+
+/**
+ * MCP gateway token (tools.yrka.io/mcp) used by the YRKA provider's web search.
+ * Falls back to the YRKA LLM gateway token when the dedicated MCP field is
+ * empty, so a single paste covers both gateways for users whose tokens match.
+ */
+export const getMcpGatewayToken = (): string | undefined => {
+  if (typeof localStorage !== 'undefined') {
+    const stored = trimOrUndefined(localStorage.getItem(YRKA_MCP_TOKEN_STORAGE_KEY));
+    if (stored) return stored;
+  }
+  const envValue = getEnvironmentValue(YRKA_MCP_TOKEN_ENV_KEYS);
+  if (envValue) return envValue;
+  return getApiKey('YRKA');
+};
+
+export const setMcpGatewayToken = (rawToken: string): boolean => {
+  const token = rawToken.trim();
+  if (!token || typeof localStorage === 'undefined') return false;
+  try {
+    localStorage.setItem(YRKA_MCP_TOKEN_STORAGE_KEY, token);
+  } catch {
+    return false;
+  }
+  return getMcpGatewayToken() === token;
+};
+
+export const clearMcpGatewayToken = (): void => {
+  if (typeof localStorage === 'undefined') return;
+  localStorage.removeItem(YRKA_MCP_TOKEN_STORAGE_KEY);
 };

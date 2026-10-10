@@ -12,8 +12,11 @@ import {
   createRuntimeConfigFormInput,
 } from '@/components/features/Runs/runtimeConfigState';
 import {
+  clearMcpGatewayToken,
+  getMcpGatewayToken,
   getStoredApiKey,
   hasApiKey as hasProviderApiKey,
+  setMcpGatewayToken,
   validateApiKey,
 } from '@/services/providers/keys';
 import { useRuntimeConfigForm } from '@/components/features/Runs/useRuntimeConfigForm';
@@ -24,6 +27,11 @@ export interface SettingsRuntimeState {
   geminiKey: string;
   handleClearProviderKey: (provider: AIProvider) => void;
   openAIKey: string;
+  mcpGatewayToken: string;
+  showMcpGatewayToken: boolean;
+  setMcpGatewayTokenValue: Dispatch<SetStateAction<string>>;
+  setShowMcpGatewayToken: Dispatch<SetStateAction<boolean>>;
+  handleClearMcpGatewayToken: () => void;
   openRouterAllowedDomains: string;
   openRouterEngine: 'auto' | 'native' | 'exa' | 'firecrawl' | 'parallel';
   openRouterExcludedDomains: string;
@@ -54,6 +62,10 @@ export interface SettingsRuntimeState {
   setShowGeminiKey: Dispatch<SetStateAction<boolean>>;
   setShowOpenAIKey: Dispatch<SetStateAction<boolean>>;
   setShowOpenRouterKey: Dispatch<SetStateAction<boolean>>;
+  setShowYrkaKey: Dispatch<SetStateAction<boolean>>;
+  setYrkaKey: Dispatch<SetStateAction<string>>;
+  yrkaKey: string;
+  showYrkaKey: boolean;
   showAnthropicKey: boolean;
   showGeminiKey: boolean;
   showOpenAIKey: boolean;
@@ -72,11 +84,17 @@ export const useSettingsRuntimeState = (): SettingsRuntimeState => {
   const [openRouterKey, setOpenRouterKey] = useState(() => getStoredApiKey('OPENROUTER') ?? '');
   const [openAIKey, setOpenAIKey] = useState(() => getStoredApiKey('OPENAI') ?? '');
   const [anthropicKey, setAnthropicKey] = useState(() => getStoredApiKey('ANTHROPIC') ?? '');
+  const [yrkaKey, setYrkaKey] = useState(() => getStoredApiKey('YRKA') ?? '');
+  const [mcpGatewayToken, setMcpGatewayTokenValue] = useState(
+    () => getMcpGatewayToken() ?? ''
+  );
 
   const [showGeminiKey, setShowGeminiKey] = useState(false);
   const [showOpenRouterKey, setShowOpenRouterKey] = useState(false);
   const [showOpenAIKey, setShowOpenAIKey] = useState(false);
   const [showAnthropicKey, setShowAnthropicKey] = useState(false);
+  const [showYrkaKey, setShowYrkaKey] = useState(false);
+  const [showMcpGatewayToken, setShowMcpGatewayToken] = useState(false);
   const [runtimeSections, setRuntimeSections] = useState({
     apiKeys: true,
     runtime: true,
@@ -111,6 +129,12 @@ export const useSettingsRuntimeState = (): SettingsRuntimeState => {
     if (provider === 'OPENROUTER') setOpenRouterKey('');
     if (provider === 'OPENAI') setOpenAIKey('');
     if (provider === 'ANTHROPIC') setAnthropicKey('');
+    if (provider === 'YRKA') setYrkaKey('');
+  };
+
+  const handleClearMcpGatewayToken = () => {
+    clearMcpGatewayToken();
+    setMcpGatewayTokenValue('');
   };
 
   const toggleRuntimeSection = (section: 'apiKeys' | 'runtime') => {
@@ -126,6 +150,7 @@ export const useSettingsRuntimeState = (): SettingsRuntimeState => {
       { provider: 'OPENROUTER', key: openRouterKey.trim() },
       { provider: 'OPENAI', key: openAIKey.trim() },
       { provider: 'ANTHROPIC', key: anthropicKey.trim() },
+      { provider: 'YRKA', key: yrkaKey.trim() },
     ];
 
     for (const candidate of candidateKeys) {
@@ -156,6 +181,15 @@ export const useSettingsRuntimeState = (): SettingsRuntimeState => {
       return `Missing ${requiredProvider} API key. Add one or switch active provider.`;
     }
 
+    // Persist the MCP gateway token (Yrka web search backend) if one was entered.
+    const trimmedMcpToken = mcpGatewayToken.trim();
+    if (trimmedMcpToken) {
+      clearMcpGatewayToken();
+      if (!setMcpGatewayToken(trimmedMcpToken)) {
+        return 'Failed to persist MCP gateway token. Please try again.';
+      }
+    }
+
     return null;
   };
 
@@ -163,7 +197,9 @@ export const useSettingsRuntimeState = (): SettingsRuntimeState => {
     anthropicKey,
     form,
     geminiKey,
+    handleClearMcpGatewayToken,
     handleClearProviderKey,
+    mcpGatewayToken,
     openAIKey,
     openRouterAllowedDomains,
     openRouterEngine,
@@ -188,12 +224,19 @@ export const useSettingsRuntimeState = (): SettingsRuntimeState => {
     setOpenRouterWebSearchEnabled,
     setShowAnthropicKey,
     setShowGeminiKey,
+    setShowMcpGatewayToken,
     setShowOpenAIKey,
     setShowOpenRouterKey,
+    setShowYrkaKey,
+    setMcpGatewayTokenValue,
+    setYrkaKey,
     showAnthropicKey,
     showGeminiKey,
+    showMcpGatewayToken,
     showOpenAIKey,
     showOpenRouterKey,
+    showYrkaKey,
     toggleRuntimeSection,
+    yrkaKey,
   };
 };

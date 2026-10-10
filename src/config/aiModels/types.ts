@@ -1,10 +1,13 @@
-export type AIProvider = 'GEMINI' | 'OPENROUTER' | 'OPENAI' | 'ANTHROPIC';
+export type AIProvider = 'GEMINI' | 'OPENROUTER' | 'OPENAI' | 'ANTHROPIC' | 'YRKA';
 export type ProviderRuntimeStatus = 'ACTIVE' | 'PLANNED';
 export type ModelCatalogSource =
   | 'STATIC'
   | 'OPENROUTER_SNAPSHOT'
   | 'OPENROUTER_CACHE'
   | 'OPENROUTER_LIVE'
+  | 'YRKA_SNAPSHOT'
+  | 'YRKA_CACHE'
+  | 'YRKA_LIVE'
   | 'MANUAL';
 export type OpenRouterSearchEngine = 'auto' | 'native' | 'exa' | 'firecrawl' | 'parallel';
 

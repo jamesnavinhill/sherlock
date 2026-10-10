@@ -1,0 +1,580 @@
+{
+  "workspace": {
+    "id": "workspace-738dfb67-0cb7-42ef-8ea5-29a1ee72aafb",
+    "scopeId": "open-investigation",
+    "title": "Best open-source, local, llm agent memory systems to use",
+    "displayTitle": "Best open-source, local, llm agent memory systems to use",
+    "launchTopic": "Best open-source, local, llm agent memory systems to use",
+    "status": "ACTIVE",
+    "dateOpened": "4/10/2026",
+    "createdAt": 1775822590875,
+    "updatedAt": 1775822590875,
+    "description": "As of April 2026, the local LLM agent memory landscape has transitioned from simple vector retrieval (RAG) to sophisticated, multi-tiered architectures including Git-based versioning and temporal knowledge graphs. Leading systems such as Letta and Mem0 now compete with high-accuracy local-first entrants like OMEGA and Hindsight. The industry focus has shifted towards 'agentic' memory that allows for concurrent sub-agent writes and hierarchical state management (user vs. persona vs. session). However, emerging security risks such as context poisoning and serialization vulnerabilities (CVE-2025-68664) present significant local deployment risks.",
+    "mode": "INVESTIGATION",
+    "packId": "open-investigation",
+    "purposeId": "deep-dive",
+    "labelProfileId": "investigation",
+    "metadata": {
+      "packName": "Open Investigation",
+      "purposeName": "Deep Dive",
+      "scopeId": "open-investigation",
+      "workspaceMode": "INVESTIGATION",
+      "persona": "general-investigator",
+      "searchDepth": "DEEP",
+      "thinkingBudget": 0
+    }
+  },
+  "artifacts": [
+    {
+      "id": "rep-acb4db7f-b88e-4ed6-b743-34d294fb238a",
+      "workspaceId": "workspace-738dfb67-0cb7-42ef-8ea5-29a1ee72aafb",
+      "topic": "Best open-source, local, llm agent memory systems to use",
+      "dateStr": "4/10/2026",
+      "createdAt": 1775822590875,
+      "summary": "As of April 2026, the local LLM agent memory landscape has transitioned from simple vector retrieval (RAG) to sophisticated, multi-tiered architectures including Git-based versioning and temporal knowledge graphs. Leading systems such as Letta and Mem0 now compete with high-accuracy local-first entrants like OMEGA and Hindsight. The industry focus has shifted towards 'agentic' memory that allows for concurrent sub-agent writes and hierarchical state management (user vs. persona vs. session). However, emerging security risks such as context poisoning and serialization vulnerabilities (CVE-2025-68664) present significant local deployment risks.",
+      "rawText": "{\n  \"summary\": \"As of April 2026, the local LLM agent memory landscape has transitioned from simple vector retrieval (RAG) to sophisticated, multi-tiered architectures including Git-based versioning and temporal knowledge graphs. Leading systems such as Letta and Mem0 now compete with high-accuracy local-first entrants like OMEGA and Hindsight. The industry focus has shifted towards 'agentic' memory that allows for concurrent sub-agent writes and hierarchical state management (user vs. persona vs. session). However, emerging security risks such as context poisoning and serialization vulnerabilities (CVE-2025-68664) present significant local deployment risks.\",\n  \"entities\": [\n    {\n      \"name\": \"Letta\",\n      \"type\": \"ORGANIZATION\",\n      \"role\": \"Stateful agent framework developer (formerly MemGPT)\",\n      \"sentiment\": \"POSITIVE\"\n    },\n    {\n      \"name\": \"Mem0\",\n      \"type\": \"ORGANIZATION\",\n      \"role\": \"Hybrid vector-graph memory library provider\",\n      \"sentiment\": \"POSITIVE\"\n    },\n    {\n      \"name\": \"Zep\",\n      \"type\": \"ORGANIZATION\",\n      \"role\": \"Temporal knowledge graph specialist\",\n      \"sentiment\": \"NEUTRAL\"\n    },\n    {\n      \"name\": \"OMEGA\",\n      \"type\": \"UNKNOWN\",\n      \"role\": \"Local-first MCP memory server\",\n      \"sentiment\": \"POSITIVE\"\n    },\n    {\n      \"name\": \"Hindsight\",\n      \"type\": \"UNKNOWN\",\n      \"role\": \"High-accuracy open-source memory system developer\",\n      \"sentiment\": \"POSITIVE\"\n    }\n  ],\n  \"keyFindings\": [\n    {\n      \"title\": \"Shift to Git-Based Context Repositories\",\n      \"summary\": \"Letta (formerly MemGPT) introduced 'Context Repositories' in Feb 2026, utilizing Git-based versioning for agent memory. This allows for concurrent sub-agent memory writes and conflict resolution, significantly improving performance in multi-agent workflows.\",\n      \"supportRefs\": [\n        \"letta.com\",\n        \"github.com/letta-ai/letta\"\n      ]\n    },\n    {\n      \"title\": \"Dominance of Local-First MCP Servers\",\n      \"summary\": \"Newer, lightweight systems like OMEGA have emerged as leaders in the Model Context Protocol (MCP) ecosystem, achieving a 95.4% accuracy on LongMemEval. These systems prioritize SQLite-based local storage over external heavy-weight databases like Neo4j.\",\n      \"supportRefs\": [\n        \"omegamax.co\",\n        \"reddit.com/r/LocalLLaMA\"\n      ]\n    },\n    {\n      \"title\": \"Rise of Graph-Enhanced Memory (Mem0g & Graphiti)\",\n      \"summary\": \"Memory systems now integrate directed labeled graphs to handle temporal reasoning. Zep's Graphiti and Mem0's 'Mem0g' variant show up to 3x performance gains in answering time-sensitive queries compared to flat vector search.\",\n      \"supportRefs\": [\n        \"devgenius.io\",\n        \"serenitiesai.com\"\n      ]\n    },\n    {\n      \"title\": \"Opinion vs. Fact Segregation in Memory\",\n      \"summary\": \"Hindsight's 4-network architecture introduces a 'Confidence/Opinion Network' separate from factual memory. This mitigates 'Context-Drift' where agents conflate user-stated preferences with permanent truth.\",\n      \"supportRefs\": [\n        \"devgenius.io\"\n      ]\n    }\n  ],\n  \"agendas\": [\n    \"Benchmark Discrepancies: Zep and Mem0 published conflicting LOCOMO benchmark results (65.99% vs 75.14%), suggesting configuration bias in popular evaluation suites.\",\n    \"Security Flaw CVE-2025-68664: A critical serialization injection vulnerability in LangChain-integrated memory layers allows for environment variable exfiltration.\",\n    \"Resource Intensity: Running SOTA memory systems (e.g., MiMo-V2-Flash) can require up to 1TB of GPU memory for full context persistence, forcing local users toward aggressive 1.8-bit quantization.\",\n    \"Privacy Leakage: Internal Samsung-style leakage incidents continue to be a primary risk factor as local agents lack inherent awareness of PII boundaries.\"\n  ],\n  \"leads\": [\n    \"Audit 'OMEGAMCP' source code for potential telemetry or backdoors, given its sudden rise in benchmark rankings with minimal corporate attribution.\",\n    \"Evaluate the 'Context-Drift' mitigation effectiveness of Hindsight's 4-network approach vs Letta's git-merge approach in long-horizon tasks.\",\n    \"Investigate the local performance impact of the 'Memory Defragmentation' background processes used by Letta for long-running agents.\",\n    \"Track the adoption of 'Agent File' (.af) formats for serializing stateful agents across different local hosting platforms (Ollama vs. LM Studio).\"\n  ],\n  \"sources\": [\n    {\n      \"title\": \"Letta: The Platform for Stateful Agents\",\n      \"url\": \"https://github.com/letta-ai/letta\"\n    },\n    {\n      \"title\": \"Mem0 vs Zep vs Letta Comparison 2026\",\n      \"url\": \"https://omegamax.co/comparison\"\n    },\n    {\n      \"title\": \"AI Agent Memory Systems in 2026 - Dev Genius\",\n      \"url\": \"https://devgenius.io/ai-agent-memory-systems-2026\"\n    },\n    {\n      \"title\": \"Introducing Context Repositories\",\n      \"url\": \"https://letta.com/blog/context-repositories\"\n    },\n    {\n      \"title\": \"LLM Security and Safety 2026 - Zylos Research\",\n      \"url\": \"https://zylos.ai/llm-security-2026\"\n    }\n  ],\n  \"sections\": [\n    {\n      \"kind\": \"EXECUTIVE_SUMMARY\",\n      \"title\": \"State of Local Agent Memory Q2 2026\",\n      \"content\": \"The landscape of local LLM agent memory has matured into an ecosystem of high-specialization frameworks. Developers are moving away from monolithic context windows toward modular memory layers. Letta leads in agent-state management, while Mem0 and Zep provide robust memory-as-a-service layers for local apps. OMEGA and Hindsight represent the current SOTA for local-first accuracy.\"\n    },\n    {\n      \"kind\": \"ANOMALIES\",\n      \"title\": \"Critical Risks and Unresolved Discrepancies\",\n      \"items\": [\n        \"Benchmark Manipulation: Frequent rebuttals between Zep and Mem0 regarding LOCOMO scores.\",\n        \"Local SQL-Injection equivalent in memory layers: Vulnerabilities in how agents query their own persistent SQLite databases.\",\n        \"Data Hallucination in Swarm Mode: Kimi K2.5's 'Agent Swarm' mode shows an 11-point drop on the Omniscience index despite high task performance.\"\n      ]\n    },\n    {\n      \"kind\": \"METHODOLOGY\",\n      \"title\": \"Investigation Framework\",\n      \"content\": \"Analysis focused on primary repository updates (GitHub), technical whitepapers from 2025-2026, and community benchmarks (LongMemEval, LOCOMO). Special attention was given to local-first (no cloud dependency) systems and security advisories from early 2026.\"\n    }\n  ]\n}",
+      "config": {
+        "provider": "GEMINI",
+        "modelId": "gemini-3-flash-preview",
+        "persona": "general-investigator",
+        "searchDepth": "DEEP",
+        "thinkingBudget": 0,
+        "scopeId": "open-investigation",
+        "scopeName": "Open Investigation",
+        "packId": "open-investigation",
+        "packName": "Open Investigation",
+        "purposeId": "deep-dive",
+        "purposeName": "Deep Dive",
+        "artifactType": "REPORT",
+        "labelProfileId": "investigation",
+        "generationMode": "STAGED",
+        "dateRangeOverride": {
+          "start": "2026-01-01",
+          "end": "2026-04-10"
+        },
+        "launchSource": "ARCHIVES_NEW_CASE",
+        "sourceRunId": "task-0a015048-a8c7-4013-9f2f-0f00ea195e21"
+      },
+      "artifactType": "REPORT",
+      "packId": "open-investigation",
+      "purposeId": "deep-dive",
+      "labelProfileId": "investigation",
+      "metadata": {
+        "packName": "Open Investigation",
+        "purposeName": "Deep Dive",
+        "scopeId": "open-investigation",
+        "workspaceMode": "INVESTIGATION",
+        "persona": "general-investigator",
+        "searchDepth": "DEEP",
+        "thinkingBudget": 0
+      },
+      "entities": [
+        {
+          "name": "Letta",
+          "type": "ORGANIZATION",
+          "role": "Stateful agent framework developer (formerly MemGPT)",
+          "sentiment": "POSITIVE"
+        },
+        {
+          "name": "Mem0",
+          "type": "ORGANIZATION",
+          "role": "Hybrid vector-graph memory library provider",
+          "sentiment": "POSITIVE"
+        },
+        {
+          "name": "Zep",
+          "type": "ORGANIZATION",
+          "role": "Temporal knowledge graph specialist",
+          "sentiment": "NEUTRAL"
+        },
+        {
+          "name": "OMEGA",
+          "type": "UNKNOWN",
+          "role": "Local-first MCP memory server",
+          "sentiment": "POSITIVE"
+        },
+        {
+          "name": "Hindsight",
+          "type": "UNKNOWN",
+          "role": "High-accuracy open-source memory system developer",
+          "sentiment": "POSITIVE"
+        }
+      ],
+      "sources": [
+        {
+          "title": "devgenius.io",
+          "url": "https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQFQ5gobHgWekAgpsY3EwwGpovsw4anbO7CIZiSo4K4O-b_tlYJkPIUbb9WJG0MwmCoCr0kem1WSSPbyovO6QJJf-Ycl5qLsB0M6neO6__0PL2x3hGGLk7pJBuyzMLv6NINdJ_UmeiTgDzLngIdoSL1jvg6HsUzqrECc-ujkUG1WyZuKAzBIO2LnyeQjhuwlYY1ddaW4ajn41VcHzL_8ITfL0DGR9qD7t9KXvLnLAw44ej7pB7JIuylHx9UOZT0E9Q=="
+        },
+        {
+          "title": "fireworks.ai",
+          "url": "https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQGWXZGo4Iv21NYfW_HqTxyGKZrXpP1Dfnh1oCeLHh0raz4vdy32i4J086jNaFBMhcuIrrlKDVKRDJjHcWY1HZ4ykzv-fWGzpCzDBf8yNdgvn_6C-AVfKN2goMXHqxw1vvMfVb_ugs4w7ZM9"
+        },
+        {
+          "title": "Letta: The Platform for Stateful Agents",
+          "url": "https://github.com/letta-ai/letta"
+        },
+        {
+          "title": "Mem0 vs Zep vs Letta Comparison 2026",
+          "url": "https://omegamax.co/comparison"
+        },
+        {
+          "title": "AI Agent Memory Systems in 2026 - Dev Genius",
+          "url": "https://devgenius.io/ai-agent-memory-systems-2026"
+        },
+        {
+          "title": "Introducing Context Repositories",
+          "url": "https://letta.com/blog/context-repositories"
+        },
+        {
+          "title": "LLM Security and Safety 2026 - Zylos Research",
+          "url": "https://zylos.ai/llm-security-2026"
+        }
+      ],
+      "keyFindings": [
+        {
+          "id": "finding-9d643f24-1e9b-47f8-b865-41f78debf9f5",
+          "workspaceId": "workspace-738dfb67-0cb7-42ef-8ea5-29a1ee72aafb",
+          "originArtifactId": "rep-acb4db7f-b88e-4ed6-b743-34d294fb238a",
+          "title": "Shift to Git-Based Context Repositories",
+          "summary": "Letta (formerly MemGPT) introduced 'Context Repositories' in Feb 2026, utilizing Git-based versioning for agent memory. This allows for concurrent sub-agent memory writes and conflict resolution, significantly improving performance in multi-agent workflows.",
+          "supportRefs": [
+            "letta.com",
+            "github.com/letta-ai/letta"
+          ],
+          "createdAt": 1775822590875,
+          "updatedAt": 1775822590875,
+          "order": 0
+        },
+        {
+          "id": "finding-521b2c56-7ae8-43dc-8b91-1b06cffdcb16",
+          "workspaceId": "workspace-738dfb67-0cb7-42ef-8ea5-29a1ee72aafb",
+          "originArtifactId": "rep-acb4db7f-b88e-4ed6-b743-34d294fb238a",
+          "title": "Dominance of Local-First MCP Servers",
+          "summary": "Newer, lightweight systems like OMEGA have emerged as leaders in the Model Context Protocol (MCP) ecosystem, achieving a 95.4% accuracy on LongMemEval. These systems prioritize SQLite-based local storage over external heavy-weight databases like Neo4j.",
+          "supportRefs": [
+            "omegamax.co",
+            "reddit.com/r/LocalLLaMA"
+          ],
+          "createdAt": 1775822590875,
+          "updatedAt": 1775822590875,
+          "order": 1
+        },
+        {
+          "id": "finding-11a6a004-f5b1-4ffa-bf57-91a845ba2cea",
+          "workspaceId": "workspace-738dfb67-0cb7-42ef-8ea5-29a1ee72aafb",
+          "originArtifactId": "rep-acb4db7f-b88e-4ed6-b743-34d294fb238a",
+          "title": "Rise of Graph-Enhanced Memory (Mem0g & Graphiti)",
+          "summary": "Memory systems now integrate directed labeled graphs to handle temporal reasoning. Zep's Graphiti and Mem0's 'Mem0g' variant show up to 3x performance gains in answering time-sensitive queries compared to flat vector search.",
+          "supportRefs": [
+            "devgenius.io",
+            "serenitiesai.com"
+          ],
+          "createdAt": 1775822590875,
+          "updatedAt": 1775822590875,
+          "order": 2
+        },
+        {
+          "id": "finding-c15c2f43-d891-4e87-9bfa-f7002355eac8",
+          "workspaceId": "workspace-738dfb67-0cb7-42ef-8ea5-29a1ee72aafb",
+          "originArtifactId": "rep-acb4db7f-b88e-4ed6-b743-34d294fb238a",
+          "title": "Opinion vs. Fact Segregation in Memory",
+          "summary": "Hindsight's 4-network architecture introduces a 'Confidence/Opinion Network' separate from factual memory. This mitigates 'Context-Drift' where agents conflate user-stated preferences with permanent truth.",
+          "supportRefs": [
+            "devgenius.io"
+          ],
+          "createdAt": 1775822590875,
+          "updatedAt": 1775822590875,
+          "order": 3
+        }
+      ],
+      "agendas": [
+        "Benchmark Discrepancies: Zep and Mem0 published conflicting LOCOMO benchmark results (65.99% vs 75.14%), suggesting configuration bias in popular evaluation suites.",
+        "Security Flaw CVE-2025-68664: A critical serialization injection vulnerability in LangChain-integrated memory layers allows for environment variable exfiltration.",
+        "Resource Intensity: Running SOTA memory systems (e.g., MiMo-V2-Flash) can require up to 1TB of GPU memory for full context persistence, forcing local users toward aggressive 1.8-bit quantization.",
+        "Privacy Leakage: Internal Samsung-style leakage incidents continue to be a primary risk factor as local agents lack inherent awareness of PII boundaries."
+      ],
+      "leads": [
+        "Audit 'OMEGAMCP' source code for potential telemetry or backdoors, given its sudden rise in benchmark rankings with minimal corporate attribution.",
+        "Evaluate the 'Context-Drift' mitigation effectiveness of Hindsight's 4-network approach vs Letta's git-merge approach in long-horizon tasks.",
+        "Investigate the local performance impact of the 'Memory Defragmentation' background processes used by Letta for long-running agents.",
+        "Track the adoption of 'Agent File' (.af) formats for serializing stateful agents across different local hosting platforms (Ollama vs. LM Studio)."
+      ],
+      "followUps": [
+        {
+          "id": "follow-up-fc55ba6c-155f-44e6-9883-8af678dce732",
+          "workspaceId": "workspace-738dfb67-0cb7-42ef-8ea5-29a1ee72aafb",
+          "originArtifactId": "rep-acb4db7f-b88e-4ed6-b743-34d294fb238a",
+          "kind": "NEXT_STEP",
+          "title": "Audit 'OMEGAMCP' source code for potential telemetry or backdoors, given its sudden rise in benc",
+          "actionText": "Audit 'OMEGAMCP' source code for potential telemetry or backdoors, given its sudden rise in benchmark rankings with minimal corporate attribution.",
+          "status": "OPEN",
+          "createdAt": 1775822590875,
+          "updatedAt": 1775822590875
+        },
+        {
+          "id": "follow-up-4dd2facf-2ed6-4eeb-8162-78ed516cc402",
+          "workspaceId": "workspace-738dfb67-0cb7-42ef-8ea5-29a1ee72aafb",
+          "originArtifactId": "rep-acb4db7f-b88e-4ed6-b743-34d294fb238a",
+          "kind": "NEXT_STEP",
+          "title": "Evaluate the 'Context-Drift' mitigation effectiveness of Hindsight's 4-network approach vs Letta",
+          "actionText": "Evaluate the 'Context-Drift' mitigation effectiveness of Hindsight's 4-network approach vs Letta's git-merge approach in long-horizon tasks.",
+          "status": "OPEN",
+          "createdAt": 1775822590875,
+          "updatedAt": 1775822590875
+        },
+        {
+          "id": "follow-up-ed166575-7f00-4bb7-bcb1-343d4e330ffc",
+          "workspaceId": "workspace-738dfb67-0cb7-42ef-8ea5-29a1ee72aafb",
+          "originArtifactId": "rep-acb4db7f-b88e-4ed6-b743-34d294fb238a",
+          "kind": "TASK",
+          "title": "Investigate the local performance impact of the 'Memory Defragmentation' background processes us",
+          "actionText": "Investigate the local performance impact of the 'Memory Defragmentation' background processes used by Letta for long-running agents.",
+          "status": "OPEN",
+          "createdAt": 1775822590875,
+          "updatedAt": 1775822590875
+        },
+        {
+          "id": "follow-up-a34be098-b606-4ea2-a2f5-5412abd6f9c6",
+          "workspaceId": "workspace-738dfb67-0cb7-42ef-8ea5-29a1ee72aafb",
+          "originArtifactId": "rep-acb4db7f-b88e-4ed6-b743-34d294fb238a",
+          "kind": "NEXT_STEP",
+          "title": "Track the adoption of 'Agent File' (.af) formats for serializing stateful agents across differen",
+          "actionText": "Track the adoption of 'Agent File' (.af) formats for serializing stateful agents across different local hosting platforms (Ollama vs. LM Studio).",
+          "status": "OPEN",
+          "createdAt": 1775822590875,
+          "updatedAt": 1775822590875
+        }
+      ],
+      "sections": [
+        {
+          "id": "section-executive_summary-0",
+          "kind": "EXECUTIVE_SUMMARY",
+          "title": "State of Local Agent Memory Q2 2026",
+          "content": "The landscape of local LLM agent memory has matured into an ecosystem of high-specialization frameworks. Developers are moving away from monolithic context windows toward modular memory layers. Letta leads in agent-state management, while Mem0 and Zep provide robust memory-as-a-service layers for local apps. OMEGA and Hindsight represent the current SOTA for local-first accuracy.",
+          "order": 0
+        },
+        {
+          "id": "section-anomalies-1",
+          "kind": "ANOMALIES",
+          "title": "Critical Risks and Unresolved Discrepancies",
+          "items": [
+            "Benchmark Manipulation: Frequent rebuttals between Zep and Mem0 regarding LOCOMO scores.",
+            "Local SQL-Injection equivalent in memory layers: Vulnerabilities in how agents query their own persistent SQLite databases.",
+            "Data Hallucination in Swarm Mode: Kimi K2.5's 'Agent Swarm' mode shows an 11-point drop on the Omniscience index despite high task performance."
+          ],
+          "order": 1
+        },
+        {
+          "id": "section-methodology-2",
+          "kind": "METHODOLOGY",
+          "title": "Investigation Framework",
+          "content": "Analysis focused on primary repository updates (GitHub), technical whitepapers from 2025-2026, and community benchmarks (LongMemEval, LOCOMO). Special attention was given to local-first (no cloud dependency) systems and security advisories from early 2026.",
+          "order": 2
+        },
+        {
+          "id": "section-key_findings-3",
+          "kind": "KEY_FINDINGS",
+          "title": "Key Findings",
+          "items": [
+            "Letta (formerly MemGPT) introduced 'Context Repositories' in Feb 2026, utilizing Git-based versioning for agent memory. This allows for concurrent sub-agent memory writes and conflict resolution, significantly improving performance in multi-agent workflows.",
+            "Newer, lightweight systems like OMEGA have emerged as leaders in the Model Context Protocol (MCP) ecosystem, achieving a 95.4% accuracy on LongMemEval. These systems prioritize SQLite-based local storage over external heavy-weight databases like Neo4j.",
+            "Memory systems now integrate directed labeled graphs to handle temporal reasoning. Zep's Graphiti and Mem0's 'Mem0g' variant show up to 3x performance gains in answering time-sensitive queries compared to flat vector search.",
+            "Hindsight's 4-network architecture introduces a 'Confidence/Opinion Network' separate from factual memory. This mitigates 'Context-Drift' where agents conflate user-stated preferences with permanent truth."
+          ],
+          "order": 3
+        },
+        {
+          "id": "section-next_steps-4",
+          "kind": "NEXT_STEPS",
+          "title": "Next Steps",
+          "items": [
+            "Audit 'OMEGAMCP' source code for potential telemetry or backdoors, given its sudden rise in benchmark rankings with minimal corporate attribution.",
+            "Evaluate the 'Context-Drift' mitigation effectiveness of Hindsight's 4-network approach vs Letta's git-merge approach in long-horizon tasks.",
+            "Investigate the local performance impact of the 'Memory Defragmentation' background processes used by Letta for long-running agents.",
+            "Track the adoption of 'Agent File' (.af) formats for serializing stateful agents across different local hosting platforms (Ollama vs. LM Studio)."
+          ],
+          "order": 4
+        }
+      ],
+      "evidence": [],
+      "provenance": {
+        "provider": "GEMINI",
+        "modelId": "gemini-3-flash-preview",
+        "generatedAt": "2026-04-10T12:03:10.875Z",
+        "search": {
+          "enabled": true,
+          "provider": "GOOGLE"
+        },
+        "metadata": {
+          "persona": "general-investigator",
+          "searchDepth": "DEEP",
+          "thinkingBudget": 0
+        }
+      }
+    },
+    {
+      "topic": "Mem0 vs Zep vs Letta Comparison 2026",
+      "dateStr": "4/10/2026",
+      "summary": "As of April 2026, the local AI agent memory landscape has fractured into three dominant architectural paradigms. Mem0 leads as a pluggable, hybrid memory service optimized for multi-scope (user/session/agent) state. Letta (formerly MemGPT) offers a heavily integrated, OS-style runtime that handles self-editing agent state directly. Zep focuses on temporal knowledge graphs designed to track fact evolution over time for deterministic retrieval. The shift from standard vector RAG to multi-tier memory and temporal knowledge graphs has introduced fierce benchmark competition, notably between Mem0 and Zep over deep memory retrieval capabilities. Concurrently, emerging multi-agent concurrency frameworks have surfaced critical security and state-management risks, particularly surrounding context poisoning and serialization vulnerabilities.",
+      "keyFindings": [
+        {
+          "id": "finding-23900c83-5951-4fd7-950c-54249f30d13e",
+          "title": "Divergent Integration Models: Runtime vs. API Layer",
+          "summary": "The ecosystem split hinges on architectural lock-in. Letta functions as a full agent runtime where agents execute within an OS-inspired multi-tiered memory environment (Core/RAM, Recall/Cache, Archival/Cold). Conversely, Mem0 acts as a decoupled API layer easily bolted onto diverse orchestration frameworks (like LangChain or AWS Agent SDK) and focuses on hierarchical state isolation across user, persona, and session boundaries.",
+          "supportRefs": [
+            "Mem0 vs Letta (MemGPT): AI Agent Memory Compared (2026) - Vectorize",
+            "Agent memory: Letta vs Mem0 vs Zep vs Cognee - Community"
+          ],
+          "order": 0
+        },
+        {
+          "id": "finding-099cc7e5-04c7-40ca-a13a-a8caae8fd9be",
+          "title": "The Temporal Reasoning Benchmark Conflict",
+          "summary": "Both Mem0 and Zep claim supremacy in temporal logic evaluations. In its early 2025 paper, Zep reported a 94.8% score on the Deep Memory Retrieval (DMR) benchmark, edging out MemGPT's 93.4%. Following Mem0's publication of a 67.13% score on the LOCOMO benchmark, Zep released a public rebuttal alleging Mem0 misconfigured Zep's tests, claiming Zep's corrected score was actually 75.14%.",
+          "supportRefs": [
+            "[2501.13956] Zep: A Temporal Knowledge Graph Architecture for Agent Memory - arXiv",
+            "AI Agent Memory Systems in 2026: Mem0, Zep, Hindsight, Memvid and Everything In Between — Compared"
+          ],
+          "order": 1
+        },
+        {
+          "id": "finding-83015238-2544-4d78-9e9d-a579509fcd3b",
+          "title": "Shift Towards Hybrid and Graph-Based Architectures",
+          "summary": "Standard vector Retrieval-Augmented Generation (RAG) is largely deprecated for agentic memory. Vendors are implementing temporal knowledge graphs to handle multi-hop relational queries. Zep's underlying Graphiti library treats memory as temporally evolving nodes and edges, while Mem0 introduced 'Mem0g' utilizing embedded graph databases (like Kuzu) alongside vector stores.",
+          "supportRefs": [
+            "Graph-Based Memory Solutions for AI Context: Top 5 Compared (January 2026) - Mem0",
+            "Zep - open-source Graph Memory for AI Apps : r/LLMDevs - Reddit"
+          ],
+          "order": 2
+        },
+        {
+          "id": "finding-c612adcf-84cb-44ad-8b6c-1032bd83f9f6",
+          "title": "Action-Based State Management and Self-Editing Memory",
+          "summary": "Leading memory systems no longer simply append documents. They operate via atomic CRUD actions. Mem0 evaluates new information and issues UPDATE or DELETE commands to resolve contradictions, mitigating context bloat. Letta achieves similar functionality by supplying agents with specific tool calls to autonomously edit their own memory tiers.",
+          "supportRefs": [
+            "AI Agent Memory Systems in 2026: Mem0, Zep, Hindsight, Memvid and Everything In Between — Compared"
+          ],
+          "order": 3
+        }
+      ],
+      "entities": [
+        {
+          "name": "Letta",
+          "type": "ORGANIZATION",
+          "role": "Agent runtime and framework developer (formerly MemGPT)",
+          "sentiment": "POSITIVE"
+        },
+        {
+          "name": "Mem0",
+          "type": "ORGANIZATION",
+          "role": "Provider of pluggable, API-driven agent memory layers",
+          "sentiment": "POSITIVE"
+        },
+        {
+          "name": "Zep",
+          "type": "ORGANIZATION",
+          "role": "Temporal knowledge graph and agent memory service",
+          "sentiment": "POSITIVE"
+        },
+        {
+          "name": "Hindsight",
+          "type": "ORGANIZATION",
+          "role": "Local-first agent memory entrant",
+          "sentiment": "NEUTRAL"
+        },
+        {
+          "name": "Graphiti",
+          "type": "UNKNOWN",
+          "role": "Open-source temporal knowledge graph library underlying Zep",
+          "sentiment": "POSITIVE"
+        }
+      ],
+      "agendas": [
+        "Identify and verify the exact root causes of the benchmark discrepancies (LOCOMO 67% vs 75%) between Mem0 and Zep to standardize internal evaluations.",
+        "Assess the emerging exploitation vectors associated with concurrent sub-agent reads/writes, explicitly analyzing serialization CVE-2025-68664 and context poisoning vectors in Letta and Mem0.",
+        "Determine the risk of architectural lock-in when deploying Letta's full runtime versus integrating Mem0 or Zep into existing orchestration pipelines."
+      ],
+      "leads": [
+        "Conduct independent stress tests comparing Mem0g (Kuzu backend) query latency against Zep's Graphiti framework over entity sets exceeding 1M nodes.",
+        "Evaluate Hindsight and OMEGA's handling of temporal knowledge graphs to see if their local-first designs inherently bypass CVE-2025-68664 vulnerabilities.",
+        "Examine Letta's recent (April 2026) Letta Code desktop application to assess the viability of highly localized, stateful developer agents against local infrastructure constraints."
+      ],
+      "followUps": [
+        {
+          "id": "follow-up-49a3b621-ed1e-44f2-86c0-187ff3d50b13",
+          "workspaceId": "workspace-738dfb67-0cb7-42ef-8ea5-29a1ee72aafb",
+          "originArtifactId": "rep-23e272ca-cab8-4add-bcb2-43986d978dfa",
+          "kind": "NEXT_STEP",
+          "title": "Conduct independent stress tests comparing Mem0g (Kuzu backend) query latency against Zep's Grap",
+          "actionText": "Conduct independent stress tests comparing Mem0g (Kuzu backend) query latency against Zep's Graphiti framework over entity sets exceeding 1M nodes.",
+          "status": "OPEN",
+          "createdAt": 1775832897003,
+          "updatedAt": 1775832897003
+        },
+        {
+          "id": "follow-up-a2bf49a4-9272-42b4-a073-915c5918a466",
+          "workspaceId": "workspace-738dfb67-0cb7-42ef-8ea5-29a1ee72aafb",
+          "originArtifactId": "rep-23e272ca-cab8-4add-bcb2-43986d978dfa",
+          "kind": "NEXT_STEP",
+          "title": "Evaluate Hindsight and OMEGA's handling of temporal knowledge graphs to see if their local-first",
+          "actionText": "Evaluate Hindsight and OMEGA's handling of temporal knowledge graphs to see if their local-first designs inherently bypass CVE-2025-68664 vulnerabilities.",
+          "status": "OPEN",
+          "createdAt": 1775832897003,
+          "updatedAt": 1775832897003
+        },
+        {
+          "id": "follow-up-43aaa254-0ca8-42b5-8519-cd19e7b8bc5b",
+          "workspaceId": "workspace-738dfb67-0cb7-42ef-8ea5-29a1ee72aafb",
+          "originArtifactId": "rep-23e272ca-cab8-4add-bcb2-43986d978dfa",
+          "kind": "NEXT_STEP",
+          "title": "Examine Letta's recent (April 2026) Letta Code desktop application to assess the viability of hi",
+          "actionText": "Examine Letta's recent (April 2026) Letta Code desktop application to assess the viability of highly localized, stateful developer agents against local infrastructure constraints.",
+          "status": "OPEN",
+          "createdAt": 1775832897003,
+          "updatedAt": 1775832897003
+        }
+      ],
+      "sections": [
+        {
+          "id": "section-executive_summary-0",
+          "kind": "EXECUTIVE_SUMMARY",
+          "title": "Strategic Market Posture: Mem0 vs Zep vs Letta",
+          "content": "The agent memory landscape has formalized into distinct structural categories. Mem0 operates as a high-adoption pluggable memory API, widely integrated into developer ecosystems due to low lock-in. Letta (evolving from the MemGPT research) provides an entire orchestration platform enforcing a three-tier OS memory architecture. Zep targets enterprise logic requiring temporally accurate knowledge graphs. The overarching technical shift abandons plain vector-RAG in favor of dynamically self-editing records and embedded graph interactions, raising local setup complexity.",
+          "items": [
+            "Letta: Maximizes agent autonomy via built-in system prompt tool calls for memory management. High lock-in.",
+            "Mem0: Maximizes framework flexibility. Employs async self-editing to optimize token context. Low lock-in.",
+            "Zep: Maximizes entity chronology. Employs asynchronous graph creation (Graphiti) for temporal reasoning."
+          ],
+          "order": 0
+        },
+        {
+          "id": "section-literature_review-1",
+          "kind": "LITERATURE_REVIEW",
+          "title": "Benchmarks and Validated Performance Gaps",
+          "content": "Both empirical and commercial assertions focus heavily on LOCOMO and Deep Memory Retrieval (DMR) benchmarks. Early generation systems (vector + raw extraction) display substantial deterioration on multi-hop and time-sensitive tasks. The literature demonstrates that graph-augmented memory reduces LLM token overhead by up to 90% while improving reasoning accuracy.",
+          "items": [
+            "Mem0 claims 67.13% on LOCOMO, with its graph-variant (Mem0g) improving to 68.4%.",
+            "Zep's Jan 2025 ArXiv publication claims 94.8% on DMR and asserts a corrected 75.14% LOCOMO benchmark against Mem0's evaluation methodology.",
+            "Both systems trade initial computational ingestion time for inference speed, targeting p95 latencies of under 100-200ms during standard retrieval."
+          ],
+          "order": 1
+        },
+        {
+          "id": "section-anomalies-2",
+          "kind": "ANOMALIES",
+          "title": "Security, Concurrency, and Context Poisoning",
+          "content": "Building upon findings from local deployment trials, modern agentic memory introduces complex stateful vulnerabilities. Systems allowing concurrent asynchronous updates from sub-agents—vital for Letta's 'sleeptime' processing or Mem0's multi-tier write operations—are highly susceptible to race conditions and graph contamination.",
+          "items": [
+            "Context poisoning occurs if an unauthorized or adversarial sub-agent writes hallucinated facts into shared archival memory, cascading logic errors across subsequent sessions.",
+            "Serialization vulnerabilities (such as CVE-2025-68664) are a growing concern for locally hosted agent endpoints passing complex JSON/Graph data across insecure local orchestrators.",
+            "Local-first solutions like OMEGA and Hindsight are emerging primarily to circumvent cloud-hosted graph serialization risks."
+          ],
+          "order": 2
+        },
+        {
+          "id": "section-implications-3",
+          "kind": "IMPLICATIONS",
+          "title": "Adoption and System Architecture Considerations",
+          "content": "The selection between Letta, Mem0, and Zep dictates the entire downstream application architecture. Choosing Letta forces adoption of its specific event loop and agent runtime. Mem0 allows continued use of custom loops (e.g., LangGraph) but requires manual tuning of memory scopes (User vs Session). Zep demands teams to embrace graph ontology definition and temporal mapping.",
+          "order": 3
+        },
+        {
+          "id": "section-key_findings-4",
+          "kind": "KEY_FINDINGS",
+          "title": "Key Findings",
+          "items": [
+            "The ecosystem split hinges on architectural lock-in. Letta functions as a full agent runtime where agents execute within an OS-inspired multi-tiered memory environment (Core/RAM, Recall/Cache, Archival/Cold). Conversely, Mem0 acts as a decoupled API layer easily bolted onto diverse orchestration frameworks (like LangChain or AWS Agent SDK) and focuses on hierarchical state isolation across user, persona, and session boundaries.",
+            "Both Mem0 and Zep claim supremacy in temporal logic evaluations. In its early 2025 paper, Zep reported a 94.8% score on the Deep Memory Retrieval (DMR) benchmark, edging out MemGPT's 93.4%. Following Mem0's publication of a 67.13% score on the LOCOMO benchmark, Zep released a public rebuttal alleging Mem0 misconfigured Zep's tests, claiming Zep's corrected score was actually 75.14%.",
+            "Standard vector Retrieval-Augmented Generation (RAG) is largely deprecated for agentic memory. Vendors are implementing temporal knowledge graphs to handle multi-hop relational queries. Zep's underlying Graphiti library treats memory as temporally evolving nodes and edges, while Mem0 introduced 'Mem0g' utilizing embedded graph databases (like Kuzu) alongside vector stores.",
+            "Leading memory systems no longer simply append documents. They operate via atomic CRUD actions. Mem0 evaluates new information and issues UPDATE or DELETE commands to resolve contradictions, mitigating context bloat. Letta achieves similar functionality by supplying agents with specific tool calls to autonomously edit their own memory tiers."
+          ],
+          "order": 4
+        },
+        {
+          "id": "section-next_steps-5",
+          "kind": "NEXT_STEPS",
+          "title": "Next Steps",
+          "items": [
+            "Conduct independent stress tests comparing Mem0g (Kuzu backend) query latency against Zep's Graphiti framework over entity sets exceeding 1M nodes.",
+            "Evaluate Hindsight and OMEGA's handling of temporal knowledge graphs to see if their local-first designs inherently bypass CVE-2025-68664 vulnerabilities.",
+            "Examine Letta's recent (April 2026) Letta Code desktop application to assess the viability of highly localized, stateful developer agents against local infrastructure constraints."
+          ],
+          "order": 5
+        }
+      ],
+      "evidence": [],
+      "artifactType": "SYNTHESIS",
+      "sources": [
+        {
+          "title": "Mem0 vs Letta (MemGPT): AI Agent Memory Compared (2026) - Vectorize",
+          "url": "https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQF2nYUXbkxLVLkyboVsb7flJEOf3qzkaAtv1h_sXOvXh1DgyzpPhZHXL_R_2mkTMWYnxE0MQIibCDoiMq1OhUL77CYcLMEuhu_NFxWW1zxJGXmeBsi4nlWyhCStIiPcnRmwS3OQlYs="
+        },
+        {
+          "title": "[2501.13956] Zep: A Temporal Knowledge Graph Architecture for Agent Memory - arXiv",
+          "url": "https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQFJtUUYygG__wihMpZ2G24Cm2kPIYjG3KBhL39JxaXRnD1qPgkqVUf_CdXe3lE1-oR2ef0jM6VA-mWZlZoKfgh5pv4urOs2QjpF7L67YrflXW6E7EHqH4l-21Gm"
+        },
+        {
+          "title": "AI Agent Memory Systems in 2026: Mem0, Zep, Hindsight, Memvid and Everything In Between — Compared",
+          "url": "https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQE2g0yqbU1KSXMwtHi1Fy5ClFsv-gn-eUzPlFb6vYLGVuO_4xkxbQeRgx4_x1esb-y-OSgOZ3eZ93a_UAKsRGvPduKw7rykIJzpN2uQfvChW1tDarcgCZ5bqAeJ-Qt54_DAF-03CtWhhCG8NfM454mWroN8qKS8y3FDRIJjQtg96gM19kgdm3MVnf3kCiDqyp61PgAdDOFu-JS-LSi1QSoJGQXqIleq6uTg6TzqbVkmX3MY2UO7H-raHDn-C_vfzQ=="
+        },
+        {
+          "title": "State of AI Agent Memory 2026 - Mem0",
+          "url": "https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQG5CCp_E_EbtmbTb6H2U0mnpzb1d9RvazzrvPDBBuJlrQGo13obEwmm-KaMl9_YBoUnjHcvRD2u5LJuxRHJPxmi_XDs8SGtnMeCG4RG7-kEsxR6f0X8DIJHVz-jUki44v4F2VnVPRjUL0XDde49"
+        },
+        {
+          "title": "Letta is the platform for building stateful agents - GitHub",
+          "url": "https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQF4-86PtY8137tCb02ODoA8mtz2d23k7H84sVf9vHZ3C0dFUAEUiGd5EwCZEpSGWTwKKn6pqOTTo_OzfwCydpYaL1wLb4Bxsvl62hV9ZHcdaa4LWJ-dX1nwxcT4Ug=="
+        }
+      ],
+      "provenance": {
+        "provider": "GEMINI",
+        "modelId": "gemini-3-pro-preview",
+        "generatedAt": "2026-04-10T14:54:57.003Z",
+        "search": {
+          "enabled": true,
+          "provider": "GOOGLE"
+        },
+        "metadata": {
+          "persona": "ai-landscape-analyst",
+          "searchDepth": "DEEP",
+          "thinkingBudget": 0
+        }
+      },
+      "rawText": "{\n  \"summary\": \"As of April 2026, the local AI agent memory landscape has fractured into three dominant architectural paradigms. Mem0 leads as a pluggable, hybrid memory service optimized for multi-scope (user/session/agent) state. Letta (formerly MemGPT) offers a heavily integrated, OS-style runtime that handles self-editing agent state directly. Zep focuses on temporal knowledge graphs designed to track fact evolution over time for deterministic retrieval. The shift from standard vector RAG to multi-tier memory and temporal knowledge graphs has introduced fierce benchmark competition, notably between Mem0 and Zep over deep memory retrieval capabilities. Concurrently, emerging multi-agent concurrency frameworks have surfaced critical security and state-management risks, particularly surrounding context poisoning and serialization vulnerabilities.\",\n  \"entities\": [\n    {\n      \"name\": \"Letta\",\n      \"type\": \"ORGANIZATION\",\n      \"role\": \"Agent runtime and framework developer (formerly MemGPT)\",\n      \"sentiment\": \"POSITIVE\"\n    },\n    {\n      \"name\": \"Mem0\",\n      \"type\": \"ORGANIZATION\",\n      \"role\": \"Provider of pluggable, API-driven agent memory layers\",\n      \"sentiment\": \"POSITIVE\"\n    },\n    {\n      \"name\": \"Zep\",\n      \"type\": \"ORGANIZATION\",\n      \"role\": \"Temporal knowledge graph and agent memory service\",\n      \"sentiment\": \"POSITIVE\"\n    },\n    {\n      \"name\": \"Hindsight\",\n      \"type\": \"ORGANIZATION\",\n      \"role\": \"Local-first agent memory entrant\",\n      \"sentiment\": \"NEUTRAL\"\n    },\n    {\n      \"name\": \"Graphiti\",\n      \"type\": \"UNKNOWN\",\n      \"role\": \"Open-source temporal knowledge graph library underlying Zep\",\n      \"sentiment\": \"POSITIVE\"\n    }\n  ],\n  \"keyFindings\": [\n    {\n      \"title\": \"Divergent Integration Models: Runtime vs. API Layer\",\n      \"summary\": \"The ecosystem split hinges on architectural lock-in. Letta functions as a full agent runtime where agents execute within an OS-inspired multi-tiered memory environment (Core/RAM, Recall/Cache, Archival/Cold). Conversely, Mem0 acts as a decoupled API layer easily bolted onto diverse orchestration frameworks (like LangChain or AWS Agent SDK) and focuses on hierarchical state isolation across user, persona, and session boundaries.\",\n      \"supportRefs\": [\n        \"Mem0 vs Letta (MemGPT): AI Agent Memory Compared (2026) - Vectorize\",\n        \"Agent memory: Letta vs Mem0 vs Zep vs Cognee - Community\"\n      ]\n    },\n    {\n      \"title\": \"The Temporal Reasoning Benchmark Conflict\",\n      \"summary\": \"Both Mem0 and Zep claim supremacy in temporal logic evaluations. In its early 2025 paper, Zep reported a 94.8% score on the Deep Memory Retrieval (DMR) benchmark, edging out MemGPT's 93.4%. Following Mem0's publication of a 67.13% score on the LOCOMO benchmark, Zep released a public rebuttal alleging Mem0 misconfigured Zep's tests, claiming Zep's corrected score was actually 75.14%.\",\n      \"supportRefs\": [\n        \"[2501.13956] Zep: A Temporal Knowledge Graph Architecture for Agent Memory - arXiv\",\n        \"AI Agent Memory Systems in 2026: Mem0, Zep, Hindsight, Memvid and Everything In Between — Compared\"\n      ]\n    },\n    {\n      \"title\": \"Shift Towards Hybrid and Graph-Based Architectures\",\n      \"summary\": \"Standard vector Retrieval-Augmented Generation (RAG) is largely deprecated for agentic memory. Vendors are implementing temporal knowledge graphs to handle multi-hop relational queries. Zep's underlying Graphiti library treats memory as temporally evolving nodes and edges, while Mem0 introduced 'Mem0g' utilizing embedded graph databases (like Kuzu) alongside vector stores.\",\n      \"supportRefs\": [\n        \"Graph-Based Memory Solutions for AI Context: Top 5 Compared (January 2026) - Mem0\",\n        \"Zep - open-source Graph Memory for AI Apps : r/LLMDevs - Reddit\"\n      ]\n    },\n    {\n      \"title\": \"Action-Based State Management and Self-Editing Memory\",\n      \"summary\": \"Leading memory systems no longer simply append documents. They operate via atomic CRUD actions. Mem0 evaluates new information and issues UPDATE or DELETE commands to resolve contradictions, mitigating context bloat. Letta achieves similar functionality by supplying agents with specific tool calls to autonomously edit their own memory tiers.\",\n      \"supportRefs\": [\n        \"AI Agent Memory Systems in 2026: Mem0, Zep, Hindsight, Memvid and Everything In Between — Compared\"\n      ]\n    }\n  ],\n  \"agendas\": [\n    \"Identify and verify the exact root causes of the benchmark discrepancies (LOCOMO 67% vs 75%) between Mem0 and Zep to standardize internal evaluations.\",\n    \"Assess the emerging exploitation vectors associated with concurrent sub-agent reads/writes, explicitly analyzing serialization CVE-2025-68664 and context poisoning vectors in Letta and Mem0.\",\n    \"Determine the risk of architectural lock-in when deploying Letta's full runtime versus integrating Mem0 or Zep into existing orchestration pipelines.\"\n  ],\n  \"leads\": [\n    \"Conduct independent stress tests comparing Mem0g (Kuzu backend) query latency against Zep's Graphiti framework over entity sets exceeding 1M nodes.\",\n    \"Evaluate Hindsight and OMEGA's handling of temporal knowledge graphs to see if their local-first designs inherently bypass CVE-2025-68664 vulnerabilities.\",\n    \"Examine Letta's recent (April 2026) Letta Code desktop application to assess the viability of highly localized, stateful developer agents against local infrastructure constraints.\"\n  ],\n  \"sources\": [\n    {\n      \"title\": \"Mem0 vs Letta (MemGPT): AI Agent Memory Compared (2026) - Vectorize\",\n      \"url\": \"https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQF2nYUXbkxLVLkyboVsb7flJEOf3qzkaAtv1h_sXOvXh1DgyzpPhZHXL_R_2mkTMWYnxE0MQIibCDoiMq1OhUL77CYcLMEuhu_NFxWW1zxJGXmeBsi4nlWyhCStIiPcnRmwS3OQlYs=\"\n    },\n    {\n      \"title\": \"[2501.13956] Zep: A Temporal Knowledge Graph Architecture for Agent Memory - arXiv\",\n      \"url\": \"https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQFJtUUYygG__wihMpZ2G24Cm2kPIYjG3KBhL39JxaXRnD1qPgkqVUf_CdXe3lE1-oR2ef0jM6VA-mWZlZoKfgh5pv4urOs2QjpF7L67YrflXW6E7EHqH4l-21Gm\"\n    },\n    {\n      \"title\": \"AI Agent Memory Systems in 2026: Mem0, Zep, Hindsight, Memvid and Everything In Between — Compared\",\n      \"url\": \"https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQE2g0yqbU1KSXMwtHi1Fy5ClFsv-gn-eUzPlFb6vYLGVuO_4xkxbQeRgx4_x1esb-y-OSgOZ3eZ93a_UAKsRGvPduKw7rykIJzpN2uQfvChW1tDarcgCZ5bqAeJ-Qt54_DAF-03CtWhhCG8NfM454mWroN8qKS8y3FDRIJjQtg96gM19kgdm3MVnf3kCiDqyp61PgAdDOFu-JS-LSi1QSoJGQXqIleq6uTg6TzqbVkmX3MY2UO7H-raHDn-C_vfzQ==\"\n    },\n    {\n      \"title\": \"State of AI Agent Memory 2026 - Mem0\",\n      \"url\": \"https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQG5CCp_E_EbtmbTb6H2U0mnpzb1d9RvazzrvPDBBuJlrQGo13obEwmm-KaMl9_YBoUnjHcvRD2u5LJuxRHJPxmi_XDs8SGtnMeCG4RG7-kEsxR6f0X8DIJHVz-jUki44v4F2VnVPRjUL0XDde49\"\n    },\n    {\n      \"title\": \"Letta is the platform for building stateful agents - GitHub\",\n      \"url\": \"https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQF4-86PtY8137tCb02ODoA8mtz2d23k7H84sVf9vHZ3C0dFUAEUiGd5EwCZEpSGWTwKKn6pqOTTo_OzfwCydpYaL1wLb4Bxsvl62hV9ZHcdaa4LWJ-dX1nwxcT4Ug==\"\n    }\n  ],\n  \"sections\": [\n    {\n      \"kind\": \"EXECUTIVE_SUMMARY\",\n      \"title\": \"Strategic Market Posture: Mem0 vs Zep vs Letta\",\n      \"content\": \"The agent memory landscape has formalized into distinct structural categories. Mem0 operates as a high-adoption pluggable memory API, widely integrated into developer ecosystems due to low lock-in. Letta (evolving from the MemGPT research) provides an entire orchestration platform enforcing a three-tier OS memory architecture. Zep targets enterprise logic requiring temporally accurate knowledge graphs. The overarching technical shift abandons plain vector-RAG in favor of dynamically self-editing records and embedded graph interactions, raising local setup complexity.\",\n      \"items\": [\n        \"Letta: Maximizes agent autonomy via built-in system prompt tool calls for memory management. High lock-in.\",\n        \"Mem0: Maximizes framework flexibility. Employs async self-editing to optimize token context. Low lock-in.\",\n        \"Zep: Maximizes entity chronology. Employs asynchronous graph creation (Graphiti) for temporal reasoning.\"\n      ]\n    },\n    {\n      \"kind\": \"LITERATURE_REVIEW\",\n      \"title\": \"Benchmarks and Validated Performance Gaps\",\n      \"content\": \"Both empirical and commercial assertions focus heavily on LOCOMO and Deep Memory Retrieval (DMR) benchmarks. Early generation systems (vector + raw extraction) display substantial deterioration on multi-hop and time-sensitive tasks. The literature demonstrates that graph-augmented memory reduces LLM token overhead by up to 90% while improving reasoning accuracy.\",\n      \"items\": [\n        \"Mem0 claims 67.13% on LOCOMO, with its graph-variant (Mem0g) improving to 68.4%.\",\n        \"Zep's Jan 2025 ArXiv publication claims 94.8% on DMR and asserts a corrected 75.14% LOCOMO benchmark against Mem0's evaluation methodology.\",\n        \"Both systems trade initial computational ingestion time for inference speed, targeting p95 latencies of under 100-200ms during standard retrieval.\"\n      ]\n    },\n    {\n      \"kind\": \"ANOMALIES\",\n      \"title\": \"Security, Concurrency, and Context Poisoning\",\n      \"content\": \"Building upon findings from local deployment trials, modern agentic memory introduces complex stateful vulnerabilities. Systems allowing concurrent asynchronous updates from sub-agents—vital for Letta's 'sleeptime' processing or Mem0's multi-tier write operations—are highly susceptible to race conditions and graph contamination.\",\n      \"items\": [\n        \"Context poisoning occurs if an unauthorized or adversarial sub-agent writes hallucinated facts into shared archival memory, cascading logic errors across subsequent sessions.\",\n        \"Serialization vulnerabilities (such as CVE-2025-68664) are a growing concern for locally hosted agent endpoints passing complex JSON/Graph data across insecure local orchestrators.\",\n        \"Local-first solutions like OMEGA and Hindsight are emerging primarily to circumvent cloud-hosted graph serialization risks.\"\n      ]\n    },\n    {\n      \"kind\": \"IMPLICATIONS\",\n      \"title\": \"Adoption and System Architecture Considerations\",\n      \"content\": \"The selection between Letta, Mem0, and Zep dictates the entire downstream application architecture. Choosing Letta forces adoption of its specific event loop and agent runtime. Mem0 allows continued use of custom loops (e.g., LangGraph) but requires manual tuning of memory scopes (User vs Session). Zep demands teams to embrace graph ontology definition and temporal mapping.\"\n    }\n  ]\n}",
+      "packId": "ai-technology-landscape",
+      "purposeId": "synthesis",
+      "labelProfileId": "research",
+      "metadata": {
+        "packName": "AI & Technology Landscape",
+        "purposeName": "Synthesis",
+        "scopeId": "ai-technology-landscape",
+        "workspaceMode": "RESEARCH",
+        "persona": "ai-landscape-analyst",
+        "searchDepth": "DEEP",
+        "thinkingBudget": 0
+      },
+      "config": {
+        "provider": "GEMINI",
+        "modelId": "gemini-3-pro-preview",
+        "persona": "ai-landscape-analyst",
+        "searchDepth": "DEEP",
+        "thinkingBudget": 0,
+        "scopeId": "ai-technology-landscape",
+        "scopeName": "AI & Technology Landscape",
+        "packId": "ai-technology-landscape",
+        "packName": "AI & Technology Landscape",
+        "purposeId": "synthesis",
+        "purposeName": "Synthesis",
+        "artifactType": "SYNTHESIS",
+        "labelProfileId": "research",
+        "generationMode": "STAGED",
+        "launchSource": "NETWORK_GRAPH",
+        "sourceRunId": "task-a1496c2c-1bc4-4b1e-bb10-f11c850322c9"
+      },
+      "id": "rep-23e272ca-cab8-4add-bcb2-43986d978dfa",
+      "createdAt": 1775832897003,
+      "workspaceId": "workspace-738dfb67-0cb7-42ef-8ea5-29a1ee72aafb"
+    }
+  ],
+  "exportedAt": "2026-04-10T14:58:50.000Z"
+}

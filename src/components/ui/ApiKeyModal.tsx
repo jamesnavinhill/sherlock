@@ -43,6 +43,7 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({ onKeySet, onBypass }) 
     OPENROUTER: 'sk-or-v1-...',
     OPENAI: 'sk-...',
     ANTHROPIC: 'sk-ant-...',
+    YRKA: 'Paste your Yrka gateway token...',
   };
 
   return (

@@ -37,6 +37,7 @@ export const STORAGE_KEYS = {
   LIVE_MONITOR_AUTOSAVE: 'sherlock_livestream_autosave',
   SYSTEM_CONFIG: 'sherlock_config',
   OPENROUTER_MODEL_CATALOG: 'sherlock_openrouter_model_catalog_v1',
+  YRKA_MODEL_CATALOG: 'sherlock_yrka_model_catalog_v1',
   RECENT_MODEL_IDS: 'sherlock_recent_model_ids_v1',
   OMNIBOX_RECENTS: 'sherlock_omnibox_recents_v1',
   MANUAL_LINKS: 'sherlock_manual_links',
@@ -102,6 +103,13 @@ export const getStoredOpenRouterModelCatalog = <T>(): T | null =>
 
 export const setStoredOpenRouterModelCatalog = <T>(value: T): void => {
   setItem(STORAGE_KEYS.OPENROUTER_MODEL_CATALOG, value);
+};
+
+export const getStoredYrkaModelCatalog = <T>(): T | null =>
+  getOptionalItem<T>(STORAGE_KEYS.YRKA_MODEL_CATALOG);
+
+export const setStoredYrkaModelCatalog = <T>(value: T): void => {
+  setItem(STORAGE_KEYS.YRKA_MODEL_CATALOG, value);
 };
 
 export const getStoredRecentModelIds = (): string[] => {

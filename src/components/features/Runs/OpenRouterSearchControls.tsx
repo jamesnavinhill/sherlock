@@ -14,6 +14,7 @@ interface OpenRouterSearchControlsProps {
   excludedDomains: string;
   maxResults: number;
   maxTotalResults: number;
+  providerLabel?: string;
   searchContextSize: 'low' | 'medium' | 'high';
   setAllowedDomains: (value: string) => void;
   setEngine: (value: 'auto' | 'native' | 'exa' | 'firecrawl' | 'parallel') => void;
@@ -32,6 +33,7 @@ export const OpenRouterSearchControls: React.FC<OpenRouterSearchControlsProps> =
   excludedDomains,
   maxResults,
   maxTotalResults,
+  providerLabel = 'OpenRouter Web Search',
   searchContextSize,
   setAllowedDomains,
   setEngine,
@@ -44,7 +46,7 @@ export const OpenRouterSearchControls: React.FC<OpenRouterSearchControlsProps> =
 }) => (
   <section className={className}>
     <div className="flex items-center justify-between">
-      <label className="osint-meta-label">OpenRouter Web Search</label>
+      <label className="osint-meta-label">{providerLabel}</label>
       <button
         type="button"
         onClick={() => setWebSearchEnabled(!webSearchEnabled)}

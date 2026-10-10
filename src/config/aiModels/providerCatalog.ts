@@ -1,6 +1,6 @@
 import type { AIProvider, AIProviderOption } from './types';
 
-export const DEFAULT_PROVIDER: AIProvider = 'GEMINI';
+export const DEFAULT_PROVIDER: AIProvider = 'YRKA';
 export const DEFAULT_MODEL_ID = 'gemini-3-flash-preview';
 
 export const DEFAULT_MODELS_BY_PROVIDER: Record<AIProvider, string> = {
@@ -8,6 +8,7 @@ export const DEFAULT_MODELS_BY_PROVIDER: Record<AIProvider, string> = {
   OPENROUTER: 'openrouter/free',
   OPENAI: 'gpt-5.4-mini',
   ANTHROPIC: 'claude-sonnet-4-6',
+  YRKA: 'in-mercury-2',
 };
 
 export const AI_PROVIDERS: AIProviderOption[] = [
@@ -57,6 +58,19 @@ export const AI_PROVIDERS: AIProviderOption[] = [
       supportsThinkingBudget: false,
       supportsTts: false,
       supportsWebSearch: false,
+      runtimeStatus: 'ACTIVE',
+    },
+  },
+  {
+    id: 'YRKA',
+    label: 'Yrka Gateway',
+    description: 'Private OpenAI-compatible gateway with MCP web search',
+    defaultModelId: DEFAULT_MODELS_BY_PROVIDER.YRKA,
+    capabilities: {
+      supportsThinkingBudget: false,
+      supportsTts: false,
+      supportsWebSearch: true,
+      supportsDynamicCatalog: true,
       runtimeStatus: 'ACTIVE',
     },
   },

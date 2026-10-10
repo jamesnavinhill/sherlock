@@ -71,6 +71,8 @@ export const SettingsRuntimeTab: React.FC<SettingsRuntimeTabProps> = ({ runtime,
     runtime.openRouterKey,
     runtime.openAIKey,
     runtime.anthropicKey,
+    runtime.yrkaKey,
+    runtime.mcpGatewayToken,
   ].filter((value) => value.trim().length > 0).length;
 
   return (
@@ -106,9 +108,15 @@ export const SettingsRuntimeTab: React.FC<SettingsRuntimeTabProps> = ({ runtime,
               optionButtonClassName={`${SETTINGS_SURFACE_BUTTON_CLASS} ${SETTINGS_BUTTON_MD_CLASS} osint-meta-label-strong`}
             />
 
-            {runtime.form.value.provider === 'OPENROUTER' ? (
+            {runtime.form.value.provider === 'OPENROUTER' ||
+            runtime.form.value.provider === 'YRKA' ? (
               <OpenRouterSearchControls
                 className={SETTINGS_CARD_CLASS}
+                providerLabel={
+                  runtime.form.value.provider === 'YRKA'
+                    ? 'Yrka Web Search (MCP)'
+                    : undefined
+                }
                 webSearchEnabled={runtime.openRouterWebSearchEnabled}
                 setWebSearchEnabled={runtime.setOpenRouterWebSearchEnabled}
                 engine={runtime.openRouterEngine}
@@ -174,6 +182,51 @@ export const SettingsRuntimeTab: React.FC<SettingsRuntimeTabProps> = ({ runtime,
                 onToggleVisibility={() => runtime.setShowAnthropicKey((current) => !current)}
                 onClear={() => runtime.handleClearProviderKey('ANTHROPIC')}
               />
+              <ProviderKeyField
+                label="Yrka Gateway Token"
+                provider="YRKA"
+                keyValue={runtime.yrkaKey}
+                showValue={runtime.showYrkaKey}
+                onChange={runtime.setYrkaKey}
+                onToggleVisibility={() => runtime.setShowYrkaKey((current) => !current)}
+                onClear={() => runtime.handleClearProviderKey('YRKA')}
+              />
+              <div className={`${SETTINGS_CARD_CLASS} flex h-full flex-col gap-3`}>
+                <label className="block osint-meta-label">MCP Gateway Token</label>
+                <p className="osint-body-quiet text-xs italic">
+                  Optional — falls back to the Yrka gateway token when empty.
+                </p>
+                <div className="flex flex-1 flex-col gap-2">
+                  <input
+                    type={runtime.showMcpGatewayToken ? 'text' : 'password'}
+                    value={runtime.mcpGatewayToken}
+                    onChange={(event) => runtime.setMcpGatewayTokenValue(event.target.value)}
+                    autoComplete="new-password"
+                    data-lpignore="true"
+                    data-1p-ignore="true"
+                    spellCheck={false}
+                    placeholder="MCP token for Yrka web search..."
+                    className={`${SETTINGS_INPUT_CLASS} flex-1`}
+                  />
+                  <div className="flex flex-wrap gap-2">
+                    <button
+                      type="button"
+                      onClick={() => runtime.setShowMcpGatewayToken((current) => !current)}
+                      className={`${SETTINGS_SURFACE_BUTTON_CLASS} ${SETTINGS_BUTTON_MD_CLASS} osint-settings-surface-button-accent-hover min-w-[5.25rem] px-4 osint-meta-label-strong`}
+                    >
+                      {runtime.showMcpGatewayToken ? 'HIDE' : 'SHOW'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={runtime.handleClearMcpGatewayToken}
+                      className={`${SETTINGS_SURFACE_BUTTON_CLASS} ${SETTINGS_BUTTON_MD_CLASS} osint-settings-surface-button-danger-hover min-w-[5.25rem] px-4 osint-meta-label-strong`}
+                      title="Clear MCP gateway token"
+                    >
+                      CLEAR
+                    </button>
+                  </div>
+                </div>
+              </div>
 
               {saveError ? (
                 <div className="osint-danger-banner osint-meta-label border px-3 py-2 xl:col-span-2">

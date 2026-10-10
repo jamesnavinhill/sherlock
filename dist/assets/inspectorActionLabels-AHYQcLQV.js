@@ -1,0 +1,1 @@
+const e={add:"Add",board:"Board",chat:"Chat",entity:"Entity",google:"Google",item:"Item",link:"Link",open:"Open",parent:"Parent",previous:"Previous",signal:"Signal",run:"Run",session:"Session",source:"Source"};export{e as I};

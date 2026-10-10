@@ -24,6 +24,7 @@ const ADAPTER_LOADERS: Record<AIProvider, () => Promise<ProviderAdapter>> = {
   OPENROUTER: async () => (await import('./openRouterProvider')).openRouterProvider,
   OPENAI: async () => (await import('./openAIProvider')).openAIProvider,
   ANTHROPIC: async () => (await import('./anthropicProvider')).anthropicProvider,
+  YRKA: async () => (await import('./yrkaProvider')).yrkaProvider,
 };
 
 const adapterCache = new Map<AIProvider, Promise<ProviderAdapter>>();

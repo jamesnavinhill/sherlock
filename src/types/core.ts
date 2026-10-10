@@ -85,12 +85,14 @@ export interface ArtifactProvenance {
   usage?: Record<string, unknown>;
   search?: {
     enabled: boolean;
-    provider?: 'GOOGLE' | 'OPENROUTER';
+    provider?: 'GOOGLE' | 'OPENROUTER' | 'YRKA';
     engine?: string;
     webSearchRequests?: number;
     searchContextSize?: string;
     allowedDomains?: string[];
     excludedDomains?: string[];
+    backend?: string;
+    resultCount?: number;
   };
   metadata?: Record<string, unknown>;
 }

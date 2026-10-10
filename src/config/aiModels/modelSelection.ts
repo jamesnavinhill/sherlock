@@ -4,6 +4,7 @@ import {
   getOpenRouterCatalogModels,
   getOpenRouterQuickPicks,
 } from './openRouterCatalog';
+import { getYrkaCatalogModelIds, getYrkaCatalogModels } from './yrkaCatalog';
 import {
   AI_PROVIDERS,
   DEFAULT_MODEL_ID,
@@ -25,6 +26,17 @@ const inferProviderFromModelId = (modelId: string): AIProvider => {
     return 'OPENAI';
   }
   if (modelId.startsWith('claude-')) return 'ANTHROPIC';
+  // Yrka gateway free lanes. Checked before the OpenRouter `/` rule because
+  // gateway-routed ids (or-*, nv-*, in-*) carry no slash.
+  if (
+    getYrkaCatalogModelIds().has(modelId) ||
+    modelId === 'or-free' ||
+    modelId.startsWith('or-') ||
+    modelId.startsWith('nv-') ||
+    modelId.startsWith('in-')
+  ) {
+    return 'YRKA';
+  }
   if (modelId.includes('/')) return 'OPENROUTER';
   return DEFAULT_PROVIDER;
 };
@@ -44,6 +56,21 @@ const createManualOpenRouterModel = (modelId: string): AIModelOption => ({
   },
 });
 
+const createManualYrkaModel = (modelId: string): AIModelOption => ({
+  id: modelId,
+  name: modelId,
+  description: 'Manual Yrka gateway model id',
+  provider: 'YRKA',
+  source: 'MANUAL',
+  capabilities: {
+    supportsThinkingBudget: false,
+    supportsStructuredOutput: true,
+    supportsWebSearch: true,
+    supportsToolUse: false,
+    runtimeStatus: 'ACTIVE',
+  },
+});
+
 export const getProviderOptionById = (provider: AIProvider): AIProviderOption | undefined => {
   return AI_PROVIDERS.find((option) => option.id === provider);
 };
@@ -54,6 +81,7 @@ export const getDefaultModelForProvider = (provider: AIProvider): string => {
 
 export const getModelsForProvider = (provider: AIProvider): AIModelOption[] => {
   if (provider === 'OPENROUTER') return getOpenRouterCatalogModels();
+  if (provider === 'YRKA') return getYrkaCatalogModels();
   return STATIC_MODELS.filter((model) => model.provider === provider);
 };
 
@@ -66,7 +94,7 @@ export const getRuntimeReadyModelsForProvider = (provider: AIProvider): AIModelO
 export const getRecentModelSelections = (provider?: AIProvider): AIModelOption[] => {
   const catalog = provider
     ? getRuntimeReadyModelsForProvider(provider)
-    : [...STATIC_MODELS, ...getOpenRouterCatalogModels()];
+    : [...STATIC_MODELS, ...getOpenRouterCatalogModels(), ...getYrkaCatalogModels()];
   const catalogById = new Map(catalog.map((model) => [model.id, model]));
   return getRecentModelIds()
     .map((modelId) => catalogById.get(modelId) || getModelOptionById(modelId))
@@ -79,14 +107,15 @@ export const recordRecentModelSelection = (modelId: string): void => {
 };
 
 export const getModelOptionById = (modelId: string): AIModelOption | undefined => {
-  const knownModel = [...STATIC_MODELS, ...getOpenRouterCatalogModels()].find(
+  const knownModel = [...STATIC_MODELS, ...getOpenRouterCatalogModels(), ...getYrkaCatalogModels()].find(
     (model) => model.id === modelId
   );
   if (knownModel) return knownModel;
 
-  return inferProviderFromModelId(modelId) === 'OPENROUTER'
-    ? createManualOpenRouterModel(modelId)
-    : undefined;
+  const inferred = inferProviderFromModelId(modelId);
+  if (inferred === 'OPENROUTER') return createManualOpenRouterModel(modelId);
+  if (inferred === 'YRKA') return createManualYrkaModel(modelId);
+  return undefined;
 };
 
 export const getCompactModelChoicesForProvider = (
@@ -145,6 +174,15 @@ export const getEffectiveModelCapabilities = (modelId: string): ModelCapabilitie
       runtimeStatus: 'ACTIVE',
     };
   }
+  if (provider === 'YRKA') {
+    return {
+      supportsThinkingBudget: false,
+      supportsStructuredOutput: true,
+      supportsWebSearch: true,
+      supportsToolUse: false,
+      runtimeStatus: 'ACTIVE',
+    };
+  }
 
   const providerMeta = getProviderOptionById(provider);
   return {
@@ -182,6 +220,9 @@ export const isGeminiModel = (modelId: string): boolean => getModelProvider(mode
 
 export const isOpenRouterModel = (modelId: string): boolean =>
   getModelProvider(modelId) === 'OPENROUTER';
+
+export const isYrkaModel = (modelId: string): boolean =>
+  getModelProvider(modelId) === 'YRKA';
 
 export const getModelDisplayName = (modelId: string): string => {
   return getModelOptionById(modelId)?.name || modelId;

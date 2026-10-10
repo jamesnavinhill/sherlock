@@ -593,6 +593,7 @@ describe('provider router', () => {
       'GEMINI',
       'OPENAI',
       'OPENROUTER',
+      'YRKA',
     ]);
   });
 });
