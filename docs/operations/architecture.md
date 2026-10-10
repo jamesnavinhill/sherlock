@@ -363,6 +363,7 @@ Provider router and adapters:
 - `src/services/providers/openRouterProvider.ts`
 - `src/services/providers/openAIProvider.ts`
 - `src/services/providers/anthropicProvider.ts`
+- `src/services/providers/yrkaProvider.ts` (default provider; OpenAI-compatible adapter for `https://gateway.yrka.io/v1`, cloned from the OpenAI adapter)
 
 Shared provider utilities:
 
@@ -370,6 +371,7 @@ Shared provider utilities:
   - error normalization
   - retry policy
   - direct-provider JSON request and SSE transport helpers
+  - `mcpTransport.ts`: browser MCP Streamable-HTTP client for `https://tools.yrka.io/mcp` (initialize -> notifications/initialized -> tools/call, session-id + SSE handling); `searchWebViaMcp` calls `you_search` with `tavily_search` fallback and parses the markdown result block into `{url, title, content}` sections
   - shared simulated fallback builders for feed/live surfaces
   - shared scan/live normalization and fallback control-flow helpers
   - JSON parsing fallbacks
@@ -389,6 +391,7 @@ Key behavior:
 - model selection is now capability-aware at the selected-model level rather than only the provider level
 - `src/config/aiModels/staticCatalog.ts` now owns bundled direct-provider and OpenRouter snapshot model data
 - `src/config/aiModels/openRouterCatalog.ts` now owns OpenRouter catalog refresh, cache hydration, bundled snapshot fallback, and curated quick-pick shaping
+- `src/config/aiModels/yrkaCatalog.ts` owns the Yrka free-model catalog: bundled snapshot of verified free ids, 12h `localStorage` cache (`sherlock_yrka_model_catalog_v1`), and live refresh from `GET https://gateway.yrka.io/v1/models` filtered to free lanes (`or-*` including `or-free`, `nv-*`, `in-*`; paid `ne-*`/`cf-*` excluded). The refresh token is passed in as a parameter to avoid a module cycle with `keys.ts`.
 - `src/config/aiModels/modelSelection.ts` now owns provider/model lookup, capability derivation, recent selection persistence, and manual OpenRouter slug support
 - `aiModels.ts` remains the stable public barrel for feature/runtime imports while the model-catalog/runtime-config seam is internally split into smaller canonical modules
 - `src/services/runtime/providerOperations.ts` now owns the app-facing investigate/feed/live/TTS router wrappers, while `src/services/runtime/providerKeys.ts` owns active-provider key orchestration and Gemini client reset behavior
@@ -408,6 +411,8 @@ Key behavior:
 - chat adapters accept message arrays plus deterministic workspace retrieval bundles, support streaming output on all active providers, and return structured citations/provenance
 - TTS is only implemented on Gemini adapter
 - OpenRouter uses native message arrays, requests native structured output when available, and enables `openrouter:web_search` by default when the active configuration allows it
+- YRKA is the default provider (`DEFAULT_PROVIDER` in `providerCatalog.ts`, default model `in-mercury-2`). Its adapter posts to `https://gateway.yrka.io/v1/chat/completions` with the `YRKA_GATEWAY_TOKEN` BYOK key (`VITE_YRKA_GATEWAY_TOKEN` env fallback)
+- Yrka web search runs before the chat request: `runYrkaWebSearch` calls `searchWebViaMcp` with the MCP gateway token (`getMcpGatewayToken()`, which falls back to the YRKA provider key), then appends results as a `<web_search_results>` block to the last user message and maps them into the existing citations pipeline (`sourceCitations`, investigate `citations`/`extraEvidence`, `provenance.search` with `provider: 'YRKA'`). Allowed/excluded domain filters are rewritten as `site:` operators in the query since the MCP tools take no domain parameters
 - provider debug logs use `[provider-router]` metadata
 
 ## 5. Persistence Model

@@ -6,8 +6,8 @@ The active application in this checkout lives under `src/`. Current plans and re
 
 ## What It Does
 
-- Runs structured analysis through a provider router (`GEMINI`, `OPENROUTER`, `OPENAI`, `ANTHROPIC`)
-- Uses a capability-aware model registry with direct-provider defaults plus a dynamic OpenRouter catalog (bundled snapshot, local cache, live refresh, curated quick picks, and manual slug entry)
+- Runs structured analysis through a provider router (`GEMINI`, `OPENROUTER`, `OPENAI`, `ANTHROPIC`, `YRKA`); `YRKA` is the default provider
+- Uses a capability-aware model registry with direct-provider defaults, a dynamic OpenRouter catalog (bundled snapshot, local cache, live refresh, curated quick picks, and manual slug entry), and a dynamic Yrka gateway catalog (bundled snapshot of verified free-tier ids, 12h local cache, live refresh from the gateway filtered to free lanes)
 - Runs workspace-grounded chat through the same provider router with persisted sessions, message history, streaming output, and stop support
 - Exposes one shared header omnibox for routes, workspaces, saved timeline views, artifacts, items, chats, runs, and signals, with durable recent destinations plus in-context board/timeline/network/files focus and chat/board/timeline/network/files handoff actions
 - Provides a dedicated multi-board research workspace built on `tldraw`, with a canonical library for artifacts, entities, sources, signals, notes, links, files/media, and promoted chat excerpts
@@ -40,7 +40,7 @@ The active application in this checkout lives under `src/`. Current plans and re
 - `Live Monitor`: live signal scans, shared slider/date controls for monitor settings, filtering, save/persist actions, feeder-style CTAs into synthesis, and motion reserved for active monitoring states
 - `Files`: workspace browsing across artifacts and canonical workspace items, with grid-first all-workspaces landing, dense list/grid modes, direct deep-link item focus, direct chat, board, source-link, deletion, export actions, and a controller/section split that keeps the surface aligned to the shared feature extraction pattern
 - `Finder`: discovery scanning and analysis launch with shared toolbar date-range filtering
-- `Settings`: provider/model keys, generation defaults, OpenRouter search controls, scope/template management, workspace-data import/export, and theme controls that now register into the shared app workbench host for draft/export utility actions alongside the routed settings shell; the theme workbench implementation now lives under `src/components/features/Settings/themeWorkbench/*`
+- `Settings`: provider/model keys (including the Yrka Gateway Token and optional MCP Gateway Token fields), generation defaults, OpenRouter search controls, Yrka web-search (MCP) controls, scope/template management, workspace-data import/export, and theme controls that now register into the shared app workbench host for draft/export utility actions alongside the routed settings shell; the theme workbench implementation now lives under `src/components/features/Settings/themeWorkbench/*`
 
 ## Tech Stack
 
@@ -58,7 +58,7 @@ The active application in this checkout lives under `src/`. Current plans and re
 
 - Node.js 18+
 - npm
-- At least one provider key (Gemini/OpenRouter/OpenAI/Anthropic) if you want to run AI investigations; browsing works without one
+- At least one provider key (Yrka/OpenRouter/Gemini/OpenAI/Anthropic) if you want to run AI investigations; browsing works without one. The Yrka gateway lane uses free-tier models and needs its token pasted into `Settings -> Runtime` under "Yrka Gateway Token".
 
 ### Local Environment Rule
 
@@ -89,6 +89,10 @@ The repo now blocks local `npm install`/`npm ci` from WSL when the checkout live
 
 ### Provider Configuration
 
+The default provider is `YRKA` (Yrka Gateway), an OpenAI-compatible gateway at `https://gateway.yrka.io/v1` serving free-tier models (`in-mercury-2` is the default model). Its model catalog refreshes live from the gateway's `/v1/models` endpoint and filters to free lanes (`or-*`, `nv-*`, `in-*`; paid `ne-*`/`cf-*` lanes are excluded), with a bundled snapshot and 12h local cache as fallback.
+
+Web search on the Yrka lane runs through the MCP tool gateway at `https://tools.yrka.io/mcp` (`you_search` primary, `tavily_search` fallback). Results are appended to the request as a `<web_search_results>` context block and mapped into the existing citations pipeline, so evidence and provenance render the same as other providers. Allowed/excluded domain filters are rewritten as `site:` operators in the query.
+
 Configure keys in either:
 
 1. UI: `Settings -> Runtime`
@@ -106,6 +110,8 @@ Supported env vars:
 - `VITE_OPENROUTER_API_KEY`
 - `VITE_OPENAI_API_KEY`
 - `VITE_ANTHROPIC_API_KEY`
+- `VITE_YRKA_GATEWAY_TOKEN`
+- `VITE_YRKA_MCP_GATEWAY_TOKEN` (optional; falls back to `VITE_YRKA_GATEWAY_TOKEN` when unset)
 - `VITE_TLDRAW_LICENSE_KEY`
 - `OPENAI_API_KEY` (fallback)
 - `ANTHROPIC_API_KEY` (fallback)

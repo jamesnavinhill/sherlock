@@ -15,6 +15,7 @@ Adapters in scope:
 - `OPENROUTER`
 - `OPENAI`
 - `ANTHROPIC`
+- `YRKA` (default)
 
 ## 1. Fast Triage
 
@@ -34,6 +35,9 @@ Adapters in scope:
    - whether OpenRouter web search was enabled
    - search engine and domain filters from `Settings -> Runtime`
    - any provenance warnings shown in the artifact or chat response
+8. If the run used Yrka, also capture:
+   - whether Yrka web search was enabled and whether an MCP gateway token is stored (`Settings -> Runtime`; falls back to the Yrka gateway token when empty)
+   - any provenance warnings about search backend fallback or disabled search
 
 ## 2. Error Class Reference
 
@@ -69,6 +73,17 @@ OpenRouter-specific search notes:
 - Sherlock uses `openrouter:web_search` as the primary search path.
 - Operator-tunable settings are `enabled`, `engine`, `maxResults`, `maxTotalResults`, `searchContextSize`, `allowedDomains`, and `excludedDomains`.
 - Some engines do not honor every filter combination. Sherlock records warnings in artifact/chat provenance when a requested filter set is likely to be ignored.
+
+Yrka-specific search notes:
+
+- The Yrka adapter does not use `openrouter:web_search`. Each operation runs `searchWebViaMcp` against `https://tools.yrka.io/mcp` before the chat request when `webSearchEnabled` is on.
+- `you_search` is the primary backend; `tavily_search` is the automatic fallback (same backend, separate credit pool). Both are retried on 429 with exponential backoff (1s/2s/4s) inside `callMcpTool`.
+- The gateway chat calls themselves get an additional 429 backoff (2s/4s/8s/16s) in `withYrkaRateLimitBackoff`, on top of the shared provider retry policy. Free-tier lanes rate-limit aggressively; sustained 429s after all retries surface as `RATE_LIMITED`.
+- If no MCP gateway token is stored, search is skipped with a provenance warning and the run continues without search results rather than failing.
+- If all search backends fail, the failure is recorded as a provenance warning and the run continues without search results.
+- Allowed/excluded domain filters are rewritten as `site:` operators in the query (`(site:a OR site:b)` / `-site:x`); allowed wins when both are set, mirroring the OpenRouter adapter's conflict rule.
+- `engine` values `exa` and `firecrawl` have no working MCP tool yet and fall back to the default backend with a warning.
+- Results are appended to the request as a `<web_search_results>` block on the last user message and mapped into the standard citations pipeline, so missing-citation symptoms are diagnosed the same way as other providers.
 
 ## 4. Launch Propagation Checks
 
@@ -107,6 +122,7 @@ This distinction is important when diagnosing "why data still appeared" in feed/
 2. Retry with narrower scope/topic/date range.
 3. Disable or simplify optional overrides.
 4. For OpenRouter incidents, retry with web search disabled once to separate provider/model issues from search-tool issues.
+5. For Yrka incidents, retry once with web search disabled to separate gateway/model issues from MCP search issues. If search is the suspect, verify the MCP gateway token in `Settings -> Runtime` and check for 429/rate-limit provenance warnings (free-tier lanes throttle aggressively).
 5. If the artifact shows provenance warnings, capture them before retrying because they often explain unsupported engine/filter combinations.
 6. Capture logs and failing input for escalation.
 
