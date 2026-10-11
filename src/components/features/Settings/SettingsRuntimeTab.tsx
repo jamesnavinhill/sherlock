@@ -194,7 +194,8 @@ export const SettingsRuntimeTab: React.FC<SettingsRuntimeTabProps> = ({ runtime,
               <div className={`${SETTINGS_CARD_CLASS} flex h-full flex-col gap-3`}>
                 <label className="block osint-meta-label">MCP Gateway Token</label>
                 <p className="osint-body-quiet text-xs italic">
-                  Optional — falls back to the Yrka gateway token when empty.
+                  Required for Yrka web search — the MCP gateway uses its own
+                  credential, separate from the gateway token.
                 </p>
                 <div className="flex flex-1 flex-col gap-2">
                   <input
@@ -221,6 +222,44 @@ export const SettingsRuntimeTab: React.FC<SettingsRuntimeTabProps> = ({ runtime,
                       onClick={runtime.handleClearMcpGatewayToken}
                       className={`${SETTINGS_SURFACE_BUTTON_CLASS} ${SETTINGS_BUTTON_MD_CLASS} osint-settings-surface-button-danger-hover min-w-[5.25rem] px-4 osint-meta-label-strong`}
                       title="Clear MCP gateway token"
+                    >
+                      CLEAR
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <div className={`${SETTINGS_CARD_CLASS} flex h-full flex-col gap-3`}>
+                <label className="block osint-meta-label">Deepgram API Key</label>
+                <p className="osint-body-quiet text-xs italic">
+                  Audio briefings (TTS). Preferred voice lane; Gemini TTS is the
+                  fallback when empty.
+                </p>
+                <div className="flex flex-1 flex-col gap-2">
+                  <input
+                    type={runtime.showDeepgramKey ? 'text' : 'password'}
+                    value={runtime.deepgramKey}
+                    onChange={(event) => runtime.setDeepgramKeyValue(event.target.value)}
+                    autoComplete="new-password"
+                    data-lpignore="true"
+                    data-1p-ignore="true"
+                    spellCheck={false}
+                    placeholder="Deepgram key for audio briefings..."
+                    className={`${SETTINGS_INPUT_CLASS} flex-1`}
+                  />
+                  <div className="flex flex-wrap gap-2">
+                    <button
+                      type="button"
+                      onClick={() => runtime.setShowDeepgramKey((current) => !current)}
+                      className={`${SETTINGS_SURFACE_BUTTON_CLASS} ${SETTINGS_BUTTON_MD_CLASS} osint-settings-surface-button-accent-hover min-w-[5.25rem] px-4 osint-meta-label-strong`}
+                    >
+                      {runtime.showDeepgramKey ? 'HIDE' : 'SHOW'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={runtime.handleClearDeepgramKey}
+                      className={`${SETTINGS_SURFACE_BUTTON_CLASS} ${SETTINGS_BUTTON_MD_CLASS} osint-settings-surface-button-danger-hover min-w-[5.25rem] px-4 osint-meta-label-strong`}
+                      title="Clear Deepgram API key"
                     >
                       CLEAR
                     </button>

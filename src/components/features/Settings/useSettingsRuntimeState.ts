@@ -19,6 +19,11 @@ import {
   setMcpGatewayToken,
   validateApiKey,
 } from '@/services/providers/keys';
+import {
+  clearDeepgramApiKey,
+  getDeepgramApiKey,
+  setDeepgramApiKey,
+} from '@/services/providers/shared/deepgramTts';
 import { useRuntimeConfigForm } from '@/components/features/Runs/useRuntimeConfigForm';
 
 export interface SettingsRuntimeState {
@@ -32,6 +37,11 @@ export interface SettingsRuntimeState {
   setMcpGatewayTokenValue: Dispatch<SetStateAction<string>>;
   setShowMcpGatewayToken: Dispatch<SetStateAction<boolean>>;
   handleClearMcpGatewayToken: () => void;
+  deepgramKey: string;
+  showDeepgramKey: boolean;
+  setDeepgramKeyValue: Dispatch<SetStateAction<string>>;
+  setShowDeepgramKey: Dispatch<SetStateAction<boolean>>;
+  handleClearDeepgramKey: () => void;
   openRouterAllowedDomains: string;
   openRouterEngine: 'auto' | 'native' | 'exa' | 'firecrawl' | 'parallel';
   openRouterExcludedDomains: string;
@@ -95,6 +105,8 @@ export const useSettingsRuntimeState = (): SettingsRuntimeState => {
   const [showAnthropicKey, setShowAnthropicKey] = useState(false);
   const [showYrkaKey, setShowYrkaKey] = useState(false);
   const [showMcpGatewayToken, setShowMcpGatewayToken] = useState(false);
+  const [deepgramKey, setDeepgramKeyValue] = useState(() => getDeepgramApiKey() ?? '');
+  const [showDeepgramKey, setShowDeepgramKey] = useState(false);
   const [runtimeSections, setRuntimeSections] = useState({
     apiKeys: true,
     runtime: true,
@@ -135,6 +147,11 @@ export const useSettingsRuntimeState = (): SettingsRuntimeState => {
   const handleClearMcpGatewayToken = () => {
     clearMcpGatewayToken();
     setMcpGatewayTokenValue('');
+  };
+
+  const handleClearDeepgramKey = () => {
+    clearDeepgramApiKey();
+    setDeepgramKeyValue('');
   };
 
   const toggleRuntimeSection = (section: 'apiKeys' | 'runtime') => {
@@ -190,6 +207,14 @@ export const useSettingsRuntimeState = (): SettingsRuntimeState => {
       }
     }
 
+    // Persist the Deepgram TTS key (audio briefings) if one was entered.
+    const trimmedDeepgramKey = deepgramKey.trim();
+    if (trimmedDeepgramKey) {
+      if (!setDeepgramApiKey(trimmedDeepgramKey)) {
+        return 'Failed to persist Deepgram API key. Please try again.';
+      }
+    }
+
     return null;
   };
 
@@ -197,9 +222,14 @@ export const useSettingsRuntimeState = (): SettingsRuntimeState => {
     anthropicKey,
     form,
     geminiKey,
+    deepgramKey,
+    handleClearDeepgramKey,
     handleClearMcpGatewayToken,
     handleClearProviderKey,
     mcpGatewayToken,
+    setDeepgramKeyValue,
+    setShowDeepgramKey,
+    showDeepgramKey,
     openAIKey,
     openRouterAllowedDomains,
     openRouterEngine,

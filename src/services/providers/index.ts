@@ -1,5 +1,6 @@
 import type { FeedItem, Artifact, MonitorEvent } from '../../types';
 import { ProviderError } from './shared/errors';
+import { deepgramAudioBriefing, isDeepgramTtsConfigured } from './shared/deepgramTts';
 import {
   getRegisteredProviderIds,
   resolveProviderExecutionContext,
@@ -192,6 +193,13 @@ export const generateAudioBriefingWithProviderRouter = async (
       operation: 'TTS',
       message: `${context.adapter.provider} adapter is missing a TTS implementation.`,
     });
+  }
+
+  // Deepgram is the preferred TTS lane (free-credit account) once the router
+  // has validated the active provider supports TTS; the Gemini adapter is the
+  // fallback for browsers that only hold a Gemini key.
+  if (isDeepgramTtsConfigured()) {
+    return deepgramAudioBriefing(request.text);
   }
 
   return context.adapter.generateAudioBriefing({

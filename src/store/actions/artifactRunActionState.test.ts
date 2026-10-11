@@ -97,7 +97,7 @@ describe('artifactRunActionState', () => {
       expect.objectContaining({
         status: 'COMPLETED',
         endTime: 5,
-        report: expect.objectContaining({ id: 'artifact-1' }),
+        artifact: expect.objectContaining({ id: 'artifact-1' }),
         config: expect.objectContaining({ producedArtifactId: 'artifact-1' }),
       })
     );

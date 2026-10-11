@@ -91,7 +91,7 @@ The repo now blocks local `npm install`/`npm ci` from WSL when the checkout live
 
 The default provider is `YRKA` (Yrka Gateway), an OpenAI-compatible gateway at `https://gateway.yrka.io/v1` serving free-tier models (`in-mercury-2` is the default model). Its model catalog refreshes live from the gateway's `/v1/models` endpoint and filters to free lanes (`or-*`, `nv-*`, `in-*`; paid `ne-*`/`cf-*` lanes are excluded), with a bundled snapshot and 12h local cache as fallback.
 
-Web search on the Yrka lane runs through the MCP tool gateway at `https://tools.yrka.io/mcp` (`you_search` primary, `tavily_search` fallback). Results are appended to the request as a `<web_search_results>` context block and mapped into the existing citations pipeline, so evidence and provenance render the same as other providers. Allowed/excluded domain filters are rewritten as `site:` operators in the query.
+Web search on the Yrka lane runs through the MCP tool gateway at `https://tools.yrka.io/mcp` (`you_search` primary, `tavily_search` fallback). The MCP gateway has its own credential — it is NOT the same token as the LLM gateway; paste it under Settings → MCP Gateway Token. Results are appended to the request as a `<web_search_results>` context block and mapped into the existing citations pipeline, so evidence and provenance render the same as other providers. Allowed/excluded domain filters are rewritten as `site:` operators in the query.
 
 Configure keys in either:
 

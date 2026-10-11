@@ -177,17 +177,16 @@ export const clearApiKey = (provider?: AIProvider): void => {
 
 /**
  * MCP gateway token (tools.yrka.io/mcp) used by the YRKA provider's web search.
- * Falls back to the YRKA LLM gateway token when the dedicated MCP field is
- * empty, so a single paste covers both gateways for users whose tokens match.
+ * The MCP gateway has its own credential (AGENCY_TOOLS_TOKEN) that is NOT
+ * interchangeable with the LLM gateway token — the LLM master key is rejected
+ * with 401, so there is deliberately no fallback between the two.
  */
 export const getMcpGatewayToken = (): string | undefined => {
   if (typeof localStorage !== 'undefined') {
     const stored = trimOrUndefined(localStorage.getItem(YRKA_MCP_TOKEN_STORAGE_KEY));
     if (stored) return stored;
   }
-  const envValue = getEnvironmentValue(YRKA_MCP_TOKEN_ENV_KEYS);
-  if (envValue) return envValue;
-  return getApiKey('YRKA');
+  return getEnvironmentValue(YRKA_MCP_TOKEN_ENV_KEYS);
 };
 
 export const setMcpGatewayToken = (rawToken: string): boolean => {

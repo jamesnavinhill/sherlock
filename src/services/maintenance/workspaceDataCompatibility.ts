@@ -93,7 +93,10 @@ const flattenSessionRecord = <T extends { sessionId: string }>(
 
 const withWorkspaceLink = (run: WorkspaceRun): WorkspaceRun => ({
   ...run,
-  workspaceId: run.workspaceId || run.artifact?.workspaceId,
+  workspaceId:
+    run.workspaceId ||
+    run.artifact?.workspaceId ||
+    (run as WorkspaceRun & { report?: { workspaceId?: string } }).report?.workspaceId,
 });
 
 export const normalizeWorkspaceDataCompatibility = (
