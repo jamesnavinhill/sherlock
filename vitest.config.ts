@@ -13,7 +13,8 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'jsdom',
-    pool: 'threads',
+    // 'threads' workers segfault on Windows (worker exits mid-suite); forks is process-isolated and stable.
+    pool: 'forks',
     maxWorkers: 1,
     fileParallelism: false,
     setupFiles: ['./src/test/setup.ts'],

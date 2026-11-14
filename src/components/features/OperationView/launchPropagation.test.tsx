@@ -4,7 +4,6 @@ import { MemoryRouter } from 'react-router-dom';
 import type { Artifact, WorkspaceRun } from '../../../types';
 import { useWorkspaceStore } from '../../../store/workspaceStore';
 
-const routerFuture = { v7_startTransition: true, v7_relativeSplatPath: true } as const;
 const flushMicrotasks = async () => {
   await act(async () => {
     await Promise.resolve();
@@ -230,7 +229,7 @@ describe('OperationView launch propagation', () => {
     const onDeepDive = vi.fn();
 
     render(
-      <MemoryRouter future={routerFuture}>
+      <MemoryRouter>
         <OperationView
           run={taskFixture}
           onBack={vi.fn()}
@@ -275,7 +274,7 @@ describe('OperationView launch propagation', () => {
     const onInvestigateHeadline = vi.fn();
 
     render(
-      <MemoryRouter future={routerFuture}>
+      <MemoryRouter>
         <OperationView
           run={taskFixture}
           onBack={vi.fn()}
@@ -309,7 +308,7 @@ describe('OperationView launch propagation', () => {
     const onDeepDive = vi.fn();
 
     render(
-      <MemoryRouter future={routerFuture}>
+      <MemoryRouter>
         <OperationView
           run={taskFixture}
           onBack={vi.fn()}
@@ -348,7 +347,7 @@ describe('OperationView launch propagation', () => {
     const onOpenChat = vi.fn();
 
     render(
-      <MemoryRouter future={routerFuture}>
+      <MemoryRouter>
         <OperationView
           run={taskFixture}
           onBack={vi.fn()}

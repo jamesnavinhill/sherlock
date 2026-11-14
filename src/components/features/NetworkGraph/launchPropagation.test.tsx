@@ -5,7 +5,6 @@ import React from 'react';
 import { useWorkspaceStore } from '../../../store/workspaceStore';
 import { requestNetworkEntityFocus } from '@/services/workspace/workspaceSurfaceFocus';
 
-const routerFuture = { v7_startTransition: true, v7_relativeSplatPath: true } as const;
 const focusNodeMock = vi.fn();
 
 vi.mock('./ControlBar', () => ({
@@ -138,7 +137,7 @@ describe('NetworkGraph launch propagation', () => {
     const onInvestigateEntity = vi.fn();
 
     render(
-      <MemoryRouter future={routerFuture}>
+      <MemoryRouter>
         <NetworkGraph
           onOpenArtifact={vi.fn()}
           onInvestigateEntity={onInvestigateEntity}
@@ -175,7 +174,7 @@ describe('NetworkGraph launch propagation', () => {
     const onOpenChat = vi.fn();
 
     render(
-      <MemoryRouter future={routerFuture}>
+      <MemoryRouter>
         <NetworkGraph
           onOpenArtifact={vi.fn()}
           onInvestigateEntity={vi.fn()}
@@ -196,7 +195,7 @@ describe('NetworkGraph launch propagation', () => {
 
   it('focuses the active entity in-place when the omnibox targets the current network surface', () => {
     render(
-      <MemoryRouter future={routerFuture}>
+      <MemoryRouter>
         <NetworkGraph
           onOpenArtifact={vi.fn()}
           onInvestigateEntity={vi.fn()}

@@ -12,7 +12,8 @@ if (!rootElement) {
 const root = ReactDOM.createRoot(rootElement);
 root.render(
   <React.StrictMode>
-    <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+    {/* v7 is the default behavior in react-router 7; the v6 future flags are gone. */}
+    <BrowserRouter>
       <App />
     </BrowserRouter>
   </React.StrictMode>

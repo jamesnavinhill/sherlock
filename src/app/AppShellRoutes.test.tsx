@@ -14,7 +14,6 @@ vi.mock('@/components/features/LandingPage', () => ({
 
 import { AppShellRoutes } from './AppShellRoutes';
 
-const routerFuture = { v7_startTransition: true, v7_relativeSplatPath: true } as const;
 
 const LocationProbe = () => {
   const location = useLocation();
@@ -53,7 +52,7 @@ const buildControllerStub = () =>
 describe('AppShellRoutes', () => {
   it('redirects the root path to welcome', async () => {
     render(
-      <MemoryRouter future={routerFuture} initialEntries={['/']}>
+      <MemoryRouter initialEntries={['/']}>
         <Suspense fallback={<div>Loading...</div>}>
           <AppShellRoutes controller={buildControllerStub()} />
         </Suspense>
@@ -69,7 +68,7 @@ describe('AppShellRoutes', () => {
 
   it('redirects unknown paths to welcome', async () => {
     render(
-      <MemoryRouter future={routerFuture} initialEntries={['/missing']}>
+      <MemoryRouter initialEntries={['/missing']}>
         <Suspense fallback={<div>Loading...</div>}>
           <AppShellRoutes controller={buildControllerStub()} />
         </Suspense>

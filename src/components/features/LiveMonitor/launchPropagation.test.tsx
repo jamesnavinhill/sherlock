@@ -3,7 +3,6 @@ import { fireEvent, render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { useWorkspaceStore } from '../../../store/workspaceStore';
 
-const routerFuture = { v7_startTransition: true, v7_relativeSplatPath: true } as const;
 
 vi.mock('./SettingsPanel', () => ({
   SettingsPanel: () => null,
@@ -87,7 +86,7 @@ describe('LiveMonitor launch propagation', () => {
     const onInvestigate = vi.fn();
 
     render(
-      <MemoryRouter future={routerFuture}>
+      <MemoryRouter>
         <LiveMonitor
           events={[
             {
@@ -129,7 +128,7 @@ describe('LiveMonitor launch propagation', () => {
 
   it('does not render toolbar status or event counters', () => {
     render(
-      <MemoryRouter future={routerFuture}>
+      <MemoryRouter>
         <LiveMonitor
           events={[
             {
@@ -154,7 +153,7 @@ describe('LiveMonitor launch propagation', () => {
 
   it('renders monitor skeleton cards when the feed is empty', () => {
     render(
-      <MemoryRouter future={routerFuture}>
+      <MemoryRouter>
         <LiveMonitor
           events={[]}
           setEvents={vi.fn()}

@@ -17,7 +17,6 @@ vi.mock('@/components/features/Timeline/timelineSavedViews', () => ({
 
 import { GlobalSearch } from './GlobalSearch';
 
-const routerFuture = { v7_startTransition: true, v7_relativeSplatPath: true } as const;
 
 describe('GlobalSearch', () => {
   beforeEach(() => {
@@ -88,7 +87,7 @@ describe('GlobalSearch', () => {
 
   it('keeps result rows collapsed and moves actions into the row menu', () => {
     render(
-      <MemoryRouter future={routerFuture}>
+      <MemoryRouter>
         <GlobalSearch />
       </MemoryRouter>
     );

@@ -25,7 +25,6 @@ const LocationProbe = () => {
   );
 };
 
-const routerFuture = { v7_startTransition: true, v7_relativeSplatPath: true } as const;
 
 describe('TimelineView route state', () => {
   beforeEach(() => {
@@ -73,7 +72,7 @@ describe('TimelineView route state', () => {
     render(
       <AppWorkbenchHostProvider>
         <MemoryRouter
-          future={routerFuture}
+         
           initialEntries={['/workspaces/case-1/timeline?search=alpha+signal']}
         >
           <Routes>
@@ -101,7 +100,7 @@ describe('TimelineView route state', () => {
   it('navigates to the selected workspace timeline route from the workspace selector', async () => {
     render(
       <AppWorkbenchHostProvider>
-        <MemoryRouter future={routerFuture} initialEntries={['/workspaces/case-1/timeline']}>
+        <MemoryRouter initialEntries={['/workspaces/case-1/timeline']}>
           <Routes>
             <Route
               path="/workspaces/:workspaceId/timeline"
@@ -128,7 +127,7 @@ describe('TimelineView route state', () => {
   it('does not register a timeline-specific workbench panel', async () => {
     render(
       <AppWorkbenchHostProvider>
-        <MemoryRouter future={routerFuture} initialEntries={['/workspaces/case-1/timeline']}>
+        <MemoryRouter initialEntries={['/workspaces/case-1/timeline']}>
           <Routes>
             <Route
               path="/workspaces/:workspaceId/timeline"

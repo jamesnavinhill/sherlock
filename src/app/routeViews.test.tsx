@@ -33,7 +33,6 @@ vi.mock('@/components/features/WorkspaceHome', () => ({
 
 import { BoardRouteView, ChatRouteView, WorkspaceHomeRouteView } from './routeViews';
 
-const routerFuture = { v7_startTransition: true, v7_relativeSplatPath: true } as const;
 
 const LocationProbe = () => {
   const location = useLocation();
@@ -72,7 +71,7 @@ describe('route views', () => {
     const setActiveChatSessionId = vi.fn();
 
     render(
-      <MemoryRouter future={routerFuture} initialEntries={['/workspaces/ws-1/chat']}>
+      <MemoryRouter initialEntries={['/workspaces/ws-1/chat']}>
         <Routes>
           <Route
             path="/workspaces/:workspaceId/chat"
@@ -105,7 +104,7 @@ describe('route views', () => {
 
   it('redirects invalid chat session routes back to the workspace chat landing route', async () => {
     render(
-      <MemoryRouter future={routerFuture} initialEntries={['/workspaces/ws-1/chat/missing']}>
+      <MemoryRouter initialEntries={['/workspaces/ws-1/chat/missing']}>
         <Routes>
           <Route
             path="/workspaces/:workspaceId/chat/:sessionId"
@@ -136,7 +135,7 @@ describe('route views', () => {
 
   it('redirects the board landing route to the first workspace board document', async () => {
     render(
-      <MemoryRouter future={routerFuture} initialEntries={['/workspaces/ws-1/board']}>
+      <MemoryRouter initialEntries={['/workspaces/ws-1/board']}>
         <Routes>
           <Route
             path="/workspaces/:workspaceId/board"
@@ -169,7 +168,7 @@ describe('route views', () => {
 
   it('redirects invalid board routes to the first valid workspace board document', async () => {
     render(
-      <MemoryRouter future={routerFuture} initialEntries={['/workspaces/ws-1/board/missing']}>
+      <MemoryRouter initialEntries={['/workspaces/ws-1/board/missing']}>
         <Routes>
           <Route
             path="/workspaces/:workspaceId/board/:boardId"
@@ -203,7 +202,7 @@ describe('route views', () => {
     const setActiveWorkspaceId = vi.fn();
 
     render(
-      <MemoryRouter future={routerFuture} initialEntries={['/workspaces/ws-1']}>
+      <MemoryRouter initialEntries={['/workspaces/ws-1']}>
         <Routes>
           <Route
             path="/workspaces/:workspaceId"
@@ -230,7 +229,7 @@ describe('route views', () => {
 
   it('keeps the canonical workspace path even when the workspace has no artifact or board yet', async () => {
     render(
-      <MemoryRouter future={routerFuture} initialEntries={['/workspaces/ws-1']}>
+      <MemoryRouter initialEntries={['/workspaces/ws-1']}>
         <Routes>
           <Route
             path="/workspaces/:workspaceId"
@@ -256,7 +255,7 @@ describe('route views', () => {
 
   it('redirects unknown workspace ids back to the files route', async () => {
     render(
-      <MemoryRouter future={routerFuture} initialEntries={['/workspaces/missing']}>
+      <MemoryRouter initialEntries={['/workspaces/missing']}>
         <Routes>
           <Route
             path="/workspaces/:workspaceId"
@@ -302,7 +301,7 @@ describe('route views', () => {
     };
 
     render(
-      <MemoryRouter future={routerFuture} initialEntries={['/workspaces/ws-1/chat']}>
+      <MemoryRouter initialEntries={['/workspaces/ws-1/chat']}>
         <Routes>
           <Route path="/workspaces/:workspaceId/chat" element={<SyncedChatRoute />} />
         </Routes>

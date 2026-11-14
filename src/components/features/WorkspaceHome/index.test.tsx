@@ -6,7 +6,6 @@ import type { TimelineSavedView } from '@/components/features/Timeline/timelineS
 import { useWorkspaceStore } from '@/store/workspaceStore';
 import { WorkspaceHome } from './index';
 
-const routerFuture = { v7_startTransition: true, v7_relativeSplatPath: true } as const;
 
 const { getWorkspaceTimelineSavedViews } = vi.hoisted(() => ({
   getWorkspaceTimelineSavedViews: vi.fn(),
@@ -141,7 +140,7 @@ describe('WorkspaceHome', () => {
 
   it('renders the readiness summary, recent activity, saved views, and quick links', async () => {
     render(
-      <MemoryRouter future={routerFuture}>
+      <MemoryRouter>
         <WorkspaceHome workspaceId="ws-1" />
       </MemoryRouter>
     );

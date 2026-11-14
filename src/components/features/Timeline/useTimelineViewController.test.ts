@@ -11,7 +11,6 @@ const { buildTimelineViewModel } = vi.hoisted(() => ({
   buildTimelineViewModel: vi.fn(),
 }));
 
-const routerFuture = { v7_startTransition: true, v7_relativeSplatPath: true } as const;
 
 vi.mock('@/store/selectors/timelineSelectors', () => ({
   useTimelineFeatureState,
@@ -94,7 +93,7 @@ describe('useTimelineViewController', () => {
         }),
       {
         wrapper: ({ children }) =>
-          React.createElement(MemoryRouter, { future: routerFuture }, children),
+          React.createElement(MemoryRouter, null, children),
       }
     );
 
@@ -125,7 +124,7 @@ describe('useTimelineViewController', () => {
         }),
       {
         wrapper: ({ children }) =>
-          React.createElement(MemoryRouter, { future: routerFuture }, children),
+          React.createElement(MemoryRouter, null, children),
       }
     );
 
@@ -147,7 +146,7 @@ describe('useTimelineViewController', () => {
         }),
       {
         wrapper: ({ children }) =>
-          React.createElement(MemoryRouter, { future: routerFuture }, children),
+          React.createElement(MemoryRouter, null, children),
       }
     );
 
